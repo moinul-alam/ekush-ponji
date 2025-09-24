@@ -1,0 +1,69 @@
+name: ekush_ponji
+description: "A beautiful Bengali calendar app with government holidays and reminders"
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+version: 1.0.0+1
+
+environment:
+  sdk: '^3.9.0'  # Add this section
+  flutter: ">=3.24.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  
+  # State Management
+  flutter_bloc: ^9.1.1
+  equatable: ^2.0.5
+  
+  # Local Storage
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  path_provider: ^2.1.1
+  
+  # Calendar & Date
+  table_calendar: ^3.0.9
+  intl: 0.20.2
+  
+  # Notifications
+  flutter_local_notifications: ^19.4.2
+  timezone: ^0.10.1
+  
+  # Network
+  http: ^1.1.0
+  connectivity_plus: ^7.0.0
+  
+  # UI
+  google_fonts: ^6.1.0
+  flutter_svg: ^2.0.7
+  
+  # Monetization (add these later)
+  # google_mobile_ads: ^3.0.0
+  # in_app_purchase: ^3.1.11
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  hive_generator: ^2.0.0
+  build_runner: ^2.4.6
+
+flutter:
+  uses-material-design: true
+  
+  # Add your assets here
+  assets:
+    - assets/images/
+    - assets/fonts/
+    - assets/data/
+    - assets/sounds/
+  
+  fonts:
+    - family: Kalpurush
+      fonts:
+        - asset: assets/fonts/kalpurush.ttf
+    # - family: SolaimanLipi
+    #   fonts:
+    #     - asset: assets/fonts/solaiman_lipi.ttf
