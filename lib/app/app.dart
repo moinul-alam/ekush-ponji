@@ -1,11 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'themes.dart';
-import 'constants.dart';
-import '../presentation/pages/home/home_page.dart';
+import 'package:ekush_ponji/constants/constants.dart';
+import 'package:ekush_ponji/app/themes.dart';
+import 'package:ekush_ponji/services/settings_service.dart';
+import 'package:ekush_ponji/presentation/pages/home/home_screen.dart';
 
-class EkushPonjiApp extends StatelessWidget {
-  const EkushPonjiApp({super.key});
+
+class EkushPonjiApp extends StatefulWidget {
+  const EkushPonjiApp({Key? key}) : super(key: key);
+
+  @override
+  State<EkushPonjiApp> createState() => _EkushPonjiAppState();
+}
+
+class _EkushPonjiAppState extends State<EkushPonjiApp> {
+  late SettingsService _settingsService;
+  ThemeMode _themeMode = ThemeMode.system;
+  Locale _locale = AppConstants.defaultLocale;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeSettings();
+  }
+
+  Future<void> _initializeSettings() async {
+    _settingsService = SettingsService();
+    
+    // Load saved settings
+    final settings = await _settingsService.loadSettings();
+    
+    setState(() {
+      _themeMode = settings.themeMode;
+      _locale = settings.locale;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,32 +42,65 @@ class EkushPonjiApp extends StatelessWidget {
       title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
       
-      // Theme Configuration
+      // Theme configuration
       theme: AppThemes.lightTheme,
       darkTheme: AppThemes.darkTheme,
-      themeMode: ThemeMode.system,
+      themeMode: _themeMode,
       
-      // Localization
+      // Localization configuration
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: AppConstants.supportedLocales,
-      locale: AppConstants.defaultLocale,
+      locale: _locale,
       
-      // Routes
-      initialRoute: AppConstants.homeRoute,
-      routes: {
-        AppConstants.homeRoute: (context) => const HomePage(),
-        // TODO: Add more routes as we build features
-        // AppConstants.settingsRoute: (context) => const SettingsPage(),
-        // AppConstants.addReminderRoute: (context) => const AddReminderPage(),
-        // AppConstants.premiumRoute: (context) => const PremiumPage(),
-      },
+      // Home screen
+      home: HomeScreen(
+        onThemeChanged: _updateTheme,
+        onLocaleChanged: _updateLocale,
+      ),
       
-      // Home Page (fallback)
-      home: const HomePage(),
+      // Navigation configuration
+      onGenerateRoute: _generateRoute,
     );
+  }
+
+  void _updateTheme(ThemeMode themeMode) {
+    setState(() {
+      _themeMode = themeMode;
+    });
+    _settingsService.saveThemeMode(themeMode);
+  }
+
+  void _updateLocale(Locale locale) {
+    setState(() {
+      _locale = locale;
+    });
+    _settingsService.saveLocale(locale);
+  }
+
+  Route<dynamic>? _generateRoute(RouteSettings settings) {
+    // Add your route generation logic here
+    switch (settings.name) {
+      case '/':
+        return MaterialPageRoute(
+          builder: (context) => HomeScreen(
+            onThemeChanged: _updateTheme,
+            onLocaleChanged: _updateLocale,
+          ),
+        );
+      // Add more routes as needed
+      default:
+        return MaterialPageRoute(
+          builder: (context) => Scaffold(
+            appBar: AppBar(title: const Text('Page Not Found')),
+            body: const Center(
+              child: Text('404 - Page not found'),
+            ),
+          ),
+        );
+    }
   }
 }
