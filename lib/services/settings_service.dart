@@ -1,6 +1,6 @@
+// lib/services/settings_service.dart
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:ekush_ponji/constants/constants.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AppSettings {
   final ThemeMode themeMode;
@@ -10,7 +10,7 @@ class AppSettings {
 
   AppSettings({
     this.themeMode = ThemeMode.system,
-    this.locale = AppConstants.defaultLocale,
+    this.locale = const Locale('bn', 'BD'), // Default to Bengali
     this.notificationsEnabled = true,
     this.soundEnabled = true,
   });
@@ -53,56 +53,93 @@ class AppSettings {
 }
 
 class SettingsService {
-  static const String _settingsKey = 'app_settings';
-  late Box _settingsBox;
-
-  SettingsService() {
-    _settingsBox = Hive.box(AppConstants.settingsBoxName);
-  }
+  static const String _themeKey = 'theme_mode';
+  static const String _localeKey = 'locale';
+  static const String _notificationsKey = 'notifications_enabled';
+  static const String _soundKey = 'sound_enabled';
 
   // Load all settings
   Future<AppSettings> loadSettings() async {
     try {
-      final settingsMap = _settingsBox.get(_settingsKey);
-      if (settingsMap != null) {
-        return AppSettings.fromMap(Map<String, dynamic>.from(settingsMap));
-      }
+      final prefs = await SharedPreferences.getInstance();
+      
+      // Load theme mode
+      final themeIndex = prefs.getInt(_themeKey) ?? ThemeMode.system.index;
+      final themeMode = ThemeMode.values[themeIndex];
+      
+      // Load locale
+      final localeCode = prefs.getString(_localeKey) ?? 'bn';
+      final locale = localeCode == 'bn' 
+          ? const Locale('bn', 'BD') 
+          : const Locale('en', 'US');
+      
+      // Load notification settings
+      final notificationsEnabled = prefs.getBool(_notificationsKey) ?? true;
+      final soundEnabled = prefs.getBool(_soundKey) ?? true;
+      
+      return AppSettings(
+        themeMode: themeMode,
+        locale: locale,
+        notificationsEnabled: notificationsEnabled,
+        soundEnabled: soundEnabled,
+      );
     } catch (e) {
-      debugPrint('Error loading settings: $e');
+      print('Error loading settings: $e');
+      // Return default settings on error
+      return AppSettings();
     }
-    
-    // Return default settings if none found or error occurred
-    return AppSettings();
   }
 
   // Save all settings
   Future<void> saveSettings(AppSettings settings) async {
     try {
-      await _settingsBox.put(_settingsKey, settings.toMap());
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt(_themeKey, settings.themeMode.index);
+      await prefs.setString(_localeKey, settings.locale.languageCode);
+      await prefs.setBool(_notificationsKey, settings.notificationsEnabled);
+      await prefs.setBool(_soundKey, settings.soundEnabled);
     } catch (e) {
-      debugPrint('Error saving settings: $e');
+      print('Error saving settings: $e');
     }
   }
 
   // Individual setting methods for convenience
   Future<void> saveThemeMode(ThemeMode themeMode) async {
-    final currentSettings = await loadSettings();
-    await saveSettings(currentSettings.copyWith(themeMode: themeMode));
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt(_themeKey, themeMode.index);
+    } catch (e) {
+      print('Error saving theme mode: $e');
+      rethrow;
+    }
   }
 
   Future<void> saveLocale(Locale locale) async {
-    final currentSettings = await loadSettings();
-    await saveSettings(currentSettings.copyWith(locale: locale));
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_localeKey, locale.languageCode);
+    } catch (e) {
+      print('Error saving locale: $e');
+      rethrow;
+    }
   }
 
   Future<void> saveNotificationsEnabled(bool enabled) async {
-    final currentSettings = await loadSettings();
-    await saveSettings(currentSettings.copyWith(notificationsEnabled: enabled));
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_notificationsKey, enabled);
+    } catch (e) {
+      print('Error saving notifications setting: $e');
+    }
   }
 
   Future<void> saveSoundEnabled(bool enabled) async {
-    final currentSettings = await loadSettings();
-    await saveSettings(currentSettings.copyWith(soundEnabled: enabled));
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_soundKey, enabled);
+    } catch (e) {
+      print('Error saving sound setting: $e');
+    }
   }
 
   // Get individual settings

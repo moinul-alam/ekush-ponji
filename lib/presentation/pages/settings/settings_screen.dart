@@ -1,17 +1,13 @@
+// lib/presentation/pages/settings/settings_screen.dart
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:ekush_ponji/l10n/localization_helper.dart';
 import 'package:ekush_ponji/constants/constants.dart';
 import 'package:ekush_ponji/services/settings_service.dart';
+import 'package:ekush_ponji/app/state/app_state_manager.dart';
 
 class SettingsScreen extends StatefulWidget {
-  final Function(ThemeMode) onThemeChanged;
-  final Function(Locale) onLocaleChanged;
-
-  const SettingsScreen({
-    Key? key,
-    required this.onThemeChanged,
-    required this.onLocaleChanged,
-  }) : super(key: key);
+  const SettingsScreen({Key? key}) : super(key: key);
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -37,64 +33,74 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_currentSettings == null) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
-
-    return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            title: Text(LocalizationHelper.getSettings(context)),
-            floating: true,
-            automaticallyImplyLeading: false,
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.all(AppConstants.defaultPadding),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                _buildLanguageSection(),
-                const SizedBox(height: AppConstants.defaultPadding),
-                _buildThemeSection(),
-                const SizedBox(height: AppConstants.defaultPadding),
-                _buildNotificationSection(),
-                const SizedBox(height: AppConstants.defaultPadding),
-                _buildAboutSection(),
-              ]),
+    return Consumer<AppStateManager>(
+      builder: (context, appState, child) {
+        if (_currentSettings == null) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
             ),
+          );
+        }
+
+        return Scaffold(
+          body: CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                title: Text(_getLocalizedText('Settings')),
+                floating: true,
+                automaticallyImplyLeading: false,
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.all(16.0), // Using hardcoded value
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    _buildLanguageSection(appState),
+                    const SizedBox(height: 16.0),
+                    _buildThemeSection(appState),
+                    const SizedBox(height: 16.0),
+                    _buildNotificationSection(),
+                    const SizedBox(height: 16.0),
+                    _buildAboutSection(),
+                  ]),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildLanguageSection() {
+  Widget _buildLanguageSection(AppStateManager appState) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(AppConstants.defaultPadding),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              LocalizationHelper.isBengali(context) ? 'ভাষা' : 'Language',
+              _getLocalizedText('Language'),
               style: Theme.of(context).textTheme.titleMedium,
             ),
-            const SizedBox(height: AppConstants.smallPadding),
+            const SizedBox(height: 8.0),
             RadioListTile<String>(
               title: const Text('বাংলা'),
               value: 'bn',
-              groupValue: _currentSettings!.locale.languageCode,
-              onChanged: (value) => _changeLocale(const Locale('bn', 'BD')),
+              groupValue: appState.locale.languageCode,
+              onChanged: (value) => _changeLocale(
+                appState, 
+                const Locale('bn', 'BD')
+              ),
             ),
             RadioListTile<String>(
               title: const Text('English'),
               value: 'en',
-              groupValue: _currentSettings!.locale.languageCode,
-              onChanged: (value) => _changeLocale(const Locale('en', 'US')),
+              groupValue: appState.locale.languageCode,
+              onChanged: (value) => _changeLocale(
+                appState, 
+                const Locale('en', 'US')
+              ),
             ),
           ],
         ),
@@ -102,41 +108,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildThemeSection() {
+  Widget _buildThemeSection(AppStateManager appState) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(AppConstants.defaultPadding),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              LocalizationHelper.isBengali(context) ? 'থিম' : 'Theme',
+              _getLocalizedText('Theme'),
               style: Theme.of(context).textTheme.titleMedium,
             ),
-            const SizedBox(height: AppConstants.smallPadding),
+            const SizedBox(height: 8.0),
             RadioListTile<ThemeMode>(
-              title: Text(LocalizationHelper.isBengali(context) 
-                  ? 'লাইট মোড' 
-                  : 'Light Mode'),
+              title: Text(_getLocalizedText('Light Mode')),
               value: ThemeMode.light,
-              groupValue: _currentSettings!.themeMode,
-              onChanged: _changeTheme,
+              groupValue: appState.themeMode,
+              onChanged: (value) => _changeTheme(appState, value),
             ),
             RadioListTile<ThemeMode>(
-              title: Text(LocalizationHelper.isBengali(context) 
-                  ? 'ডার্ক মোড' 
-                  : 'Dark Mode'),
+              title: Text(_getLocalizedText('Dark Mode')),
               value: ThemeMode.dark,
-              groupValue: _currentSettings!.themeMode,
-              onChanged: _changeTheme,
+              groupValue: appState.themeMode,
+              onChanged: (value) => _changeTheme(appState, value),
             ),
             RadioListTile<ThemeMode>(
-              title: Text(LocalizationHelper.isBengali(context) 
-                  ? 'সিস্টেম ডিফল্ট' 
-                  : 'System Default'),
+              title: Text(_getLocalizedText('System Default')),
               value: ThemeMode.system,
-              groupValue: _currentSettings!.themeMode,
-              onChanged: _changeTheme,
+              groupValue: appState.themeMode,
+              onChanged: (value) => _changeTheme(appState, value),
             ),
           ],
         ),
@@ -147,28 +147,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildNotificationSection() {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(AppConstants.defaultPadding),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              LocalizationHelper.isBengali(context) 
-                  ? 'বিজ্ঞপ্তি' 
-                  : 'Notifications',
+              _getLocalizedText('Notifications'),
               style: Theme.of(context).textTheme.titleMedium,
             ),
-            const SizedBox(height: AppConstants.smallPadding),
+            const SizedBox(height: 8.0),
             SwitchListTile(
-              title: Text(LocalizationHelper.isBengali(context) 
-                  ? 'বিজ্ঞপ্তি সক্রিয়' 
-                  : 'Enable Notifications'),
+              title: Text(_getLocalizedText('Enable Notifications')),
               value: _currentSettings!.notificationsEnabled,
               onChanged: _toggleNotifications,
             ),
             SwitchListTile(
-              title: Text(LocalizationHelper.isBengali(context) 
-                  ? 'সাউন্ড সক্রিয়' 
-                  : 'Enable Sound'),
+              title: Text(_getLocalizedText('Enable Sound')),
               value: _currentSettings!.soundEnabled,
               onChanged: _currentSettings!.notificationsEnabled 
                   ? _toggleSound 
@@ -183,27 +177,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildAboutSection() {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(AppConstants.defaultPadding),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              LocalizationHelper.isBengali(context) ? 'সম্পর্কে' : 'About',
+              _getLocalizedText('About'),
               style: Theme.of(context).textTheme.titleMedium,
             ),
-            const SizedBox(height: AppConstants.smallPadding),
+            const SizedBox(height: 8.0),
             ListTile(
-              title: Text(LocalizationHelper.isBengali(context) 
-                  ? 'অ্যাপ সংস্করণ' 
-                  : 'App Version'),
-              subtitle: Text(AppConstants.appVersion),
+              title: Text(_getLocalizedText('App Version')),
+              subtitle: const Text('1.0.0'), // Hardcoded for now
               leading: const Icon(Icons.info_outline),
               onTap: _showVersionDialog,
             ),
             ListTile(
-              title: Text(LocalizationHelper.isBengali(context) 
-                  ? 'লাইসেন্স' 
-                  : 'Licenses'),
+              title: Text(_getLocalizedText('Licenses')),
               leading: const Icon(Icons.assignment),
               onTap: () => showLicensePage(context: context),
             ),
@@ -213,17 +203,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void _changeLocale(Locale locale) async {
-    widget.onLocaleChanged(locale);
+  void _changeLocale(AppStateManager appState, Locale locale) async {
+    // Update through Provider
+    await appState.updateLocale(locale);
+    
+    // Also update local settings
     await _settingsService.saveLocale(locale);
     setState(() {
       _currentSettings = _currentSettings!.copyWith(locale: locale);
     });
   }
 
-  void _changeTheme(ThemeMode? themeMode) async {
+  void _changeTheme(AppStateManager appState, ThemeMode? themeMode) async {
     if (themeMode != null) {
-      widget.onThemeChanged(themeMode);
+      // Update through Provider
+      await appState.updateTheme(themeMode);
+      
+      // Also update local settings
       await _settingsService.saveThemeMode(themeMode);
       setState(() {
         _currentSettings = _currentSettings!.copyWith(themeMode: themeMode);
@@ -253,26 +249,48 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(LocalizationHelper.isBengali(context) 
-              ? 'অ্যাপ সংস্করণ' 
-              : 'App Version'),
+          title: Text(_getLocalizedText('App Version')),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('${LocalizationHelper.isBengali(context) ? 'সংস্করণ' : 'Version'}: ${AppConstants.appVersion}'),
+              Text('${_getLocalizedText('Version')}: 1.0.0'),
               const SizedBox(height: 8),
-              Text('${LocalizationHelper.isBengali(context) ? 'অ্যাপের নাম' : 'App Name'}: ${AppConstants.appName}'),
+              Text('${_getLocalizedText('App Name')}: Ekush Ponji'),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text(LocalizationHelper.isBengali(context) ? 'ঠিক আছে' : 'OK'),
+              child: Text(_getLocalizedText('OK')),
             ),
           ],
         );
       },
     );
+  }
+
+  String _getLocalizedText(String key) {
+    final appState = context.watch<AppStateManager>();
+    final isBengali = appState.locale.languageCode == 'bn';
+    
+    switch (key) {
+      case 'Settings': return isBengali ? 'সেটিংস' : 'Settings';
+      case 'Language': return isBengali ? 'ভাষা' : 'Language';
+      case 'Theme': return isBengali ? 'থিম' : 'Theme';
+      case 'Light Mode': return isBengali ? 'লাইট মোড' : 'Light Mode';
+      case 'Dark Mode': return isBengali ? 'ডার্ক মোড' : 'Dark Mode';
+      case 'System Default': return isBengali ? 'সিস্টেম ডিফল্ট' : 'System Default';
+      case 'Notifications': return isBengali ? 'বিজ্ঞপ্তি' : 'Notifications';
+      case 'Enable Notifications': return isBengali ? 'বিজ্ঞপ্তি সক্রিয়' : 'Enable Notifications';
+      case 'Enable Sound': return isBengali ? 'সাউন্ড সক্রিয়' : 'Enable Sound';
+      case 'About': return isBengali ? 'সম্পর্কে' : 'About';
+      case 'App Version': return isBengali ? 'অ্যাপ সংস্করণ' : 'App Version';
+      case 'Licenses': return isBengali ? 'লাইসেন্স' : 'Licenses';
+      case 'Version': return isBengali ? 'সংস্করণ' : 'Version';
+      case 'App Name': return isBengali ? 'অ্যাপের নাম' : 'App Name';
+      case 'OK': return isBengali ? 'ঠিক আছে' : 'OK';
+      default: return key;
+    }
   }
 }

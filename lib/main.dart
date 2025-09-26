@@ -31,5 +31,5 @@ Future<void> main() async {
     debugPrint('Error opening Hive boxes: $e');
   }
 
-  runApp(const EkushPonjiApp());
+  runApp(const EkushPonjiApp()); // This should work if EkushPonjiApp sets up providers correctly
 }
