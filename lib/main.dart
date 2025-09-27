@@ -1,35 +1,33 @@
+// main.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 import 'package:ekush_ponji/app/app.dart';
-import 'package:ekush_ponji/data/models/holiday.dart';
-import 'package:ekush_ponji/data/models/reminder.dart';
-import 'package:ekush_ponji/constants/constants.dart';
+import 'package:ekush_ponji/services/hive_service.dart';
 
-Future<void> main() async {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
-  
-  await Hive.initFlutter();
-  
-  // Register adapters
-  Hive.registerAdapter(HolidayAdapter());
-  Hive.registerAdapter(ReminderAdapter());
-  
   try {
-    await Hive.openBox<Holiday>(AppConstants.holidaysBoxName);
-    await Hive.openBox<Reminder>(AppConstants.remindersBoxName);
-    await Hive.openBox(AppConstants.settingsBoxName);
+    debugPrint('Step 1: Setting orientations...');
+    // Set preferred orientations
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
     
-    debugPrint('All Hive boxes opened successfully');
-  } catch (e) {
-    debugPrint('Error opening Hive boxes: $e');
+    debugPrint('Step 2: Initializing Hive...');
+    // Initialize Hive
+    final hiveInitialized = await HiveService.initialize();
+    debugPrint('Hive initialized: $hiveInitialized');
+    
+    debugPrint('Step 3: Starting app...');
+    runApp(EkushPonjiApp(hiveInitialized: hiveInitialized));
+  } catch (e, stackTrace) {
+    debugPrint('CRITICAL ERROR: $e');
+    debugPrint('STACK TRACE: $stackTrace');
+    
+    // Run app with initialization failure flag
+    runApp(const EkushPonjiApp(hiveInitialized: false));
   }
-
-  runApp(const EkushPonjiApp()); // This should work if EkushPonjiApp sets up providers correctly
 }

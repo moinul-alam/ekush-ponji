@@ -1,5 +1,3 @@
-
-// 7. Error Screen Widget
 // lib/app/widgets/error_screen.dart
 import 'package:flutter/material.dart';
 import 'package:ekush_ponji/app/app.dart';
@@ -88,7 +86,7 @@ class ErrorScreen extends StatelessWidget {
                   onPressed: () {
                     Navigator.of(context).pushReplacement(
                       MaterialPageRoute(
-                        builder: (context) => const EkushPonjiApp(),
+                        builder: (context) => const EkushPonjiApp(hiveInitialized: true),
                       ),
                     );
                   },
