@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class AppColorSchemes {
   AppColorSchemes._();
 
-  // Light Color Scheme
+  // Light Color Scheme - FIXED: Removed deprecated 'background' property
   static const ColorScheme lightColorScheme = ColorScheme(
     brightness: Brightness.light,
     primary: Color(0xFF006B54),
@@ -19,26 +19,24 @@ class AppColorSchemes {
     tertiaryContainer: Color(0xFFC1E8FB),
     onTertiaryContainer: Color(0xFF001F29),
     error: Color(0xFFBA1A1A),
-    errorContainer: Color(0xFFFFDAD6),
     onError: Color(0xFFFFFFFF),
+    errorContainer: Color(0xFFFFDAD6),
     onErrorContainer: Color(0xFF410002),
-    background: Color(0xFFFBFDF9),
-    onBackground: Color(0xFF191C1A),
-    surface: Color(0xFFFBFDF9),
-    onSurface: Color(0xFF191C1A),
+    surface: Color(0xFFFBFDF9), // Replaces 'background'
+    onSurface: Color(0xFF191C1A), // Replaces 'onBackground'
     surfaceVariant: Color(0xFFDBE5DF),
     onSurfaceVariant: Color(0xFF404943),
     outline: Color(0xFF707972),
-    onInverseSurface: Color(0xFFEFF1ED),
-    inverseSurface: Color(0xFF2E312F),
-    inversePrimary: Color(0xFF5EDCB9),
-    shadow: Color(0xFF000000),
-    surfaceTint: Color(0xFF006B54),
     outlineVariant: Color(0xFFBFC9C3),
+    shadow: Color(0xFF000000),
     scrim: Color(0xFF000000),
+    inverseSurface: Color(0xFF2E312F),
+    onInverseSurface: Color(0xFFEFF1ED),
+    inversePrimary: Color(0xFF5EDCB9),
+    surfaceTint: Color(0xFF006B54),
   );
 
-  // Dark Color Scheme
+  // Dark Color Scheme - FIXED: Removed deprecated 'background' property
   static const ColorScheme darkColorScheme = ColorScheme(
     brightness: Brightness.dark,
     primary: Color(0xFF5EDCB9),
@@ -54,22 +52,20 @@ class AppColorSchemes {
     tertiaryContainer: Color(0xFF244C5A),
     onTertiaryContainer: Color(0xFFC1E8FB),
     error: Color(0xFFFFB4AB),
-    errorContainer: Color(0xFF93000A),
     onError: Color(0xFF690005),
+    errorContainer: Color(0xFF93000A),
     onErrorContainer: Color(0xFFFFDAD6),
-    background: Color(0xFF191C1A),
-    onBackground: Color(0xFFE1E3DF),
-    surface: Color(0xFF191C1A),
-    onSurface: Color(0xFFE1E3DF),
+    surface: Color(0xFF191C1A), // Replaces 'background'
+    onSurface: Color(0xFFE1E3DF), // Replaces 'onBackground'
     surfaceVariant: Color(0xFF404943),
     onSurfaceVariant: Color(0xFFBFC9C3),
     outline: Color(0xFF89938D),
-    onInverseSurface: Color(0xFF191C1A),
-    inverseSurface: Color(0xFFE1E3DF),
-    inversePrimary: Color(0xFF006B54),
-    shadow: Color(0xFF000000),
-    surfaceTint: Color(0xFF5EDCB9),
     outlineVariant: Color(0xFF404943),
+    shadow: Color(0xFF000000),
     scrim: Color(0xFF000000),
+    inverseSurface: Color(0xFFE1E3DF),
+    onInverseSurface: Color(0xFF191C1A),
+    inversePrimary: Color(0xFF006B54),
+    surfaceTint: Color(0xFF5EDCB9),
   );
 }

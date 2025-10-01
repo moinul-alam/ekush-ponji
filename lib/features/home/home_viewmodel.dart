@@ -17,7 +17,7 @@ class HomeViewModel extends Notifier<HomeState> {
       state = state.copyWith(isLoading: true);
       
       // Simulate loading delay (remove this in production)
-      await Future.delayed(const Duration(seconds: 1));
+      // await Future.delayed(const Duration(seconds: 1));
       
       // Set greeting based on time of day
       final greeting = _getGreeting();
