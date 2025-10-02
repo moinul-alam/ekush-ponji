@@ -1,28 +1,45 @@
 import 'package:flutter/foundation.dart';
-// import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'view_state.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ekush_ponji/core/base/view_state.dart';
 
-/// Base ViewModel class that all ViewModels should extend
-/// Provides common functionality for state management and lifecycle
-abstract class BaseViewModel extends ChangeNotifier {
-  ViewState _state = const ViewStateInitial();
+/// Base ViewModel class using Riverpod's Notifier pattern
+/// All ViewModels should extend this class
+/// Provides automatic state management and lifecycle handling
+abstract class BaseViewModel<T> extends Notifier<ViewState> {
+  @override
+  ViewState build() {
+    // Call onInit when the notifier is first created
+    ref.onDispose(() {
+      onDispose();
+    });
 
-  /// Current view state
-  ViewState get state => _state;
+    // Defer onInit to avoid modifying state during build
+    Future.microtask(() => onInit());
+
+    return const ViewStateInitial();
+  }
+
+  /// Current view state (convenience getter)
+  ViewState get viewState => state;
 
   /// Check if currently loading
-  bool get isLoading => _state is ViewStateLoading;
+  bool get isLoading => state is ViewStateLoading;
 
   /// Check if there's an error
-  bool get hasError => _state is ViewStateError;
+  bool get hasError => state is ViewStateError;
 
   /// Check if state is initial
-  bool get isInitial => _state is ViewStateInitial;
+  bool get isInitial => state is ViewStateInitial;
 
-  /// Update the current state and notify listeners
+  /// Check if state is success
+  bool get isSuccess => state is ViewStateSuccess;
+
+  /// Check if state is empty
+  bool get isEmpty => state is ViewStateEmpty;
+
+  /// Update the current state
   void setState(ViewState newState) {
-    _state = newState;
-    notifyListeners();
+    state = newState;
   }
 
   /// Set loading state
@@ -55,10 +72,14 @@ abstract class BaseViewModel extends ChangeNotifier {
   }
 
   /// Handle errors in a standardized way
-  void handleError(dynamic error, StackTrace stackTrace, {String? customMessage}) {
+  void handleError(
+    dynamic error,
+    StackTrace stackTrace, {
+    String? customMessage,
+  }) {
     debugPrint('Error in ${runtimeType}: $error');
     debugPrint('StackTrace: $stackTrace');
-    
+
     final errorMessage = customMessage ?? _getErrorMessage(error);
     setError(errorMessage, error: error, stackTrace: stackTrace);
   }
@@ -66,7 +87,7 @@ abstract class BaseViewModel extends ChangeNotifier {
   /// Extract user-friendly error message from exception
   String _getErrorMessage(dynamic error) {
     if (error == null) return 'An unknown error occurred';
-    
+
     // Add custom error message extraction logic here
     // For example: Firebase errors, Dio errors, etc.
     return error.toString();
@@ -79,10 +100,4 @@ abstract class BaseViewModel extends ChangeNotifier {
   /// Called when ViewModel is disposed
   /// Override this to perform cleanup tasks
   void onDispose() {}
-
-  @override
-  void dispose() {
-    onDispose();
-    super.dispose();
-  }
 }

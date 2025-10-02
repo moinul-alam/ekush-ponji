@@ -1,45 +1,57 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ekush_ponji/core/base/view_state.dart';
 
-/// Base screen widget that all screens can extend
-/// Provides common UI patterns and state handling for Riverpod 3.x
-abstract class BaseScreen extends ConsumerWidget {
+/// A reusable base screen for all app screens.
+/// Provides:
+/// - Automatic ViewState handling (loading, error, success)
+/// - Common Scaffold structure
+/// - Hooks for AppBar, FAB, Drawer, BottomNav
+/// - SafeArea and inset controls
+/// - Automatic snackbar notifications
+abstract class BaseScreen extends ConsumerStatefulWidget {
   const BaseScreen({super.key});
+
+  @override
+  BaseScreenState createState();
+}
+
+abstract class BaseScreenState<T extends BaseScreen> extends ConsumerState<T> {
+  /// Get the ViewState provider for this screen
+  /// Override this to connect to your specific ViewModel
+  NotifierProvider<dynamic, ViewState>? get viewModelProvider => null;
 
   /// Build the main body of the screen
   Widget buildBody(BuildContext context, WidgetRef ref);
 
-  /// Optional: Custom AppBar
-  PreferredSizeWidget? buildAppBar(BuildContext context, WidgetRef ref) {
-    return null;
-  }
+  /// --- Optional UI slots ---
+  PreferredSizeWidget? buildAppBar(BuildContext context, WidgetRef ref) => null;
+  Widget? buildFloatingActionButton(BuildContext context, WidgetRef ref) =>
+      null;
+  Widget? buildBottomNavigationBar(BuildContext context, WidgetRef ref) => null;
+  Widget? buildDrawer(BuildContext context, WidgetRef ref) => null;
 
-  /// Optional: Floating Action Button
-  Widget? buildFloatingActionButton(BuildContext context, WidgetRef ref) {
-    return null;
-  }
-
-  /// Optional: Bottom Navigation Bar
-  Widget? buildBottomNavigationBar(BuildContext context, WidgetRef ref) {
-    return null;
-  }
-
-  /// Optional: Drawer
-  Widget? buildDrawer(BuildContext context, WidgetRef ref) {
-    return null;
-  }
-
-  /// Whether to wrap body in SafeArea
+  /// --- Configurations ---
   bool get useSafeArea => true;
-
-  /// Whether to resize to avoid bottom inset (keyboard)
   bool get resizeToAvoidBottomInset => true;
-
-  /// Background color
   Color? get backgroundColor => null;
+  bool get showLoadingOverlay => true;
+  bool get autoHandleSuccess => true;
+  bool get autoHandleError => true;
 
-  /// Called when state changes to error
-  void onError(BuildContext context, String message) {
+  /// --- Custom UI Builders ---
+  Widget buildLoadingWidget() {
+    return Container(
+      color: Colors.black.withValues(alpha: 0.3),
+      child: const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+  }
+
+  /// --- Helpers ---
+  void showError(String message) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -49,8 +61,8 @@ abstract class BaseScreen extends ConsumerWidget {
     );
   }
 
-  /// Called when state changes to success with a message
-  void onSuccess(BuildContext context, String message) {
+  void showSuccess(String message) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -60,94 +72,80 @@ abstract class BaseScreen extends ConsumerWidget {
     );
   }
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      appBar: buildAppBar(context, ref),
-      body: useSafeArea
-          ? SafeArea(
-              child: buildBody(context, ref),
-            )
-          : buildBody(context, ref),
-      floatingActionButton: buildFloatingActionButton(context, ref),
-      bottomNavigationBar: buildBottomNavigationBar(context, ref),
-      drawer: buildDrawer(context, ref),
-      backgroundColor: backgroundColor,
-      resizeToAvoidBottomInset: resizeToAvoidBottomInset,
-    );
-  }
-}
-
-/// Base screen with loading state support
-/// Use this for screens that need to show loading overlays
-abstract class BaseScreenWithLoading extends ConsumerWidget {
-  const BaseScreenWithLoading({super.key});
-
-  /// Build the main body of the screen
-  Widget buildBody(BuildContext context, WidgetRef ref);
-
-  /// Get the loading state - override this to watch your specific provider
-  bool isLoading(WidgetRef ref);
-
-  /// Optional: Custom AppBar
-  PreferredSizeWidget? buildAppBar(BuildContext context, WidgetRef ref) {
-    return null;
-  }
-
-  /// Optional: Floating Action Button
-  Widget? buildFloatingActionButton(BuildContext context, WidgetRef ref) {
-    return null;
-  }
-
-  /// Optional: Bottom Navigation Bar
-  Widget? buildBottomNavigationBar(BuildContext context, WidgetRef ref) {
-    return null;
-  }
-
-  /// Optional: Drawer
-  Widget? buildDrawer(BuildContext context, WidgetRef ref) {
-    return null;
-  }
-
-  /// Whether to show loading overlay when state is loading
-  bool get showLoadingOverlay => true;
-
-  /// Whether to wrap body in SafeArea
-  bool get useSafeArea => true;
-
-  /// Whether to resize to avoid bottom inset (keyboard)
-  bool get resizeToAvoidBottomInset => true;
-
-  /// Background color
-  Color? get backgroundColor => null;
-
-  /// Custom loading widget
-  Widget buildLoadingWidget() {
-    return Container(
-      color: Colors.black.withOpacity(0.3),
-      child: const Center(
-        child: CircularProgressIndicator(),
+  void showInfo(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }
 
+  /// Called when ViewState changes to Success
+  /// Override to add custom behavior
+  void onSuccess(ViewStateSuccess state) {
+    if (autoHandleSuccess && state.message != null) {
+      showSuccess(state.message!);
+    }
+  }
+
+  /// Called when ViewState changes to Error
+  /// Override to add custom behavior
+  void onError(ViewStateError state) {
+    if (autoHandleError) {
+      showError(state.message);
+    }
+  }
+
+  /// Called when ViewState changes to Empty
+  /// Override to add custom behavior
+  void onEmpty(ViewStateEmpty state) {}
+
+  ViewState? _previousState;
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final loading = isLoading(ref);
+  Widget build(BuildContext context) {
+    // Listen to ViewState changes if provider is set
+    final viewState = viewModelProvider != null
+        ? ref.watch(viewModelProvider!)
+        : const ViewStateInitial();
+
+    // Handle state changes automatically
+    if (viewModelProvider != null) {
+      ref.listen<ViewState>(
+        viewModelProvider!,
+        (previous, next) {
+          // Avoid duplicate notifications
+          if (_previousState.runtimeType == next.runtimeType &&
+              _previousState == next) {
+            return;
+          }
+
+          _previousState = next;
+
+          // Handle different states
+          if (next is ViewStateSuccess) {
+            onSuccess(next);
+          } else if (next is ViewStateError) {
+            onError(next);
+          } else if (next is ViewStateEmpty) {
+            onEmpty(next);
+          }
+        },
+      );
+    }
+
+    final isLoading = viewState is ViewStateLoading;
 
     return Scaffold(
       appBar: buildAppBar(context, ref),
       body: Stack(
         children: [
-          // Main body
           useSafeArea
-              ? SafeArea(
-                  child: buildBody(context, ref),
-                )
+              ? SafeArea(child: buildBody(context, ref))
               : buildBody(context, ref),
-
-          // Loading overlay
-          if (showLoadingOverlay && loading) buildLoadingWidget(),
+          if (showLoadingOverlay && isLoading) buildLoadingWidget(),
         ],
       ),
       floatingActionButton: buildFloatingActionButton(context, ref),

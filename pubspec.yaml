@@ -6,6 +6,13 @@ version: 1.0.0+1
 environment:
   sdk: '>=3.0.0 <4.0.0'
 
+flutter_launcher_icons:
+  android: true
+  ios: false  # Since you only want Android
+  image_path: "assets/images/app_icon.png"
+  adaptive_icon_background: "#ffffff"  # Change to your preferred background color
+  adaptive_icon_foreground: "assets/images/app_icon.png"
+
 dependencies:
   flutter:
     sdk: flutter
@@ -44,6 +51,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.13.1
 
   # Code Generation - Compatible versions
   riverpod_generator: ^3.0.0-dev.11

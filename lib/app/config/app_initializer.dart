@@ -40,7 +40,7 @@ class AppInitializer {
       // Open settings box - CRITICAL: This must be opened before app starts
       await Hive.openBox('settings');
       debugPrint('✅ Settings box opened successfully');
-      
+
       // Add other boxes here as needed in the future
       // await Hive.openBox('calendar');
       // await Hive.openBox('events');
@@ -53,19 +53,23 @@ class AppInitializer {
 
   /// Update system UI based on current ThemeMode and platform brightness
   /// This is called from app.dart using ref.listen
-  static void updateSystemUIFromTheme(BuildContext context, ThemeMode themeMode) {
+  static void updateSystemUIFromTheme(
+      BuildContext context, ThemeMode themeMode) {
     final platformBrightness = MediaQuery.of(context).platformBrightness;
     final isDarkMode = themeMode == ThemeMode.dark ||
-        (themeMode == ThemeMode.system && platformBrightness == Brightness.dark);
+        (themeMode == ThemeMode.system &&
+            platformBrightness == Brightness.dark);
 
-    final colorScheme =
-        isDarkMode ? AppTheme.darkTheme.colorScheme : AppTheme.lightTheme.colorScheme;
+    final colorScheme = isDarkMode
+        ? AppTheme.darkTheme.colorScheme
+        : AppTheme.lightTheme.colorScheme;
 
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent, // Transparent for modern look
+      statusBarColor: Colors.transparent,
       statusBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
       systemNavigationBarColor: colorScheme.surface,
-      systemNavigationBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
+      systemNavigationBarIconBrightness:
+          isDarkMode ? Brightness.light : Brightness.dark,
     ));
   }
 

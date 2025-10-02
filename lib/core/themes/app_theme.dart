@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'color_schemes.dart';
+import 'package:ekush_ponji/core/themes/color_schemes.dart';
 
 class AppTheme {
   AppTheme._();
@@ -48,20 +48,30 @@ class AppTheme {
   // Text Theme (using Google Fonts)
   static TextTheme get _textTheme {
     return TextTheme(
-      displayLarge: GoogleFonts.poppins(fontSize: 57, fontWeight: FontWeight.w400),
-      displayMedium: GoogleFonts.poppins(fontSize: 45, fontWeight: FontWeight.w400),
-      displaySmall: GoogleFonts.poppins(fontSize: 36, fontWeight: FontWeight.w400),
-      headlineLarge: GoogleFonts.poppins(fontSize: 32, fontWeight: FontWeight.w600),
-      headlineMedium: GoogleFonts.poppins(fontSize: 28, fontWeight: FontWeight.w600),
-      headlineSmall: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.w600),
-      titleLarge: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w500),
-      titleMedium: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w500),
-      titleSmall: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w500),
+      displayLarge:
+          GoogleFonts.poppins(fontSize: 57, fontWeight: FontWeight.w400),
+      displayMedium:
+          GoogleFonts.poppins(fontSize: 45, fontWeight: FontWeight.w400),
+      displaySmall:
+          GoogleFonts.poppins(fontSize: 36, fontWeight: FontWeight.w400),
+      headlineLarge:
+          GoogleFonts.poppins(fontSize: 32, fontWeight: FontWeight.w600),
+      headlineMedium:
+          GoogleFonts.poppins(fontSize: 28, fontWeight: FontWeight.w600),
+      headlineSmall:
+          GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.w600),
+      titleLarge:
+          GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w500),
+      titleMedium:
+          GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w500),
+      titleSmall:
+          GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w500),
       bodyLarge: GoogleFonts.roboto(fontSize: 16, fontWeight: FontWeight.w400),
       bodyMedium: GoogleFonts.roboto(fontSize: 14, fontWeight: FontWeight.w400),
       bodySmall: GoogleFonts.roboto(fontSize: 12, fontWeight: FontWeight.w400),
       labelLarge: GoogleFonts.roboto(fontSize: 14, fontWeight: FontWeight.w500),
-      labelMedium: GoogleFonts.roboto(fontSize: 12, fontWeight: FontWeight.w500),
+      labelMedium:
+          GoogleFonts.roboto(fontSize: 12, fontWeight: FontWeight.w500),
       labelSmall: GoogleFonts.roboto(fontSize: 11, fontWeight: FontWeight.w500),
     );
   }
@@ -84,7 +94,7 @@ class AppTheme {
     );
   }
 
-  // Card Theme - FIXED: Changed return type to CardThemeData
+  // Card Theme
   static CardThemeData get _cardTheme {
     return CardThemeData(
       elevation: 2,

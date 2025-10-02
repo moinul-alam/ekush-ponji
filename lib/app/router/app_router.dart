@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ekush_ponji/features/splash/splash_screen.dart';
+// import 'package:ekush_ponji/features/home/old/home_screen.dart';
 import 'package:ekush_ponji/features/home/home_screen.dart';
-import 'route_names.dart';
+import 'package:ekush_ponji/app/router/route_names.dart';
 
 class AppRouter {
   AppRouter._();

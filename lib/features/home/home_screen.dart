@@ -1,210 +1,244 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/constants/app_constants.dart';
-import 'home_viewmodel.dart';
+import 'package:ekush_ponji/core/base/base_screen.dart';
+import 'package:ekush_ponji/core/base/view_state.dart';
+import 'package:ekush_ponji/core/widgets/navigation/app_header.dart';
+import 'package:ekush_ponji/core/widgets/navigation/app_bottom_nav.dart';
+import 'package:ekush_ponji/core/widgets/ads/app_ad_banner_bottom.dart';
+import 'package:ekush_ponji/features/home/home_viewmodel.dart';
+import 'package:ekush_ponji/features/home/widgets/app_greeter.dart';
+import 'package:ekush_ponji/features/home/widgets/today_date_widget.dart';
+import 'package:ekush_ponji/features/home/widgets/upcoming_holidays_widget.dart';
+import 'package:ekush_ponji/features/home/widgets/upcoming_events_widget.dart';
+import 'package:ekush_ponji/features/home/widgets/daily_quote_widget.dart';
+import 'package:ekush_ponji/features/home/widgets/daily_word_widget.dart';
+import 'package:ekush_ponji/features/home/widgets/home_grid_layout.dart';
 
-// Provider for HomeViewModel
-final homeViewModelProvider = NotifierProvider<HomeViewModel, HomeState>(
-  HomeViewModel.new,
-);
-
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends BaseScreen {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final homeState = ref.watch(homeViewModelProvider);
-    final homeNotifier = ref.read(homeViewModelProvider.notifier);
+  BaseScreenState<HomeScreen> createState() => _HomeScreenState();
+}
 
-    // Show error snackbar if there's an error
-    ref.listen<HomeState>(homeViewModelProvider, (previous, next) {
-      if (next.errorMessage != null && next.errorMessage!.isNotEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(next.errorMessage!),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    });
+class _HomeScreenState extends BaseScreenState<HomeScreen> {
+  int _currentNavIndex = 0;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Ekush Ponji'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Settings - Coming Soon')),
-              );
-            },
-          ),
-        ],
-      ),
-      body: Stack(
-        children: [
-          RefreshIndicator(
-            onRefresh: () => homeNotifier.refreshHomeData(),
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(AppConstants.defaultPadding),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Greeting Card
-                  _buildGreetingCard(context, homeState),
+  @override
+  NotifierProvider<HomeViewModel, ViewState> get viewModelProvider =>
+      homeViewModelProvider;
 
-                  const SizedBox(height: 24),
-
-                  // Placeholder sections
-                  _buildPlaceholderSection(
-                    context,
-                    title: 'Today',
-                    icon: Icons.today,
-                    description: 'Today\'s date and events',
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  _buildPlaceholderSection(
-                    context,
-                    title: 'Upcoming Holidays',
-                    icon: Icons.celebration,
-                    description: 'View upcoming holidays',
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  _buildPlaceholderSection(
-                    context,
-                    title: 'Reminders',
-                    icon: Icons.notifications,
-                    description: 'Your pending reminders',
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  _buildPlaceholderSection(
-                    context,
-                    title: 'Daily Quote',
-                    icon: Icons.format_quote,
-                    description: 'Inspirational quote of the day',
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  _buildPlaceholderSection(
-                    context,
-                    title: 'Word of the Day',
-                    icon: Icons.book,
-                    description: 'Learn a new word today',
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // Loading overlay
-          if (homeState.isLoading)
-            Container(
-              color: Colors.black.withOpacity(0.3),
-              child: const Center(
-                child: CircularProgressIndicator(),
-              ),
-            ),
-        ],
-      ),
+  @override
+  PreferredSizeWidget? buildAppBar(BuildContext context, WidgetRef ref) {
+    return AppHeader(
+      onSettingsTap: _onSettingsTap,
     );
   }
 
-  Widget _buildGreetingCard(BuildContext context, HomeState homeState) {
-    final theme = Theme.of(context);
+  @override
+  Widget buildBody(BuildContext context, WidgetRef ref) {
+    final viewModel = ref.read(homeViewModelProvider.notifier);
+    final holidays = viewModel.holidays;
+    final events = viewModel.events;
+    final userName = viewModel.userName;
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+    return Column(
+      children: [
+        // Main scrollable content
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: () => viewModel.refreshHomeData(),
+            child: HomeGridLayout(
+              padding: const EdgeInsets.only(bottom: 16),
               children: [
-                Icon(
-                  Icons.waving_hand,
-                  color: theme.colorScheme.primary,
-                  size: 32,
+                // Greeter
+                AppGreeter(userName: userName),
+
+                // Today's Date
+                const TodayDateWidget(),
+
+                // Upcoming Holidays
+                UpcomingHolidaysWidget(
+                  holidays: holidays.isEmpty ? null : holidays,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    homeState.greetingMessage.isEmpty
-                        ? 'Welcome!'
-                        : homeState.greetingMessage,
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
+
+                // Upcoming Events
+                UpcomingEventsWidget(
+                  events: events.isEmpty ? null : events,
+                ),
+
+                // Daily Quote
+                const DailyQuoteWidget(),
+
+                // Daily Word
+                const DailyWordWidget(),
+
+                // Bottom spacing for ad banner
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+        ),
+
+        // Ad Banner
+        const AppAdBannerBottom(),
+      ],
+    );
+  }
+
+  @override
+  Widget? buildBottomNavigationBar(BuildContext context, WidgetRef ref) {
+    return AppBottomNav(
+      currentIndex: _currentNavIndex,
+      onTap: _onNavTap,
+    );
+  }
+
+  @override
+  Widget? buildDrawer(BuildContext context, WidgetRef ref) {
+    return _buildAppDrawer(context);
+  }
+
+  // Event handlers
+  void _onSettingsTap() {
+    // TODO: Navigate to settings screen
+    showInfo('Settings screen - Coming soon');
+  }
+
+  void _onNavTap(int index) {
+    if (index == _currentNavIndex) return;
+
+    setState(() {
+      _currentNavIndex = index;
+    });
+
+    // TODO: Navigate to respective screens
+    switch (index) {
+      case 0:
+        // Already on Home
+        break;
+      case 1:
+        showInfo('Calendar screen - Coming soon');
+        break;
+      case 2:
+        showInfo('Calculator screen - Coming soon');
+        break;
+      case 3:
+        showInfo('Settings screen - Coming soon');
+        break;
+    }
+  }
+
+  // App Drawer
+  Widget _buildAppDrawer(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          // Drawer Header
+          DrawerHeader(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  colorScheme.primaryContainer,
+                  colorScheme.secondaryContainer,
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                CircleAvatar(
+                  radius: 32,
+                  backgroundColor: colorScheme.primary,
+                  child: Icon(
+                    Icons.person,
+                    size: 32,
+                    color: colorScheme.onPrimary,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Welcome!',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onPrimaryContainer,
+                  ),
+                ),
+                Text(
+                  'একুশ পঞ্জি',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSecondaryContainer,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            Text(
-              'Welcome to Ekush Ponji',
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Your all-in-one calendar with Bengali dates, events, and reminders',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPlaceholderSection(
-    BuildContext context, {
-    required String title,
-    required IconData icon,
-    required String description,
-  }) {
-    final theme = Theme.of(context);
-
-    return Card(
-      child: ListTile(
-        leading: Icon(
-          icon,
-          color: theme.colorScheme.primary,
-          size: 32,
-        ),
-        title: Text(
-          title,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
           ),
-        ),
-        subtitle: Text(
-          description,
-          style: theme.textTheme.bodySmall,
-        ),
-        trailing: Icon(
-          Icons.arrow_forward_ios,
-          size: 16,
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
-        onTap: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('$title - Coming Soon')),
-          );
-        },
+
+          // Drawer Items
+          ListTile(
+            leading: const Icon(Icons.person_outline),
+            title: const Text('Profile'),
+            onTap: () {
+              Navigator.pop(context);
+              showInfo('Profile - Coming soon');
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.calendar_month_outlined),
+            title: const Text('Calendar'),
+            onTap: () {
+              Navigator.pop(context);
+              showInfo('Calendar - Coming soon');
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.calculate_outlined),
+            title: const Text('Calculator'),
+            onTap: () {
+              Navigator.pop(context);
+              showInfo('Calculator - Coming soon');
+            },
+          ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.info_outline),
+            title: const Text('About'),
+            onTap: () {
+              Navigator.pop(context);
+              showInfo('About - Coming soon');
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.help_outline),
+            title: const Text('Help & Support'),
+            onTap: () {
+              Navigator.pop(context);
+              showInfo('Help & Support - Coming soon');
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.settings_outlined),
+            title: const Text('Settings'),
+            onTap: () {
+              Navigator.pop(context);
+              _onSettingsTap();
+            },
+          ),
+        ],
       ),
     );
   }
+
+  @override
+  bool get useSafeArea => false; // AppHeader handles safe area
+
+  @override
+  bool get resizeToAvoidBottomInset => true;
 }

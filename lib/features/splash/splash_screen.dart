@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
 import 'package:ekush_ponji/features/splash/widgets/logo_splash_widget.dart';
-import 'package:ekush_ponji/features/splash/widgets/calendar_loading_widget.dart';
+import 'package:ekush_ponji/features/splash/widgets/app_loading_widget.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -19,9 +19,9 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _navigateToHome() async {
-    // Adjust this duration to see different animations
-    await Future.delayed(const Duration(seconds: 20)); // Increased for testing
+    await Future.delayed(const Duration(seconds: 5));
     if (mounted) {
+      // Assuming RouteNames.home is a valid path in your GoRouter configuration
       context.go(RouteNames.home);
     }
   }
@@ -30,6 +30,11 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final size = MediaQuery.of(context).size;
+
+    // Alpha values derived from 255 * opacity:
+    // 0.8 opacity -> 204 alpha (255 * 0.8)
+    // 0.9 opacity -> 229 alpha (255 * 0.9)
+    // 0.05 opacity -> 13 alpha (255 * 0.05)
 
     return Scaffold(
       body: Container(
@@ -41,7 +46,7 @@ class _SplashScreenState extends State<SplashScreen> {
             end: Alignment.bottomRight,
             colors: [
               theme.colorScheme.primary,
-              theme.colorScheme.primary.withOpacity(0.8),
+              theme.colorScheme.primary.withAlpha(204),
               theme.colorScheme.primaryContainer,
             ],
             stops: const [0.0, 0.5, 1.0],
@@ -51,20 +56,19 @@ class _SplashScreenState extends State<SplashScreen> {
           children: [
             // Background decorative circles
             _buildBackgroundCircles(),
-            
+
             // Main content
             Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Logo and branding
                   const LogoSplashWidget(),
-                  
-                  const SizedBox(height: 60),
-                  
-                  // Loading animation - easily swappable
-                  CalendarLoadingWidget(
-                    color: Colors.white.withOpacity(0.9),
+
+                  // const SizedBox(height: 60),
+
+                  // Loading animation - easily swappable (from local import)
+                  AppLoadingWidget(
+                    color: Colors.white.withAlpha(229),
                   ),
                 ],
               ),
@@ -76,6 +80,8 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Widget _buildBackgroundCircles() {
+    const int backgroundAlpha = 13;
+
     return Stack(
       children: [
         Positioned(
@@ -86,7 +92,7 @@ class _SplashScreenState extends State<SplashScreen> {
             height: 300,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white.withOpacity(0.05),
+              color: Colors.white.withAlpha(backgroundAlpha),
             ),
           ),
         ),
@@ -98,7 +104,7 @@ class _SplashScreenState extends State<SplashScreen> {
             height: 400,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white.withOpacity(0.05),
+              color: Colors.white.withAlpha(backgroundAlpha),
             ),
           ),
         ),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
 import 'package:ekush_ponji/app/router/app_router.dart';
 import 'package:ekush_ponji/core/themes/app_theme.dart';
 import 'package:ekush_ponji/app/providers/app_providers.dart';
@@ -19,23 +18,34 @@ class _EkushPonjiAppState extends ConsumerState<EkushPonjiApp> {
   bool _systemUIInitialized = false;
 
   @override
+  void dispose() {
+    _systemUIInitialized = false;
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     // Watch theme mode - returns ThemeMode enum directly
     final themeMode = ref.watch(themeModeProvider);
 
     // Listen to theme changes and update system UI
-    ref.listen<ThemeMode>(themeModeProvider, (previous, next) {
-      if (previous != next) {
-        AppInitializer.updateSystemUIFromTheme(context, next);
-      }
-    });
+    ref.listen<ThemeMode>(
+      themeModeProvider,
+      (previous, next) {
+        if (previous != next && mounted) {
+          AppInitializer.updateSystemUIFromTheme(context, next);
+        }
+      },
+    );
 
     // Set initial system UI ONLY ONCE on first build
     if (!_systemUIInitialized) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           AppInitializer.updateSystemUIFromTheme(context, themeMode);
-          _systemUIInitialized = true;
+          setState(() {
+            _systemUIInitialized = true;
+          });
         }
       });
     }
@@ -58,8 +68,9 @@ class _EkushPonjiAppState extends ConsumerState<EkushPonjiApp> {
 
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(
-            textScaler: TextScaler.linear(
-              MediaQuery.of(context).textScaleFactor.clamp(0.8, 1.2),
+            textScaler: MediaQuery.textScalerOf(context).clamp(
+              minScaleFactor: 0.8,
+              maxScaleFactor: 1.2,
             ),
           ),
           child: widget ?? const SizedBox.shrink(),
