@@ -3,6 +3,17 @@ import 'dart:math' as math;
 
 /// Calendar-themed loading animation widget with 10 different animation styles
 /// Optimized for performance with efficient repaints and modern Flutter APIs
+// AnimationType.rotatingGrid
+// AnimationType.flippingPages
+// AnimationType.pulsingDates
+// AnimationType.circularMonths
+// AnimationType.bouncingWeekdays
+// AnimationType.spiralCalendar
+// AnimationType.waveGrid
+// AnimationType.orbitingDates
+// AnimationType.morphingShapes
+// AnimationType.slidingBlocks
+
 class AppLoadingWidget extends StatefulWidget {
   final Color color;
   final AnimationType animationType;
@@ -10,7 +21,7 @@ class AppLoadingWidget extends StatefulWidget {
   const AppLoadingWidget({
     super.key,
     required this.color,
-    this.animationType = AnimationType.orbitingDates,
+    this.animationType = AnimationType.waveGrid,
   });
 
   @override
