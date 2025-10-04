@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:ekush_ponji/app/router/route_names.dart';
 
 /// App header with logo, drawer icon, and settings icon
 /// Displays at the top of the home screen
@@ -51,7 +53,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
             Icons.settings_outlined,
             color: colorScheme.onSurface,
           ),
-          onPressed: onSettingsTap,
+          onPressed: onSettingsTap ?? () => context.push(RouteNames.settings),
           tooltip: 'Settings',
         ),
       ],

@@ -8,6 +8,12 @@ class RouteNames {
 
   // Calendar
   static const String calendar = '/calendar';
+  static const String calendarDayDetails = '/calendar/day-details';
+  static const String calendarAddEvent = '/calendar/add-event';
+  static const String calendarAddReminder = '/calendar/add-reminder';
+
+  // Calculator
+  static const String calculator = '/calculator';
 
   // Events
   static const String eventsList = '/events';

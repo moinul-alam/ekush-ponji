@@ -5,7 +5,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 // Box and key constants
 const String settingsBoxName = 'settings';
 const String _themeKey = 'themeMode';
-const String _languageKey = 'languageCode';
+const String _localeKey = 'languageCode';
 
 /// Theme Mode Notifier
 /// Manages app theme (light/dark/system) with persistent storage
@@ -15,7 +15,7 @@ class ThemeModeNotifier extends Notifier<ThemeMode> {
     try {
       final box = Hive.box(settingsBoxName);
       final savedTheme = box.get(_themeKey, defaultValue: 'light');
-      
+
       switch (savedTheme) {
         case 'dark':
           return ThemeMode.dark;
@@ -47,10 +47,10 @@ class ThemeModeNotifier extends Notifier<ThemeMode> {
   void _saveToHive() {
     try {
       final box = Hive.box(settingsBoxName);
-      final themeString = state == ThemeMode.dark 
-          ? 'dark' 
-          : state == ThemeMode.system 
-              ? 'system' 
+      final themeString = state == ThemeMode.dark
+          ? 'dark'
+          : state == ThemeMode.system
+              ? 'system'
               : 'light';
       box.put(_themeKey, themeString);
       debugPrint('✅ Theme mode saved: $themeString');
@@ -60,36 +60,71 @@ class ThemeModeNotifier extends Notifier<ThemeMode> {
   }
 }
 
-/// Language Code Notifier
-/// Manages app language with persistent storage
-class LanguageCodeNotifier extends Notifier<String> {
+/// Locale Notifier
+/// Manages app locale (language) with persistent storage
+class LocaleNotifier extends Notifier<Locale> {
   @override
-  String build() {
+  Locale build() {
     try {
       final box = Hive.box(settingsBoxName);
-      return box.get(_languageKey, defaultValue: 'bn'); // Bengali default
+      final savedLanguage = box.get(_localeKey, defaultValue: 'bn');
+      return _getLocaleFromCode(savedLanguage);
     } catch (e) {
-      debugPrint('❌ Error loading language code: $e');
-      return 'bn'; // Fallback to Bengali
+      debugPrint('❌ Error loading locale: $e');
+      return const Locale('bn', 'BD'); // Fallback to Bengali
     }
   }
 
-  /// Set app language
-  void setLanguage(String newCode) {
-    if (state == newCode) return; // No need to update if same
-    state = newCode;
-    _saveToHive(newCode);
+  /// Change the app locale
+  Future<void> setLocale(Locale newLocale) async {
+    try {
+      if (state.languageCode == newLocale.languageCode) return;
+
+      // Update state
+      state = newLocale;
+
+      // Persist to Hive
+      final box = Hive.box(settingsBoxName);
+      await box.put(_localeKey, newLocale.languageCode);
+
+      debugPrint('✅ Locale changed to: ${newLocale.languageCode}');
+    } catch (e) {
+      debugPrint('❌ Error saving locale: $e');
+    }
   }
 
-  /// Save language code to persistent storage
-  void _saveToHive(String code) {
-    try {
-      final box = Hive.box(settingsBoxName);
-      box.put(_languageKey, code);
-      debugPrint('✅ Language code saved: $code');
-    } catch (e) {
-      debugPrint('❌ Error saving language code: $e');
+  /// Switch between available languages
+  Future<void> toggleLanguage() async {
+    final newLocale = state.languageCode == 'en'
+        ? const Locale('bn', 'BD')
+        : const Locale('en', 'US');
+    await setLocale(newLocale);
+  }
+
+  /// Get locale from language code
+  Locale _getLocaleFromCode(String code) {
+    switch (code) {
+      case 'bn':
+        return const Locale('bn', 'BD');
+      case 'en':
+        return const Locale('en', 'US');
+      default:
+        return const Locale('bn', 'BD');
     }
+  }
+
+  /// Get language code from state
+  String get languageCode => state.languageCode;
+
+  /// Check if current locale is Bangla
+  bool get isBangla => state.languageCode == 'bn';
+
+  /// Check if current locale is English
+  bool get isEnglish => state.languageCode == 'en';
+
+  /// Get current language name
+  String get currentLanguageName {
+    return state.languageCode == 'bn' ? 'বাংলা' : 'English';
   }
 }
 
@@ -97,5 +132,5 @@ class LanguageCodeNotifier extends Notifier<String> {
 final themeModeProvider =
     NotifierProvider<ThemeModeNotifier, ThemeMode>(ThemeModeNotifier.new);
 
-final languageProvider =
-    NotifierProvider<LanguageCodeNotifier, String>(LanguageCodeNotifier.new);
+final localeProvider =
+    NotifierProvider<LocaleNotifier, Locale>(LocaleNotifier.new);

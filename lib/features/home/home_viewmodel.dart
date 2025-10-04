@@ -36,7 +36,7 @@ class HomeViewModel extends BaseViewModel<ViewState> {
       setLoading('Loading home data...');
 
       // Simulate API delay
-      await Future.delayed(const Duration(seconds: 1));
+      // await Future.delayed(const Duration(seconds: 1));
 
       // TODO: Replace with actual API calls
       // await _loadUserProfile();

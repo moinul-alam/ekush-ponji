@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:ekush_ponji/app/router/route_names.dart';
 
 /// Bottom navigation bar with Home, Calendar, Calculator, and Settings
 class AppBottomNav extends StatelessWidget {
@@ -18,60 +20,53 @@ class AppBottomNav extends StatelessWidget {
 
     return NavigationBar(
       selectedIndex: currentIndex,
-      onDestinationSelected: onTap ?? (index) {
-        // TODO: Navigate to respective screens
-        if (index != currentIndex) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(_getDestinationName(index)),
-              duration: const Duration(seconds: 1),
-            ),
-          );
-        }
-      },
+      onDestinationSelected:
+          onTap ?? (index) => _handleNavigation(context, index),
       backgroundColor: colorScheme.surface,
       elevation: 3,
-      destinations: [
+      destinations: const [
         NavigationDestination(
-          icon: const Icon(Icons.home_outlined),
-          selectedIcon: const Icon(Icons.home_rounded),
+          icon: Icon(Icons.home_outlined),
+          selectedIcon: Icon(Icons.home_rounded),
           label: 'Home',
           tooltip: 'Home',
         ),
         NavigationDestination(
-          icon: const Icon(Icons.calendar_today_outlined),
-          selectedIcon: const Icon(Icons.calendar_today_rounded),
+          icon: Icon(Icons.calendar_today_outlined),
+          selectedIcon: Icon(Icons.calendar_today_rounded),
           label: 'Calendar',
           tooltip: 'Calendar',
         ),
         NavigationDestination(
-          icon: const Icon(Icons.calculate_outlined),
-          selectedIcon: const Icon(Icons.calculate_rounded),
+          icon: Icon(Icons.calculate_outlined),
+          selectedIcon: Icon(Icons.calculate_rounded),
           label: 'Calculator',
           tooltip: 'Calculator',
         ),
-        NavigationDestination(
-          icon: const Icon(Icons.settings_outlined),
-          selectedIcon: const Icon(Icons.settings_rounded),
-          label: 'Settings',
-          tooltip: 'Settings',
-        ),
+        // NavigationDestination(
+        //   icon: Icon(Icons.settings_outlined),
+        //   selectedIcon: Icon(Icons.settings_rounded),
+        //   label: 'Settings',
+        //   tooltip: 'Settings',
+        // ),
       ],
     );
   }
 
-  String _getDestinationName(int index) {
+  void _handleNavigation(BuildContext context, int index) {
     switch (index) {
       case 0:
-        return 'Home (Currently active)';
+        context.go(RouteNames.home);
+        break;
       case 1:
-        return 'Calendar - Coming soon';
+        context.go(RouteNames.calendar);
+        break;
       case 2:
-        return 'Calculator - Coming soon';
-      case 3:
-        return 'Settings - Coming soon';
-      default:
-        return '';
+        context.go(RouteNames.calculator);
+        break;
+      // case 3:
+      //   context.go(RouteNames.settings);
+      //   break;
     }
   }
 }

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ekush_ponji/features/splash/splash_screen.dart';
-// import 'package:ekush_ponji/features/home/old/home_screen.dart';
 import 'package:ekush_ponji/features/home/home_screen.dart';
+import 'package:ekush_ponji/features/calendar/calendar_screen.dart';
+import 'package:ekush_ponji/features/calculator/calculator_screen.dart';
+import 'package:ekush_ponji/features/settings/settings_screen.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
 
 class AppRouter {
@@ -32,13 +34,49 @@ class AppRouter {
         ),
       ),
 
-      // Calendar Screen (placeholder for now)
+      // Calendar Screen
       GoRoute(
         path: RouteNames.calendar,
         name: 'calendar',
         pageBuilder: (context, state) => MaterialPage(
           key: state.pageKey,
-          child: const _PlaceholderScreen(title: 'Calendar'),
+          child: const CalendarScreen(),
+        ),
+        routes: [
+          GoRoute(
+            path: 'day-details',
+            name: 'calendarDayDetails',
+            pageBuilder: (context, state) => MaterialPage(
+              key: state.pageKey,
+              child: const _PlaceholderScreen(title: 'Day Details'),
+            ),
+          ),
+          GoRoute(
+            path: 'add-event',
+            name: 'calendarAddEvent',
+            pageBuilder: (context, state) => MaterialPage(
+              key: state.pageKey,
+              child: const _PlaceholderScreen(title: 'Add Event'),
+            ),
+          ),
+          GoRoute(
+            path: 'add-reminder',
+            name: 'calendarAddReminder',
+            pageBuilder: (context, state) => MaterialPage(
+              key: state.pageKey,
+              child: const _PlaceholderScreen(title: 'Add Reminder'),
+            ),
+          ),
+        ],
+      ),
+
+      // Calculator Screen - NOW IMPLEMENTED
+      GoRoute(
+        path: RouteNames.calculator,
+        name: 'calculator',
+        pageBuilder: (context, state) => MaterialPage(
+          key: state.pageKey,
+          child: const CalculatorScreen(),
         ),
       ),
 
@@ -135,13 +173,13 @@ class AppRouter {
         ),
       ),
 
-      // Settings Screen (placeholder)
+      // Settings Screen
       GoRoute(
         path: RouteNames.settings,
         name: 'settings',
         pageBuilder: (context, state) => MaterialPage(
           key: state.pageKey,
-          child: const _PlaceholderScreen(title: 'Settings'),
+          child: const SettingsScreen(),
         ),
       ),
     ],

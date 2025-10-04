@@ -55,9 +55,10 @@ abstract class BaseViewModel<T> extends Notifier<ViewState> {
   /// Set error state
   void setError(String message, {dynamic error, StackTrace? stackTrace}) {
     setState(ViewStateError(
-      message: message,
+      message,
       error: error,
       stackTrace: stackTrace,
+      message: '',
     ));
   }
 

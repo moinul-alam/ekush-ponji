@@ -48,6 +48,10 @@ dependencies:
   # Icons
   cupertino_icons: ^1.0.8
 
+  # Localization
+  flutter_localizations:
+    sdk: flutter
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -71,3 +75,4 @@ flutter:
   assets:
     - assets/images/
     - assets/icons/
+    - assets/data/borshoponji.json

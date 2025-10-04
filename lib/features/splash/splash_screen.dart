@@ -19,7 +19,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _navigateToHome() async {
-    await Future.delayed(const Duration(seconds: 5));
+    await Future.delayed(const Duration(seconds: 1));
     if (mounted) {
       // Assuming RouteNames.home is a valid path in your GoRouter configuration
       context.go(RouteNames.home);

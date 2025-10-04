@@ -25,7 +25,7 @@ class ViewStateError extends ViewState {
   final dynamic error;
   final StackTrace? stackTrace;
   
-  const ViewStateError({
+  const ViewStateError(String s, {
     required this.message,
     this.error,
     this.stackTrace,
