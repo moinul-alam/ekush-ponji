@@ -1,8 +1,9 @@
+// lib/main.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import 'package:ekush_ponji/app/app.dart';
 import 'package:ekush_ponji/app/config/app_initializer.dart';
+import 'package:ekush_ponji/app/app.dart';
 
 void main() async {
   // Ensure Flutter binding is initialized for async operations

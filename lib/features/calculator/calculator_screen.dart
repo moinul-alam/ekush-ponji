@@ -36,6 +36,7 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
     final viewModel = ref.read(calculatorViewModelProvider.notifier);
+    // ignore: unused_local_variable
     final state = ref.watch(calculatorViewModelProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;

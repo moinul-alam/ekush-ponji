@@ -3,7 +3,7 @@ import 'package:ekush_ponji/core/base/base_viewmodel.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
 import 'package:ekush_ponji/features/calendar/models/calendar_day.dart';
 import 'package:ekush_ponji/features/calendar/models/month_data.dart';
-import 'package:ekush_ponji/features/calendar/models/bengali_date.dart';
+// import 'package:ekush_ponji/features/calendar/models/bengali_date.dart';
 import 'package:ekush_ponji/features/calendar/data/calendar_repository.dart';
 import 'package:ekush_ponji/core/services/bengali_calendar_service.dart';
 import 'package:ekush_ponji/features/home/models/holiday.dart';
@@ -139,7 +139,7 @@ class CalendarViewModel extends BaseViewModel {
     for (final date in dateList) {
       days.add(CalendarDay(
         gregorianDate: date,
-        bengaliDate: _bengaliService.getBengaliDate(date) ?? _getFallbackBengaliDate(date),
+        bengaliDate: _bengaliService.getBengaliDate(date),
         isCurrentMonth: date.month == month && date.year == year,
         isToday: _isSameDay(date, today),
         isSelected: _selectedDate != null && _isSameDay(date, _selectedDate!),
@@ -201,9 +201,6 @@ class CalendarViewModel extends BaseViewModel {
         date1.day == date2.day;
   }
 
-  BengaliDate _getFallbackBengaliDate(DateTime gregorianDate) {
-    return BengaliDate(day: gregorianDate.day, monthName: 'Unknown', year: 1432, monthNumber: 1);
-  }
 
   @override
   void onDispose() {
