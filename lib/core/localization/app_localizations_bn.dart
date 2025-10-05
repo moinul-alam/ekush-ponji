@@ -1,3 +1,5 @@
+// lib/core/localization/app_localizations_bn.dart
+
 import 'package:flutter/material.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 
@@ -8,18 +10,24 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String translate(String key) {
-    // You can implement a more sophisticated translation lookup here
+    // Future: implement dynamic translation lookup
     return key;
   }
 
-  // App
+  // ========================================
+  // APP INFO
+  // ========================================
+
   @override
   String get appName => 'একুশ পঞ্জি';
 
   @override
   String get appTitle => 'একুশ পঞ্জি';
 
-  // Navigation
+  // ========================================
+  // NAVIGATION
+  // ========================================
+
   @override
   String get navHome => 'হোম';
 
@@ -32,7 +40,10 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get navSettings => 'সেটিংস';
 
-  // Common actions
+  // ========================================
+  // COMMON ACTIONS
+  // ========================================
+
   @override
   String get ok => 'ঠিক আছে';
 
@@ -84,7 +95,10 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get retry => 'পুনরায় চেষ্টা করুন';
 
-  // Home Screen
+  // ========================================
+  // HOME SCREEN
+  // ========================================
+
   @override
   String get homeTitle => 'হোম';
 
@@ -104,7 +118,7 @@ class AppLocalizationsBn extends AppLocalizations {
   String get todayDate => 'আজকের তারিখ';
 
   @override
-  String get upcomingHolidays => 'আпредстоящий ছুটির দিন';
+  String get upcomingHolidays => 'আসন্ন ছুটির দিন';
 
   @override
   String get upcomingEvents => 'আসন্ন ইভেন্ট';
@@ -128,7 +142,10 @@ class AppLocalizationsBn extends AppLocalizations {
   String get example => 'উদাহরণ';
 
   @override
-  String get inDays => '%s দিনে';
+  String get inDays => '%d দিনে';
+
+  @override
+  String get daysAgo => '%d দিন আগে';
 
   @override
   String get today => 'আজ';
@@ -136,7 +153,13 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get tomorrow => 'আগামীকাল';
 
-  // Drawer
+  @override
+  String get yesterday => 'গতকাল';
+
+  // ========================================
+  // DRAWER
+  // ========================================
+
   @override
   String get profile => 'প্রোফাইল';
 
@@ -152,7 +175,10 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get welcome => 'স্বাগতম!';
 
-  // Settings
+  // ========================================
+  // SETTINGS
+  // ========================================
+
   @override
   String get settingsTitle => 'সেটিংস';
 
@@ -174,7 +200,16 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get systemDefault => 'সিস্টেম ডিফল্ট';
 
-  // Messages
+  @override
+  String get languageChanged => 'ভাষা পরিবর্তিত হয়েছে';
+
+  @override
+  String get themeChanged => 'থিম পরিবর্তিত হয়েছে';
+
+  // ========================================
+  // MESSAGES
+  // ========================================
+
   @override
   String get comingSoon => 'শীঘ্রই আসছে';
 
@@ -190,7 +225,10 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get noDataAvailable => 'কোন ডেটা উপলব্ধ নেই';
 
-  // Days of week
+  // ========================================
+  // DAYS OF WEEK
+  // ========================================
+
   @override
   String get monday => 'সোমবার';
 
@@ -212,7 +250,10 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get sunday => 'রবিবার';
 
-  // Months
+  // ========================================
+  // MONTHS (ENGLISH CALENDAR)
+  // ========================================
+
   @override
   String get january => 'জানুয়ারি';
 
@@ -249,7 +290,10 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get december => 'ডিসেম্বর';
 
-  // Bangla Months
+  // ========================================
+  // BANGLA MONTHS
+  // ========================================
+
   @override
   String get boishakh => 'বৈশাখ';
 
@@ -285,6 +329,10 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get choitra => 'চৈত্র';
+
+  // ========================================
+  // CALCULATOR
+  // ========================================
 
   @override
   String get calculatorTitle => 'তারিখ ক্যালকুলেটর';
@@ -330,6 +378,10 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get weeksAndDays => 'সপ্তাহ এবং দিন';
+
+  // ========================================
+  // TIME UNITS
+  // ========================================
 
   @override
   String get year => 'বছর';

@@ -1,6 +1,10 @@
+// lib/core/localization/app_localizations.dart
+
 import 'package:flutter/material.dart';
 import 'package:ekush_ponji/core/localization/app_localizations_en.dart';
 import 'package:ekush_ponji/core/localization/app_localizations_bn.dart';
+import 'package:ekush_ponji/core/utils/string_formatter.dart';
+import 'package:ekush_ponji/core/utils/number_converter.dart';
 
 /// Base class for app localizations
 /// Provides translation methods and language-specific functionality
@@ -8,7 +12,10 @@ abstract class AppLocalizations {
   /// Get the current locale
   Locale get locale;
 
-  /// Get translation by key
+  /// Get language code
+  String get languageCode => locale.languageCode;
+
+  /// Get translation by key (for future dynamic translations)
   String translate(String key);
 
   /// Static method to get localizations from context
@@ -33,7 +40,120 @@ abstract class AppLocalizations {
     return ['bn', 'en'].contains(locale.languageCode);
   }
 
-  // Common translations that all implementations must provide
+  // ========================================
+  // FORMATTING HELPERS
+  // ========================================
+
+  /// Format string with arguments
+  ///
+  /// Example:
+  /// ```dart
+  /// format("In %d days", [5])
+  /// // Bengali: "৫ দিনে"
+  /// // English: "In 5 days"
+  /// ```
+  String format(String template, List<dynamic> args) {
+    return StringFormatter.formatString(
+      template,
+      args,
+      languageCode: languageCode,
+    );
+  }
+
+  /// Format with named arguments
+  ///
+  /// Example:
+  /// ```dart
+  /// formatNamed("Hello {name}", {'name': 'John'})
+  /// ```
+  String formatNamed(String template, Map<String, dynamic> args) {
+    return StringFormatter.formatNamed(
+      template,
+      args,
+      languageCode: languageCode,
+    );
+  }
+
+  /// Convert number to localized string
+  ///
+  /// Example:
+  /// ```dart
+  /// localizeNumber(123)
+  /// // Bengali: "১২৩"
+  /// // English: "123"
+  /// ```
+  String localizeNumber(dynamic number) {
+    return NumberConverter.convertToLocale(number, languageCode);
+  }
+
+  /// Format number with thousands separator
+  ///
+  /// Example:
+  /// ```dart
+  /// formatNumber(1234567)
+  /// // Bengali: "১২,৩৪,৫৬৭"
+  /// // English: "1,234,567"
+  /// ```
+  String formatNumber(int number) {
+    return NumberConverter.formatWithSeparator(number, languageCode);
+  }
+
+  /// Format count with plural
+  ///
+  /// Example:
+  /// ```dart
+  /// formatCount(5, day, days)
+  /// // Bengali: "৫ দিন"
+  /// // English: "5 days"
+  /// ```
+  String formatCount(int count, String singular, String plural) {
+    return StringFormatter.formatPlural(
+      count,
+      singular,
+      plural,
+      languageCode: languageCode,
+    );
+  }
+
+  /// Format "X days ago" or "In X days"
+  String formatDaysDistance(int days) {
+    if (days == 0) return today;
+    if (days == 1) return tomorrow;
+    if (days == -1) return yesterday;
+
+    String daysStr = localizeNumber(days.abs());
+
+    if (days > 0) {
+      return format(inDays, [days]);
+    } else {
+      return format(daysAgo, [days.abs()]);
+    }
+  }
+
+  /// Format duration (years, months, days)
+  String formatDuration({
+    required int years,
+    required int months,
+    required int days,
+  }) {
+    return StringFormatter.formatDuration(
+      years: years,
+      months: months,
+      days: days,
+      yearWord: year,
+      yearsWord: years > 1 ? this.years : year,
+      monthWord: month,
+      monthsWord: months > 1 ? this.months : month,
+      dayWord: day,
+      daysWord: days > 1 ? this.days : day,
+      languageCode: languageCode,
+    );
+  }
+
+  // ========================================
+  // COMMON TRANSLATIONS
+  // ========================================
+
   String get appName;
   String get appTitle;
 
@@ -78,8 +198,10 @@ abstract class AppLocalizations {
   String get synonym;
   String get example;
   String get inDays;
+  String get daysAgo;
   String get today;
   String get tomorrow;
+  String get yesterday;
 
   // Drawer
   String get profile;
@@ -96,6 +218,8 @@ abstract class AppLocalizations {
   String get darkMode;
   String get lightMode;
   String get systemDefault;
+  String get languageChanged;
+  String get themeChanged;
 
   // Messages
   String get comingSoon;
@@ -113,7 +237,7 @@ abstract class AppLocalizations {
   String get saturday;
   String get sunday;
 
-  // Months
+  // Months (English Calendar)
   String get january;
   String get february;
   String get march;
@@ -141,7 +265,7 @@ abstract class AppLocalizations {
   String get falgun;
   String get choitra;
 
-  // Calculator (NEW)
+  // Calculator
   String get calculatorTitle;
   String get fromDate;
   String get toDate;
@@ -165,6 +289,120 @@ abstract class AppLocalizations {
   String get days;
   String get week;
   String get weeks;
+
+  // ========================================
+  // HELPER METHODS
+  // ========================================
+
+  /// Get month name by number (1-12)
+  String getMonthName(int month) {
+    switch (month) {
+      case 1:
+        return january;
+      case 2:
+        return february;
+      case 3:
+        return march;
+      case 4:
+        return april;
+      case 5:
+        return may;
+      case 6:
+        return june;
+      case 7:
+        return july;
+      case 8:
+        return august;
+      case 9:
+        return september;
+      case 10:
+        return october;
+      case 11:
+        return november;
+      case 12:
+        return december;
+      default:
+        return '';
+    }
+  }
+
+  /// Get Bangla month name by number (1-12)
+  String getBanglaMonthName(int month) {
+    switch (month) {
+      case 1:
+        return boishakh;
+      case 2:
+        return jyoishtho;
+      case 3:
+        return asharh;
+      case 4:
+        return srabon;
+      case 5:
+        return bhadro;
+      case 6:
+        return ashwin;
+      case 7:
+        return kartik;
+      case 8:
+        return ogrohayon;
+      case 9:
+        return poush;
+      case 10:
+        return magh;
+      case 11:
+        return falgun;
+      case 12:
+        return choitra;
+      default:
+        return '';
+    }
+  }
+
+  /// Get day of week name
+  String getDayName(int day) {
+    switch (day) {
+      case 1:
+        return monday;
+      case 2:
+        return tuesday;
+      case 3:
+        return wednesday;
+      case 4:
+        return thursday;
+      case 5:
+        return friday;
+      case 6:
+        return saturday;
+      case 7:
+        return sunday;
+      default:
+        return '';
+    }
+  }
+
+  /// Format date to localized string
+  ///
+  /// Example:
+  /// ```dart
+  /// formatDate(DateTime(2025, 1, 5))
+  /// // Bengali: "৫ জানুয়ারি ২০২৫"
+  /// // English: "5 January 2025"
+  /// ```
+  String formatDate(DateTime date) {
+    String day = localizeNumber(date.day);
+    String month = getMonthName(date.month);
+    String year = localizeNumber(date.year);
+    return '$day $month $year';
+  }
+
+  /// Get greeting based on time
+  String getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return goodMorning;
+    if (hour < 17) return goodAfternoon;
+    if (hour < 21) return goodEvening;
+    return goodNight;
+  }
 }
 
 /// Localizations Delegate

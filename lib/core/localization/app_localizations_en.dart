@@ -1,3 +1,5 @@
+// lib/core/localization/app_localizations_en.dart
+
 import 'package:flutter/material.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 
@@ -8,18 +10,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String translate(String key) {
-    // You can implement a more sophisticated translation lookup here
+    // Future: implement dynamic translation lookup
     return key;
   }
 
-  // App
+  // ========================================
+  // APP INFO
+  // ========================================
+
   @override
   String get appName => 'Ekush Ponji';
 
   @override
   String get appTitle => 'Ekush Ponji';
 
-  // Navigation
+  // ========================================
+  // NAVIGATION
+  // ========================================
+
   @override
   String get navHome => 'Home';
 
@@ -32,7 +40,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get navSettings => 'Settings';
 
-  // Common actions
+  // ========================================
+  // COMMON ACTIONS
+  // ========================================
+
   @override
   String get ok => 'OK';
 
@@ -84,7 +95,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get retry => 'Retry';
 
-  // Home Screen
+  // ========================================
+  // HOME SCREEN
+  // ========================================
+
   @override
   String get homeTitle => 'Home';
 
@@ -128,7 +142,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get example => 'Example';
 
   @override
-  String get inDays => 'In %s days';
+  String get inDays => 'In %d days';
+
+  @override
+  String get daysAgo => '%d days ago';
 
   @override
   String get today => 'Today';
@@ -136,7 +153,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get tomorrow => 'Tomorrow';
 
-  // Drawer
+  @override
+  String get yesterday => 'Yesterday';
+
+  // ========================================
+  // DRAWER
+  // ========================================
+
   @override
   String get profile => 'Profile';
 
@@ -152,7 +175,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get welcome => 'Welcome!';
 
-  // Settings
+  // ========================================
+  // SETTINGS
+  // ========================================
+
   @override
   String get settingsTitle => 'Settings';
 
@@ -174,7 +200,16 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get systemDefault => 'System Default';
 
-  // Messages
+  @override
+  String get languageChanged => 'Language changed';
+
+  @override
+  String get themeChanged => 'Theme changed';
+
+  // ========================================
+  // MESSAGES
+  // ========================================
+
   @override
   String get comingSoon => 'Coming soon';
 
@@ -190,7 +225,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get noDataAvailable => 'No data available';
 
-  // Days of week
+  // ========================================
+  // DAYS OF WEEK
+  // ========================================
+
   @override
   String get monday => 'Monday';
 
@@ -212,7 +250,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get sunday => 'Sunday';
 
-  // Months
+  // ========================================
+  // MONTHS (ENGLISH CALENDAR)
+  // ========================================
+
   @override
   String get january => 'January';
 
@@ -249,7 +290,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get december => 'December';
 
-  // Bangla Months
+  // ========================================
+  // BANGLA MONTHS
+  // ========================================
+
   @override
   String get boishakh => 'Boishakh';
 
@@ -285,6 +329,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get choitra => 'Choitra';
+
+  // ========================================
+  // CALCULATOR
+  // ========================================
 
   @override
   String get calculatorTitle => 'Date Calculator';
@@ -330,6 +378,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get weeksAndDays => 'Weeks and Days';
+
+  // ========================================
+  // TIME UNITS
+  // ========================================
 
   @override
   String get year => 'Year';

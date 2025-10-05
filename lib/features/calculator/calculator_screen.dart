@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ekush_ponji/core/base/base_screen.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
+import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/features/calculator/calculator_viewmodel.dart';
 import 'package:ekush_ponji/features/calculator/widgets/date_input_field.dart';
 import 'package:ekush_ponji/features/calculator/widgets/result_card.dart';
@@ -12,6 +13,7 @@ import 'package:ekush_ponji/app/router/route_names.dart';
 
 /// Date Duration Calculator Screen
 /// Calculates duration between two dates with multiple format outputs
+/// Now fully localized with Bengali and English support
 class CalculatorScreen extends BaseScreen {
   const CalculatorScreen({super.key});
 
@@ -35,6 +37,7 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
 
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final viewModel = ref.read(calculatorViewModelProvider.notifier);
     // ignore: unused_local_variable
     final state = ref.watch(calculatorViewModelProvider);
@@ -47,12 +50,12 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Instructions Card
-          _buildInstructionsCard(colorScheme, theme),
+          _buildInstructionsCard(l10n, colorScheme, theme),
           const SizedBox(height: 24),
 
           // From Date Input
           DateInputField(
-            label: 'From Date',
+            label: l10n.fromDate, // "শুরুর তারিখ" or "From Date"
             selectedDate: viewModel.fromDate,
             onTap: () => _showDatePicker(context, ref, isFromDate: true),
             onClear: viewModel.clearFromDate,
@@ -68,7 +71,7 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
           // To Date Input (with GlobalKey attached)
           DateInputField(
             key: _toDateKey,
-            label: 'To Date',
+            label: l10n.toDate, // "শেষ তারিখ" or "To Date"
             selectedDate: viewModel.toDate,
             onTap: () => _showDatePicker(context, ref, isFromDate: false),
             onClear: viewModel.clearToDate,
@@ -81,15 +84,15 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
 
           // Today Shortcut Chip
           const SizedBox(height: 12),
-          _buildTodayChip(viewModel, colorScheme, theme),
+          _buildTodayChip(l10n, viewModel, colorScheme, theme),
 
           const SizedBox(height: 32),
 
           // Results Section or Empty State
           if (viewModel.calculationResult != null && viewModel.hasValidDates)
-            _buildResultsSection(context, viewModel, colorScheme, theme)
+            _buildResultsSection(context, l10n, viewModel, colorScheme, theme)
           else if (viewModel.validationError == null)
-            _buildEmptyState(colorScheme, theme),
+            _buildEmptyState(l10n, colorScheme, theme),
         ],
       ),
     );
@@ -97,13 +100,15 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
 
   @override
   PreferredSizeWidget? buildAppBar(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    
     return AppBar(
-      title: const Text('Date Calculator'),
+      title: Text(l10n.calculatorTitle), // "তারিখ ক্যালকুলেটর" or "Date Calculator"
       centerTitle: true,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
         onPressed: () => context.go(RouteNames.home),
-        tooltip: 'Back to Home',
+        tooltip: l10n.back, // "পিছনে" or "Back"
       ),
     );
   }
@@ -111,6 +116,8 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
   @override
   void onError(ViewStateError state) {
     if (!mounted) return;
+
+    final l10n = AppLocalizations.of(context);
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -131,7 +138,11 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
   // ==================== UI Builder Methods ====================
 
   /// Build instructions card at the top
-  Widget _buildInstructionsCard(ColorScheme colorScheme, ThemeData theme) {
+  Widget _buildInstructionsCard(
+    AppLocalizations l10n,
+    ColorScheme colorScheme,
+    ThemeData theme,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -148,7 +159,7 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Select two dates to calculate the duration between them',
+              l10n.selectDatesToSeeResults, // "ফলাফল দেখতে তারিখ নির্বাচন করুন"
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurface,
               ),
@@ -161,6 +172,7 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
 
   /// Build "Today" shortcut chip for To Date
   Widget _buildTodayChip(
+    AppLocalizations l10n,
     CalculatorViewModel viewModel,
     ColorScheme colorScheme,
     ThemeData theme,
@@ -174,7 +186,7 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
           color: colorScheme.primary,
         ),
         label: Text(
-          'Today',
+          l10n.today, // "আজ" or "Today"
           style: theme.textTheme.labelMedium?.copyWith(
             color: colorScheme.primary,
             fontWeight: FontWeight.w600,
@@ -192,6 +204,7 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
   /// Build results section with all calculation outputs
   Widget _buildResultsSection(
     BuildContext context,
+    AppLocalizations l10n,
     CalculatorViewModel viewModel,
     ColorScheme colorScheme,
     ThemeData theme,
@@ -211,7 +224,7 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
             ),
             const SizedBox(width: 8),
             Text(
-              'Calculation Results',
+              l10n.calculationResults, // "গণনার ফলাফল" or "Calculation Results"
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -223,34 +236,37 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
 
         // Years, Months, Days
         ResultCard(
-          title: 'Years Months Days',
-          value: result.formatYearsMonthsDays(),
+          title: l10n.yearsMonthsDays, // "বছর মাস দিন" or "Years Months Days"
+          value: _formatYearsMonthsDays(l10n, result),
           icon: Icons.calendar_month_rounded,
           onCopy: () => _copyToClipboard(
             context,
-            result.formatYearsMonthsDays(),
+            l10n,
+            _formatYearsMonthsDays(l10n, result),
           ),
         ),
 
         // Total Days
         ResultCard(
-          title: 'Total Days',
-          value: result.formatTotalDays(),
+          title: l10n.totalDays, // "মোট দিন" or "Total Days"
+          value: _formatTotalDays(l10n, result),
           icon: Icons.event_rounded,
           onCopy: () => _copyToClipboard(
             context,
-            result.formatTotalDays(),
+            l10n,
+            _formatTotalDays(l10n, result),
           ),
         ),
 
         // Weeks and Days
         ResultCard(
-          title: 'Weeks and Days',
-          value: result.formatWeeksAndDays(),
+          title: l10n.weeksAndDays, // "সপ্তাহ এবং দিন" or "Weeks and Days"
+          value: _formatWeeksAndDays(l10n, result),
           icon: Icons.date_range_rounded,
           onCopy: () => _copyToClipboard(
             context,
-            result.formatWeeksAndDays(),
+            l10n,
+            _formatWeeksAndDays(l10n, result),
           ),
         ),
 
@@ -262,7 +278,7 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
           child: OutlinedButton.icon(
             onPressed: viewModel.resetDates,
             icon: const Icon(Icons.refresh_rounded),
-            label: const Text('Reset'),
+            label: Text(l10n.reset), // "রিসেট" or "Reset"
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
             ),
@@ -273,7 +289,11 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
   }
 
   /// Build empty state when no valid dates are selected
-  Widget _buildEmptyState(ColorScheme colorScheme, ThemeData theme) {
+  Widget _buildEmptyState(
+    AppLocalizations l10n,
+    ColorScheme colorScheme,
+    ThemeData theme,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(top: 32),
       child: Center(
@@ -286,7 +306,7 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Select dates to see results',
+              l10n.selectDatesToSeeResults, // "ফলাফল দেখতে তারিখ নির্বাচন করুন"
               style: theme.textTheme.bodyLarge?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -297,14 +317,52 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
     );
   }
 
+  // ==================== Formatting Methods ====================
+
+  /// Format years, months, days with localized numbers
+  /// Example: "২ বছর ৫ মাস ১০ দিন" or "2 Years 5 Months 10 Days"
+  String _formatYearsMonthsDays(AppLocalizations l10n, dynamic result) {
+    // Assuming result has years, months, days properties
+    return l10n.formatDuration(
+      years: result.years ?? 0,
+      months: result.months ?? 0,
+      days: result.days ?? 0,
+    );
+  }
+
+  /// Format total days with localized numbers
+  /// Example: "৮০০" or "800"
+  String _formatTotalDays(AppLocalizations l10n, dynamic result) {
+    // Assuming result has totalDays property
+    final totalDays = result.totalDays ?? 0;
+    return l10n.localizeNumber(totalDays);
+  }
+
+  /// Format weeks and days with localized numbers
+  /// Example: "১১৪ সপ্তাহ, ২ দিন" or "114 Weeks, 2 Days"
+  String _formatWeeksAndDays(AppLocalizations l10n, dynamic result) {
+    // Assuming result has weeks and remainingDays properties
+    final weeks = result.weeks ?? 0;
+    final remainingDays = result.remainingDays ?? 0;
+
+    final weeksStr = l10n.localizeNumber(weeks);
+    final daysStr = l10n.localizeNumber(remainingDays);
+    
+    final weeksLabel = weeks == 1 ? l10n.week : l10n.weeks;
+    final daysLabel = remainingDays == 1 ? l10n.day : l10n.days;
+
+    return '$weeksStr $weeksLabel, $daysStr $daysLabel';
+  }
+
   // ==================== Action Methods ====================
 
-  /// Show Material date picker dialog
+  /// Show Material date picker dialog with localized labels
   Future<void> _showDatePicker(
     BuildContext context,
     WidgetRef ref, {
     required bool isFromDate,
   }) async {
+    final l10n = AppLocalizations.of(context);
     final viewModel = ref.read(calculatorViewModelProvider.notifier);
 
     final selectedDate = await showDatePicker(
@@ -314,7 +372,9 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
           : (viewModel.toDate ?? DateTime.now()),
       firstDate: DateTime(1900),
       lastDate: DateTime(2100),
-      helpText: isFromDate ? 'Select From Date' : 'Select To Date',
+      helpText: isFromDate 
+          ? l10n.selectFromDate  // "শুরুর তারিখ নির্বাচন করুন"
+          : l10n.selectToDate,   // "শেষ তারিখ নির্বাচন করুন"
     );
 
     if (selectedDate != null && context.mounted) {
@@ -326,8 +386,12 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
     }
   }
 
-  /// Copy text to clipboard and show confirmation
-  Future<void> _copyToClipboard(BuildContext context, String text) async {
+  /// Copy text to clipboard and show localized confirmation
+  Future<void> _copyToClipboard(
+    BuildContext context,
+    AppLocalizations l10n,
+    String text,
+  ) async {
     await Clipboard.setData(ClipboardData(text: text));
 
     if (!context.mounted) return;
@@ -338,7 +402,11 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
           children: [
             const Icon(Icons.check_circle, color: Colors.white),
             const SizedBox(width: 12),
-            Flexible(child: Text('Copied: $text')),
+            Expanded(
+              child: Text(
+                '${l10n.copiedToClipboard}: $text', // "কপি হয়েছে: ..."
+              ),
+            ),
           ],
         ),
         backgroundColor: Theme.of(context).colorScheme.primary,
