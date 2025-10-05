@@ -438,6 +438,6 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
       'July', 'August', 'September', 'October', 'November', 'December'
     ];
     final month = months[day.gregorianDate.month];
-    return '${month} ${day.gregorianDate.day}, ${day.gregorianDate.year}';
+    return '$month ${day.gregorianDate.day}, ${day.gregorianDate.year}';
   }
 }

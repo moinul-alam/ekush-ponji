@@ -1,134 +1,137 @@
+// lib/features/calculator/calculator_viewmodel.dart
+
 import 'package:ekush_ponji/core/base/base_viewmodel.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
 import 'package:ekush_ponji/features/calculator/models/date_calculation_result.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// ViewModel for Date Duration Calculator
-/// Handles date selection, validation, and calculation
+/// Handles date selection, validation, and calculation logic
 class CalculatorViewModel extends BaseViewModel<ViewState> {
-  // State variables
   DateTime? _fromDate;
   DateTime? _toDate;
-  DateCalculationResult? _calculationResult;
   String? _validationError;
 
   // Getters
   DateTime? get fromDate => _fromDate;
   DateTime? get toDate => _toDate;
-  DateCalculationResult? get calculationResult => _calculationResult;
   String? get validationError => _validationError;
+  
+  // Get calculation result from state.data
+  DateCalculationResult? get calculationResult {
+    final currentState = state;
+    if (currentState is ViewStateSuccess<DateCalculationResult>) {
+      return currentState.data;
+    }
+    return null;
+  }
+  
   bool get hasValidDates =>
       _fromDate != null && _toDate != null && _validationError == null;
 
   @override
   void onInit() {
     super.onInit();
-    // Initialize with no dates selected
-    setSuccess();
+    // Initialize with empty success state
+    state = ViewStateSuccess<DateCalculationResult>();
   }
 
-  /// Set from date and recalculate
+  /// Set from date and trigger recalculation
   void setFromDate(DateTime date) {
     _fromDate = date;
     _validateAndCalculate();
   }
 
-  /// Set to date and recalculate
+  /// Set to date and trigger recalculation
   void setToDate(DateTime date) {
     _toDate = date;
     _validateAndCalculate();
   }
 
-  /// Set to date as today
+  /// Quick action: Set to date as today
   void setToDateAsToday() {
     _toDate = DateTime.now();
     _validateAndCalculate();
   }
 
-  /// Clear from date
+  /// Clear from date and reset calculation
   void clearFromDate() {
     _fromDate = null;
-    _calculationResult = null;
-    _validationError = null;
-    state = ViewStateSuccess();
+    _resetCalculation();
   }
 
-  /// Clear to date
+  /// Clear to date and reset calculation
   void clearToDate() {
     _toDate = null;
-    _calculationResult = null;
-    _validationError = null;
-    state = ViewStateSuccess();
+    _resetCalculation();
   }
 
-  /// Reset all dates
+  /// Reset all dates to initial state
   void resetDates() {
     _fromDate = null;
     _toDate = null;
-    _calculationResult = null;
-    _validationError = null;
-    state = ViewStateSuccess();
+    _resetCalculation();
   }
 
-  /// Validate dates and calculate if valid
+  /// Helper to reset calculation state
+  void _resetCalculation() {
+    _validationError = null;
+    state = ViewStateSuccess<DateCalculationResult>();
+  }
+
+  /// Validate dates and calculate duration if valid
   void _validateAndCalculate() {
-    // Clear previous error
     _validationError = null;
 
-    // Check if both dates are selected
+    // Both dates must be selected for calculation
     if (_fromDate == null || _toDate == null) {
-      _calculationResult = null;
-      state = ViewStateSuccess();
+      state = ViewStateSuccess<DateCalculationResult>();
       return;
     }
 
-    // Validate: From date cannot be after To date
+    // Validate: From date must not be after To date
     if (_fromDate!.isAfter(_toDate!)) {
       _validationError = 'From date cannot be after To date';
-      _calculationResult = null;
-      state = ViewStateError(_validationError!, message: '');
+      state = ViewStateError(_validationError!);
       return;
     }
 
-    // Calculate duration
-    _calculateDuration();
-    state = ViewStateSuccess();
+    // Perform calculation and store in state
+    final result = _calculateDuration();
+    state = ViewStateSuccess<DateCalculationResult>(data: result);
   }
 
-  /// Calculate duration between dates
-  void _calculateDuration() {
-    if (_fromDate == null || _toDate == null) return;
+  /// Calculate duration between two dates
+  /// Returns years, months, days, total days, and weeks
+  DateCalculationResult _calculateDuration() {
+    // Normalize to midnight for accurate day calculation
+    final from = _normalizeDate(_fromDate!);
+    final to = _normalizeDate(_toDate!);
 
-    // Normalize dates to midnight for accurate calculation
-    final from = DateTime(_fromDate!.year, _fromDate!.month, _fromDate!.day);
-    final to = DateTime(_toDate!.year, _toDate!.month, _toDate!.day);
-
-    // Calculate years, months, and days
+    // Calculate year-month-day breakdown
     int years = to.year - from.year;
     int months = to.month - from.month;
     int days = to.day - from.day;
 
-    // Adjust for negative days
+    // Adjust for negative days (borrow from previous month)
     if (days < 0) {
       months--;
-      final previousMonth = DateTime(to.year, to.month, 0);
-      days += previousMonth.day;
+      final daysInPreviousMonth = DateTime(to.year, to.month, 0).day;
+      days += daysInPreviousMonth;
     }
 
-    // Adjust for negative months
+    // Adjust for negative months (borrow from previous year)
     if (months < 0) {
       years--;
       months += 12;
     }
 
-    // Calculate total days
+    // Calculate alternative representations
     final totalDays = to.difference(from).inDays;
-
-    // Calculate weeks and remaining days
     final weeks = totalDays ~/ 7;
     final remainingDays = totalDays % 7;
 
-    _calculationResult = DateCalculationResult(
+    return DateCalculationResult(
       years: years,
       months: months,
       days: days,
@@ -138,24 +141,9 @@ class CalculatorViewModel extends BaseViewModel<ViewState> {
     );
   }
 
-  /// Format date for display
-  String formatDate(DateTime date) {
-    const months = [
-      '',
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December'
-    ];
-    return '${months[date.month]} ${date.day}, ${date.year}';
+  /// Normalize date to midnight (00:00:00)
+  DateTime _normalizeDate(DateTime date) {
+    return DateTime(date.year, date.month, date.day);
   }
 }
 

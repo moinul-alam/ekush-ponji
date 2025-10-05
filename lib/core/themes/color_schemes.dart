@@ -24,7 +24,7 @@ class AppColorSchemes {
     onErrorContainer: Color(0xFF410002),
     surface: Color(0xFFFBFDF9), // Replaces 'background'
     onSurface: Color(0xFF191C1A), // Replaces 'onBackground'
-    surfaceVariant: Color(0xFFDBE5DF),
+    surfaceContainerHighest: Color(0xFFDBE5DF),
     onSurfaceVariant: Color(0xFF404943),
     outline: Color(0xFF707972),
     outlineVariant: Color(0xFFBFC9C3),
@@ -57,7 +57,7 @@ class AppColorSchemes {
     onErrorContainer: Color(0xFFFFDAD6),
     surface: Color(0xFF191C1A), // Replaces 'background'
     onSurface: Color(0xFFE1E3DF), // Replaces 'onBackground'
-    surfaceVariant: Color(0xFF404943),
+    surfaceContainerHighest: Color(0xFF404943),
     onSurfaceVariant: Color(0xFFBFC9C3),
     outline: Color(0xFF89938D),
     outlineVariant: Color(0xFF404943),

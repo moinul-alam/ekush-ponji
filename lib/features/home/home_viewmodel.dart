@@ -1,3 +1,5 @@
+// lib/features/home/home_viewmodel.dart
+
 import 'package:ekush_ponji/core/base/base_viewmodel.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,17 +8,13 @@ import 'package:ekush_ponji/features/home/widgets/upcoming_events_widget.dart';
 import 'package:ekush_ponji/features/home/widgets/daily_quote_widget.dart';
 import 'package:ekush_ponji/features/home/widgets/daily_word_widget.dart';
 
-/// ViewModel for Home Screen
-/// Manages all home screen data and business logic
-class HomeViewModel extends BaseViewModel<ViewState> {
-  // State variables
+class HomeViewModel extends BaseViewModel {
   List<Holiday> _holidays = [];
   List<Event> _events = [];
   Quote? _dailyQuote;
   DailyWord? _dailyWord;
   String? _userName;
 
-  // Getters
   List<Holiday> get holidays => _holidays;
   List<Event> get events => _events;
   Quote? get dailyQuote => _dailyQuote;
@@ -26,75 +24,40 @@ class HomeViewModel extends BaseViewModel<ViewState> {
   @override
   void onInit() {
     super.onInit();
-    // Load initial data
     loadHomeData();
   }
 
-  /// Load all home screen data
   Future<void> loadHomeData() async {
-    try {
-      setLoading('Loading home data...');
-
-      // Simulate API delay
-      // await Future.delayed(const Duration(seconds: 1));
-
-      // TODO: Replace with actual API calls
-      // await _loadUserProfile();
-      // await _loadHolidays();
-      // await _loadEvents();
-      // await _loadQuote();
-      // await _loadWord();
-
-      // For now, using sample data (widgets have their own sample data)
-      _userName = 'User'; // TODO: Get from user profile
-      _holidays = _getSampleHolidays();
-      _events = _getSampleEvents();
-      _dailyQuote = _getSampleQuote();
-      _dailyWord = _getSampleWord();
-
-      setSuccess(message: 'Home data loaded');
-    } catch (e, stackTrace) {
-      handleError(e, stackTrace, customMessage: 'Failed to load home data');
-    }
+    await executeAsync(
+      operation: () async {
+        _userName = 'User';
+        _holidays = _getSampleHolidays();
+        _events = _getSampleEvents();
+        _dailyQuote = _getSampleQuote();
+        _dailyWord = _getSampleWord();
+      },
+      loadingMessage: 'Loading home data...',
+      successMessage: null,
+      showLoading: true,
+      setSuccessState: true,
+    );
   }
 
-  /// Refresh home data
-  Future<void> refreshHomeData() async {
-    await loadHomeData();
+  @override
+  Future<bool> refresh() async {
+    return await executeAsync(
+      operation: () async {
+        _userName = 'User';
+        _holidays = _getSampleHolidays();
+        _events = _getSampleEvents();
+        _dailyQuote = _getSampleQuote();
+        _dailyWord = _getSampleWord();
+      },
+      showLoading: false,
+      setSuccessState: false,
+    );
   }
 
-  // TODO: Implement API calls
-  // Future<void> _loadUserProfile() async {
-  //   // API call to get user profile
-  //   // final response = await apiService.getUserProfile();
-  //   // _userName = response.name;
-  // }
-
-  // Future<void> _loadHolidays() async {
-  //   // API call to get holidays
-  //   // final response = await apiService.getUpcomingHolidays();
-  //   // _holidays = response.map((json) => Holiday.fromJson(json)).toList();
-  // }
-
-  // Future<void> _loadEvents() async {
-  //   // API call to get events
-  //   // final response = await apiService.getUpcomingEvents();
-  //   // _events = response.map((json) => Event.fromJson(json)).toList();
-  // }
-
-  // Future<void> _loadQuote() async {
-  //   // API call to get daily quote
-  //   // final response = await apiService.getDailyQuote();
-  //   // _dailyQuote = Quote.fromJson(response);
-  // }
-
-  // Future<void> _loadWord() async {
-  //   // API call to get daily word
-  //   // final response = await apiService.getDailyWord();
-  //   // _dailyWord = DailyWord.fromJson(response);
-  // }
-
-  // Sample data methods (temporary)
   List<Holiday> _getSampleHolidays() {
     return [
       Holiday(
@@ -196,7 +159,6 @@ class HomeViewModel extends BaseViewModel<ViewState> {
   }
 }
 
-/// Provider for HomeViewModel
 final homeViewModelProvider = NotifierProvider<HomeViewModel, ViewState>(
   () => HomeViewModel(),
 );

@@ -189,6 +189,6 @@ class MonthData {
 
   @override
   String toString() {
-    return 'MonthData(${monthYearString}, days: ${days.length}, holidays: ${holidays.length}, events: ${events.length}, reminders: ${reminders.length})';
+    return 'MonthData($monthYearString, days: ${days.length}, holidays: ${holidays.length}, events: ${events.length}, reminders: ${reminders.length})';
   }
 }

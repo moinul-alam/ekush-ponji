@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 /// Result card widget to display calculated duration
 /// Includes copy functionality

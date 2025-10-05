@@ -1,3 +1,5 @@
+// lib/features/settings/settings_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ekush_ponji/core/base/base_screen.dart';
@@ -20,10 +22,15 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
       settingsViewModelProvider;
 
   @override
+  bool get showLoadingOverlay => false;
+
+  @override
+  bool get autoHandleSuccess => true;
+
+  @override
   PreferredSizeWidget? buildAppBar(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return AppBar(
       title: Text(l10n.settingsTitle),
@@ -35,12 +42,20 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
 
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
+    final viewState = ref.watch(settingsViewModelProvider);
+    
+    if (viewState is ViewStateLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (viewState is ViewStateError) {
+      return buildErrorWidget(viewState);
+    }
+
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final viewModel = ref.read(settingsViewModelProvider.notifier);
-
-    // Watch current settings
     final currentTheme = ref.watch(themeModeProvider);
     final currentLocale = ref.watch(localeProvider);
     final currentLanguage = currentLocale.languageCode;
@@ -48,9 +63,7 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
     return ListView(
       padding: const EdgeInsets.symmetric(vertical: 8),
       children: [
-        // Appearance Section
         _SectionHeader(title: 'Appearance'),
-
         _SettingsTile(
           icon: Icons.palette_outlined,
           title: l10n.theme,
@@ -58,7 +71,6 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
           trailing: const Icon(Icons.chevron_right),
           onTap: () => _showThemeDialog(context, ref, l10n),
         ),
-
         _SettingsTile(
           icon: Icons.language_outlined,
           title: l10n.language,
@@ -66,12 +78,8 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
           trailing: const Icon(Icons.chevron_right),
           onTap: () => _showLanguageDialog(context, ref, l10n, viewModel),
         ),
-
         const Divider(height: 32),
-
-        // Notifications Section
         _SectionHeader(title: l10n.notifications),
-
         _SettingsSwitchTile(
           icon: Icons.notifications_outlined,
           title: l10n.notifications,
@@ -79,7 +87,6 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
           value: viewModel.notificationsEnabled,
           onChanged: (value) => viewModel.toggleNotifications(value),
         ),
-
         _SettingsSwitchTile(
           icon: Icons.volume_up_outlined,
           title: 'Sound',
@@ -87,7 +94,6 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
           value: viewModel.soundEnabled,
           onChanged: (value) => viewModel.toggleSound(value),
         ),
-
         _SettingsSwitchTile(
           icon: Icons.vibration_outlined,
           title: 'Vibration',
@@ -95,12 +101,8 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
           value: viewModel.vibrationEnabled,
           onChanged: (value) => viewModel.toggleVibration(value),
         ),
-
         const Divider(height: 32),
-
-        // Data & Storage Section
         _SectionHeader(title: 'Data & Storage'),
-
         _SettingsSwitchTile(
           icon: Icons.backup_outlined,
           title: 'Auto Backup',
@@ -108,7 +110,6 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
           value: viewModel.autoBackupEnabled,
           onChanged: (value) => viewModel.toggleAutoBackup(value),
         ),
-
         _SettingsTile(
           icon: Icons.delete_outline,
           title: 'Clear All Data',
@@ -116,43 +117,33 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
           titleColor: colorScheme.error,
           onTap: () => _showClearDataDialog(context, viewModel, l10n),
         ),
-
         const Divider(height: 32),
-
-        // About Section
         _SectionHeader(title: l10n.about),
-
         _SettingsTile(
           icon: Icons.info_outline,
           title: l10n.about,
           subtitle: 'App version and information',
           onTap: () => _showAboutDialog(context, l10n),
         ),
-
         _SettingsTile(
           icon: Icons.help_outline,
           title: l10n.helpSupport,
           subtitle: 'Get help and contact support',
           onTap: () => showInfo('${l10n.helpSupport} - ${l10n.comingSoon}'),
         ),
-
         _SettingsTile(
           icon: Icons.privacy_tip_outlined,
           title: 'Privacy Policy',
           subtitle: 'Read our privacy policy',
           onTap: () => showInfo('Privacy Policy - ${l10n.comingSoon}'),
         ),
-
         _SettingsTile(
           icon: Icons.gavel_outlined,
           title: 'Terms of Service',
           subtitle: 'Read our terms of service',
           onTap: () => showInfo('Terms of Service - ${l10n.comingSoon}'),
         ),
-
         const SizedBox(height: 16),
-
-        // App Version
         Center(
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -166,6 +157,11 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
         ),
       ],
     );
+  }
+
+  @override
+  void onRetry() {
+    ref.read(settingsViewModelProvider.notifier).loadSettings();
   }
 
   String _getThemeName(ThemeMode mode, AppLocalizations l10n) {
@@ -279,31 +275,18 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
     SettingsViewModel viewModel,
     AppLocalizations l10n,
   ) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Clear All Data'),
-        content: const Text(
+    showConfirmDialog(
+      title: 'Clear All Data',
+      message:
           'This will reset all settings to default and clear all stored data. This action cannot be undone.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel),
-          ),
-          TextButton(
-            onPressed: () {
-              viewModel.clearAllData();
-              Navigator.pop(context);
-            },
-            child: Text(
-              l10n.delete,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
-            ),
-          ),
-        ],
-      ),
-    );
+      confirmText: l10n.delete,
+      cancelText: l10n.cancel,
+      isDestructive: true,
+    ).then((confirmed) {
+      if (confirmed) {
+        viewModel.clearAllData();
+      }
+    });
   }
 
   void _showAboutDialog(BuildContext context, AppLocalizations l10n) {
@@ -355,7 +338,6 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
   }
 }
 
-// Custom Widgets
 class _SectionHeader extends StatelessWidget {
   final String title;
 
