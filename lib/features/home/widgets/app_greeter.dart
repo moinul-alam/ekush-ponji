@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ekush_ponji/core/localization/app_localizations.dart';
 
 /// Displays a greeting message based on the time of day
 class AppGreeter extends StatelessWidget {
@@ -13,7 +14,7 @@ class AppGreeter extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final greeting = _getGreeting();
+    final greeting = _getGreeting(context);
 
     return Container(
       width: double.infinity,
@@ -70,17 +71,18 @@ class AppGreeter extends StatelessWidget {
     );
   }
 
-  String _getGreeting() {
+  String _getGreeting(BuildContext context) {
     final hour = DateTime.now().hour;
+    final l10n = AppLocalizations.of(context);
 
     if (hour >= 5 && hour < 12) {
-      return 'Good Morning!';
+      return l10n.goodMorning;
     } else if (hour >= 12 && hour < 17) {
-      return 'Good Afternoon!';
+      return l10n.goodAfternoon;
     } else if (hour >= 17 && hour < 21) {
-      return 'Good Evening!';
+      return l10n.goodEvening;
     } else {
-      return 'Good Night!';
+      return l10n.goodNight;
     }
   }
 
