@@ -1,10 +1,10 @@
+// lib/features/calendar/widgets/calendar_header.dart
+
 import 'package:flutter/material.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 
 /// Calendar header widget showing month/year with navigation
-/// Top row: Gregorian month and year
-/// Bottom row: Bengali month(s) and year
-/// Includes arrow buttons for month navigation
+/// Uses proper localization and theme colors
 class CalendarHeader extends StatelessWidget {
   final int gregorianYear;
   final int gregorianMonth;
@@ -28,15 +28,16 @@ class CalendarHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final localizations = AppLocalizations.of(context);
+    final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
+        color: colorScheme.surface,
         border: Border(
           bottom: BorderSide(
-            color: theme.dividerColor,
+            color: colorScheme.outlineVariant,
             width: 1,
           ),
         ),
@@ -48,41 +49,49 @@ class CalendarHeader extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.chevron_left),
             onPressed: onPreviousMonth,
-            tooltip: localizations.previous,
+            tooltip: l10n.previous,
+            color: colorScheme.onSurface,
           ),
 
           // Month and year display
           Expanded(
             child: Column(
               children: [
-                // Gregorian month and year (larger, primary)
+                // Gregorian Month & Year
                 InkWell(
                   onTap: onMonthTap,
                   borderRadius: BorderRadius.circular(8),
                   child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        // Month name
                         Text(
-                          _getMonthName(gregorianMonth, localizations),
+                          l10n.getMonthName(gregorianMonth),
                           style: theme.textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.primary,
+                            color: colorScheme.primary,
                           ),
                         ),
                         const SizedBox(width: 4),
+
+                        // Year
                         InkWell(
                           onTap: onYearTap,
                           borderRadius: BorderRadius.circular(4),
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                            ),
                             child: Text(
-                              gregorianYear.toString(),
+                              l10n.localizeNumber(gregorianYear),
                               style: theme.textTheme.titleLarge?.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: theme.colorScheme.primary,
+                                color: colorScheme.primary,
                               ),
                             ),
                           ),
@@ -94,11 +103,11 @@ class CalendarHeader extends StatelessWidget {
 
                 const SizedBox(height: 4),
 
-                // Bengali month(s) and year (smaller, green)
+                // Bengali month(s) - automatically uses Hind Siliguri
                 Text(
                   bengaliMonthsDisplay,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: Colors.green.shade700,
+                    color: colorScheme.secondary,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -110,42 +119,11 @@ class CalendarHeader extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.chevron_right),
             onPressed: onNextMonth,
-            tooltip: localizations.next,
+            tooltip: l10n.next,
+            color: colorScheme.onSurface,
           ),
         ],
       ),
     );
-  }
-
-  /// Get localized month name
-  String _getMonthName(int month, AppLocalizations localizations) {
-    switch (month) {
-      case 1:
-        return localizations.january;
-      case 2:
-        return localizations.february;
-      case 3:
-        return localizations.march;
-      case 4:
-        return localizations.april;
-      case 5:
-        return localizations.may;
-      case 6:
-        return localizations.june;
-      case 7:
-        return localizations.july;
-      case 8:
-        return localizations.august;
-      case 9:
-        return localizations.september;
-      case 10:
-        return localizations.october;
-      case 11:
-        return localizations.november;
-      case 12:
-        return localizations.december;
-      default:
-        return '';
-    }
   }
 }

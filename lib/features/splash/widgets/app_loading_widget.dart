@@ -21,7 +21,7 @@ class AppLoadingWidget extends StatefulWidget {
   const AppLoadingWidget({
     super.key,
     required this.color,
-    this.animationType = AnimationType.waveGrid,
+    this.animationType = AnimationType.rotatingGrid,
   });
 
   @override

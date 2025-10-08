@@ -39,10 +39,10 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
 
   @override
   PreferredSizeWidget? buildAppBar(BuildContext context, WidgetRef ref) {
-    final localizations = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context);
 
     return AppBar(
-      title: Text(localizations.navCalendar),
+      title: Text(l10n.navCalendar),
       centerTitle: true,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
@@ -51,7 +51,7 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
       actions: [
         IconButton(
           icon: const Icon(Icons.today),
-          tooltip: localizations.today,
+          tooltip: l10n.today,
           onPressed: () {
             ref.read(calendarViewModelProvider.notifier).loadCurrentMonth();
           },
@@ -64,7 +64,7 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
   Widget buildBody(BuildContext context, WidgetRef ref) {
     final viewState = ref.watch(calendarViewModelProvider);
     final viewModel = ref.read(calendarViewModelProvider.notifier);
-    final localizations = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context);
 
     if (viewState is ViewStateLoading) {
       return Center(
@@ -74,7 +74,7 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
             const CircularProgressIndicator(),
             const SizedBox(height: 16),
             Text(
-              localizations.loadingData,
+              l10n.loadingData,
               style: Theme.of(context).textTheme.bodyMedium,
             ),
           ],
@@ -88,7 +88,7 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
 
     final monthData = viewModel.currentMonthData;
     if (monthData == null) {
-      return Center(child: Text(localizations.loadingData));
+      return Center(child: Text(l10n.loadingData));
     }
 
     return GestureDetector(

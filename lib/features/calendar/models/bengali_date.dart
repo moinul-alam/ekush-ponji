@@ -1,4 +1,4 @@
-/// Model class for Bengali Date
+/// features/calendar/models/bengali_date.dart
 /// Represents a date in the Bengali calendar system
 class BengaliDate {
   final int day;

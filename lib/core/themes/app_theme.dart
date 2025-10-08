@@ -1,9 +1,16 @@
+// lib/core/themes/app_theme.dart
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ekush_ponji/core/themes/color_schemes.dart';
 
 class AppTheme {
   AppTheme._();
+
+  // Font families
+  static const String englishFont = 'Inter'; // Primary font for English
+  static const String bengaliFont =
+      'Hind Siliguri'; // Automatic fallback for Bengali
 
   // Light Theme
   static ThemeData get lightTheme {
@@ -45,34 +52,115 @@ class AppTheme {
     );
   }
 
-  // Text Theme (using Google Fonts)
+  // Text Theme with Automatic Font Fallback
+  // English text → Inter, Bengali text → Hind Siliguri (automatically)
   static TextTheme get _textTheme {
     return TextTheme(
-      displayLarge:
-          GoogleFonts.poppins(fontSize: 57, fontWeight: FontWeight.w400),
-      displayMedium:
-          GoogleFonts.poppins(fontSize: 45, fontWeight: FontWeight.w400),
-      displaySmall:
-          GoogleFonts.poppins(fontSize: 36, fontWeight: FontWeight.w400),
-      headlineLarge:
-          GoogleFonts.poppins(fontSize: 32, fontWeight: FontWeight.w600),
-      headlineMedium:
-          GoogleFonts.poppins(fontSize: 28, fontWeight: FontWeight.w600),
-      headlineSmall:
-          GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.w600),
-      titleLarge:
-          GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w500),
-      titleMedium:
-          GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w500),
-      titleSmall:
-          GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w500),
-      bodyLarge: GoogleFonts.roboto(fontSize: 16, fontWeight: FontWeight.w400),
-      bodyMedium: GoogleFonts.roboto(fontSize: 14, fontWeight: FontWeight.w400),
-      bodySmall: GoogleFonts.roboto(fontSize: 12, fontWeight: FontWeight.w400),
-      labelLarge: GoogleFonts.roboto(fontSize: 14, fontWeight: FontWeight.w500),
-      labelMedium:
-          GoogleFonts.roboto(fontSize: 12, fontWeight: FontWeight.w500),
-      labelSmall: GoogleFonts.roboto(fontSize: 11, fontWeight: FontWeight.w500),
+      displayLarge: GoogleFonts.inter(
+        fontSize: 57,
+        fontWeight: FontWeight.w400,
+        letterSpacing: -0.25,
+      ).copyWith(
+        fontFamilyFallback: [GoogleFonts.hindSiliguri().fontFamily!],
+      ),
+      displayMedium: GoogleFonts.inter(
+        fontSize: 45,
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0,
+      ).copyWith(
+        fontFamilyFallback: [GoogleFonts.hindSiliguri().fontFamily!],
+      ),
+      displaySmall: GoogleFonts.inter(
+        fontSize: 36,
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0,
+      ).copyWith(
+        fontFamilyFallback: [GoogleFonts.hindSiliguri().fontFamily!],
+      ),
+      headlineLarge: GoogleFonts.inter(
+        fontSize: 32,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0,
+      ).copyWith(
+        fontFamilyFallback: [GoogleFonts.hindSiliguri().fontFamily!],
+      ),
+      headlineMedium: GoogleFonts.inter(
+        fontSize: 28,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0,
+      ).copyWith(
+        fontFamilyFallback: [GoogleFonts.hindSiliguri().fontFamily!],
+      ),
+      headlineSmall: GoogleFonts.inter(
+        fontSize: 24,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0,
+      ).copyWith(
+        fontFamilyFallback: [GoogleFonts.hindSiliguri().fontFamily!],
+      ),
+      titleLarge: GoogleFonts.inter(
+        fontSize: 22,
+        fontWeight: FontWeight.w500,
+        letterSpacing: 0,
+      ).copyWith(
+        fontFamilyFallback: [GoogleFonts.hindSiliguri().fontFamily!],
+      ),
+      titleMedium: GoogleFonts.inter(
+        fontSize: 16,
+        fontWeight: FontWeight.w500,
+        letterSpacing: 0.15,
+      ).copyWith(
+        fontFamilyFallback: [GoogleFonts.hindSiliguri().fontFamily!],
+      ),
+      titleSmall: GoogleFonts.inter(
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        letterSpacing: 0.1,
+      ).copyWith(
+        fontFamilyFallback: [GoogleFonts.hindSiliguri().fontFamily!],
+      ),
+      bodyLarge: GoogleFonts.inter(
+        fontSize: 16,
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0.5,
+      ).copyWith(
+        fontFamilyFallback: [GoogleFonts.hindSiliguri().fontFamily!],
+      ),
+      bodyMedium: GoogleFonts.inter(
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0.25,
+      ).copyWith(
+        fontFamilyFallback: [GoogleFonts.hindSiliguri().fontFamily!],
+      ),
+      bodySmall: GoogleFonts.inter(
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0.4,
+      ).copyWith(
+        fontFamilyFallback: [GoogleFonts.hindSiliguri().fontFamily!],
+      ),
+      labelLarge: GoogleFonts.inter(
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        letterSpacing: 0.1,
+      ).copyWith(
+        fontFamilyFallback: [GoogleFonts.hindSiliguri().fontFamily!],
+      ),
+      labelMedium: GoogleFonts.inter(
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+        letterSpacing: 0.5,
+      ).copyWith(
+        fontFamilyFallback: [GoogleFonts.hindSiliguri().fontFamily!],
+      ),
+      labelSmall: GoogleFonts.inter(
+        fontSize: 11,
+        fontWeight: FontWeight.w500,
+        letterSpacing: 0.5,
+      ).copyWith(
+        fontFamilyFallback: [GoogleFonts.hindSiliguri().fontFamily!],
+      ),
     );
   }
 

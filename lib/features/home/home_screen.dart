@@ -6,7 +6,7 @@ import 'package:ekush_ponji/core/base/base_screen.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
 import 'package:ekush_ponji/core/widgets/navigation/app_header.dart';
 import 'package:ekush_ponji/core/widgets/navigation/app_drawer.dart';
-import 'package:ekush_ponji/core/widgets/ads/app_ad_banner_bottom.dart';
+// import 'package:ekush_ponji/core/widgets/ads/app_ad_banner_bottom.dart';
 import 'package:ekush_ponji/features/home/home_viewmodel.dart';
 import 'package:ekush_ponji/features/home/widgets/app_greeter.dart';
 import 'package:ekush_ponji/features/home/widgets/today_date_widget.dart';
@@ -14,7 +14,6 @@ import 'package:ekush_ponji/features/home/widgets/upcoming_holidays_widget.dart'
 import 'package:ekush_ponji/features/home/widgets/upcoming_events_widget.dart';
 import 'package:ekush_ponji/features/home/widgets/daily_quote_widget.dart';
 import 'package:ekush_ponji/features/home/widgets/daily_word_widget.dart';
-import 'package:ekush_ponji/features/home/widgets/home_grid_layout.dart';
 
 class HomeScreen extends BaseScreen {
   const HomeScreen({super.key});
@@ -73,27 +72,41 @@ class _HomeScreenState extends BaseScreenState<HomeScreen> {
     final events = viewModel.events;
     final userName = viewModel.userName;
 
-    return Column(
+    // FIX: Move SingleChildScrollView to the top level
+    // and add bottom padding for the ad banner
+    return Stack(
       children: [
-        Expanded(
-          child: HomeGridLayout(
-            padding: const EdgeInsets.only(bottom: 16),
+        SingleChildScrollView(
+          padding: const EdgeInsets.only(bottom: 70), // Space for ad banner
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               AppGreeter(userName: userName),
+              const SizedBox(height: 8),
               const TodayDateWidget(),
+              const SizedBox(height: 8),
               UpcomingHolidaysWidget(
                 holidays: holidays.isEmpty ? null : holidays,
               ),
+              const SizedBox(height: 8),
               UpcomingEventsWidget(
                 events: events.isEmpty ? null : events,
               ),
-              const DailyQuoteWidget(),
-              const DailyWordWidget(),
               const SizedBox(height: 8),
+              const DailyQuoteWidget(),
+              const SizedBox(height: 8),
+              const DailyWordWidget(),
+              const SizedBox(height: 16),
             ],
           ),
         ),
-        const AppAdBannerBottom(),
+        // Ad banner positioned at the bottom
+        // const Positioned(
+        //   left: 0,
+        //   right: 0,
+        //   bottom: 0,
+        //   child: AppAdBannerBottom(),
+        // ),
       ],
     );
   }

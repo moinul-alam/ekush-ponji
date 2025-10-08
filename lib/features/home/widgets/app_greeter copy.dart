@@ -3,8 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 
-/// Modern greeting widget with dynamic time-based backgrounds
-/// Uses app's color scheme for perfect consistency
+/// Modern, simple greeting widget with dynamic time-based backgrounds
 class AppGreeter extends StatelessWidget {
   final String? userName;
 
@@ -48,7 +47,7 @@ class AppGreeter extends StatelessWidget {
               height: 120,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.08),
+                color: Colors.white.withValues(alpha: 0.1),
               ),
             ),
           ),
@@ -62,16 +61,16 @@ class AppGreeter extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: _getIconBackgroundColor(colorScheme),
+                    color: Colors.white.withValues(alpha: 0.25),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: _getIconBorderColor(colorScheme),
+                      color: Colors.white.withValues(alpha: 0.3),
                       width: 1.5,
                     ),
                   ),
                   child: Icon(
                     _getGreetingIcon(),
-                    color: _getIconColor(colorScheme),
+                    color: _getIconColor(),
                     size: 28,
                   ),
                 ),
@@ -88,7 +87,7 @@ class AppGreeter extends StatelessWidget {
                         greeting,
                         style: theme.textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: _getTextColor(colorScheme),
+                          color: _getTextColor(),
                           letterSpacing: -0.5,
                           height: 1.2,
                         ),
@@ -98,8 +97,7 @@ class AppGreeter extends StatelessWidget {
                         Text(
                           userName!,
                           style: theme.textTheme.titleMedium?.copyWith(
-                            color: _getTextColor(colorScheme)
-                                .withValues(alpha: 0.85),
+                            color: _getTextColor().withValues(alpha: 0.85),
                             fontWeight: FontWeight.w500,
                             letterSpacing: 0.1,
                           ),
@@ -146,83 +144,62 @@ class AppGreeter extends StatelessWidget {
     }
   }
 
-  /// Get dynamic gradient colors based on time using app's color scheme
+  /// Get dynamic gradient colors based on time of day
   List<Color> _getGreetingColors(ColorScheme colorScheme) {
     final hour = DateTime.now().hour;
 
     if (hour >= 5 && hour < 12) {
-      // Morning: Fresh, energetic (Primary colors - vibrant teal/green)
+      // Morning: Warm sunrise colors (Orange/Yellow tones)
       return [
-        colorScheme.primaryContainer,
-        colorScheme.primaryContainer.withValues(alpha: 0.7),
+        const Color(0xFFFFD89B), // Soft peach
+        const Color(0xFFFFB347), // Light orange
       ];
     } else if (hour >= 12 && hour < 17) {
-      // Afternoon: Bright, active (Secondary colors - calm green)
+      // Afternoon: Bright, vibrant colors (Blue/Cyan tones)
       return [
-        colorScheme.secondaryContainer,
-        colorScheme.secondaryContainer.withValues(alpha: 0.7),
+        const Color(0xFF4FC3F7), // Sky blue
+        const Color(0xFF29B6F6), // Bright blue
       ];
     } else if (hour >= 17 && hour < 21) {
-      // Evening: Relaxing (Tertiary colors - cool blue)
+      // Evening: Sunset colors (Purple/Pink tones)
       return [
-        colorScheme.tertiaryContainer,
-        colorScheme.tertiaryContainer.withValues(alpha: 0.7),
+        const Color(0xFFCE93D8), // Soft purple
+        const Color(0xFFBA68C8), // Medium purple
       ];
     } else {
-      // Night: Calm, restful (Darker tertiary/primary mix)
+      // Night: Dark, calming colors (Deep blue/Indigo)
       return [
-        colorScheme.tertiaryContainer.withValues(alpha: 0.8),
-        colorScheme.primaryContainer.withValues(alpha: 0.6),
+        const Color(0xFF5C6BC0), // Deep indigo
+        const Color(0xFF3949AB), // Dark blue
       ];
     }
   }
 
-  /// Get text color based on background
-  Color _getTextColor(ColorScheme colorScheme) {
+  /// Get text color that contrasts well with background
+  Color _getTextColor() {
     final hour = DateTime.now().hour;
 
-    if (hour >= 5 && hour < 12) {
-      return colorScheme.onPrimaryContainer;
-    } else if (hour >= 12 && hour < 17) {
-      return colorScheme.onSecondaryContainer;
-    } else if (hour >= 17 && hour < 21) {
-      return colorScheme.onTertiaryContainer;
-    } else {
-      return colorScheme.onTertiaryContainer;
+    // Morning and Afternoon use dark text
+    if (hour >= 5 && hour < 17) {
+      return const Color(0xFF1A1A1A); // Very dark gray (almost black)
     }
+
+    // Evening and Night use light text
+    return Colors.white;
   }
 
-  /// Get icon color that stands out
-  Color _getIconColor(ColorScheme colorScheme) {
+  /// Get icon color that matches the theme
+  Color _getIconColor() {
     final hour = DateTime.now().hour;
 
     if (hour >= 5 && hour < 12) {
-      return colorScheme.primary; // Vibrant green for morning sun
+      return const Color(0xFFFF6F00); // Deep orange (sun)
     } else if (hour >= 12 && hour < 17) {
-      return colorScheme.secondary; // Medium green for afternoon
+      return const Color(0xFFFFA000); // Amber (bright sun)
     } else if (hour >= 17 && hour < 21) {
-      return colorScheme.tertiary; // Blue for evening
+      return const Color(0xFF7B1FA2); // Deep purple (sunset)
     } else {
-      return colorScheme.tertiary
-          .withValues(alpha: 0.9); // Muted blue for night
-    }
-  }
-
-  /// Icon background color
-  Color _getIconBackgroundColor(ColorScheme colorScheme) {
-    return colorScheme.surface.withValues(alpha: 0.5);
-  }
-
-  /// Icon border color
-  Color _getIconBorderColor(ColorScheme colorScheme) {
-    final hour = DateTime.now().hour;
-
-    if (hour >= 5 && hour < 12) {
-      return colorScheme.primary.withValues(alpha: 0.2);
-    } else if (hour >= 12 && hour < 17) {
-      return colorScheme.secondary.withValues(alpha: 0.2);
-    } else {
-      return colorScheme.tertiary.withValues(alpha: 0.2);
+      return const Color(0xFFE1F5FE); // Very light blue (moon)
     }
   }
 }
