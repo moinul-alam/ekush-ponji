@@ -60,6 +60,46 @@ class ThemeModeNotifier extends Notifier<ThemeMode> {
       debugPrint('❌ Error saving theme mode: $e');
     }
   }
+
+  /// Set theme mode and show feedback
+  void setThemeModeWithFeedback(
+    BuildContext context,
+    ThemeMode mode,
+    String message,
+  ) {
+    setThemeMode(mode);
+
+    if (!context.mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    );
+  }
+
+  /// Toggle theme and show feedback
+  void toggleThemeWithFeedback(BuildContext context, String message) {
+    toggleTheme();
+
+    if (!context.mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    );
+  }
 }
 
 /// Locale Notifier
@@ -160,21 +200,7 @@ class LocaleNotifier extends Notifier<Locale> {
         Locale('bn', 'BD'),
         Locale('en', 'US'),
       ];
-}
 
-/// Providers
-final themeModeProvider =
-    NotifierProvider<ThemeModeNotifier, ThemeMode>(ThemeModeNotifier.new);
-
-final localeProvider =
-    NotifierProvider<LocaleNotifier, Locale>(LocaleNotifier.new);
-
-// ========================================
-// HELPER EXTENSIONS FOR UI
-// ========================================
-
-/// Extension to show SnackBar for locale changes
-extension LocaleNotifierUI on LocaleNotifier {
   /// Change locale and show feedback
   Future<void> setLocaleWithFeedback(
     BuildContext context,
@@ -184,11 +210,7 @@ extension LocaleNotifierUI on LocaleNotifier {
 
     if (!context.mounted) return;
 
-    if (success) {
-      _showSuccessSnackBar(context);
-    } else {
-      _showErrorSnackBar(context);
-    }
+    _showFeedback(context, success);
   }
 
   /// Toggle language and show feedback
@@ -197,45 +219,25 @@ extension LocaleNotifierUI on LocaleNotifier {
 
     if (!context.mounted) return;
 
-    if (success) {
-      _showSuccessSnackBar(context);
-    } else {
-      _showErrorSnackBar(context);
-    }
+    _showFeedback(context, success);
   }
 
-  /// Show success SnackBar
-  void _showSuccessSnackBar(BuildContext context) {
-    // Get localized message based on NEW language
-    final message = state.languageCode == 'bn'
-        ? 'ভাষা পরিবর্তিত হয়েছে'
-        : 'Language changed';
+  /// Show feedback SnackBar
+  void _showFeedback(BuildContext context, bool success) {
+    final message = success
+        ? (state.languageCode == 'bn'
+            ? 'ভাষা পরিবর্তিত হয়েছে'
+            : 'Language changed')
+        : (state.languageCode == 'bn'
+            ? 'ভাষা পরিবর্তন ব্যর্থ হয়েছে'
+            : 'Failed to change language');
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
         duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.green,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-      ),
-    );
-  }
-
-  /// Show error SnackBar
-  void _showErrorSnackBar(BuildContext context) {
-    final message = state.languageCode == 'bn'
-        ? 'ভাষা পরিবর্তন ব্যর্থ হয়েছে'
-        : 'Failed to change language';
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.red,
+        backgroundColor: success ? Colors.green : Colors.red,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
         ),
@@ -244,45 +246,10 @@ extension LocaleNotifierUI on LocaleNotifier {
   }
 }
 
-/// Extension to show SnackBar for theme changes
-extension ThemeModeNotifierUI on ThemeModeNotifier {
-  /// Set theme mode and show feedback
-  void setThemeModeWithFeedback(
-    BuildContext context,
-    ThemeMode mode,
-    String message,
-  ) {
-    setThemeMode(mode);
+/// Providers
+final themeModeProvider =
+    NotifierProvider<ThemeModeNotifier, ThemeMode>(ThemeModeNotifier.new);
 
-    if (!context.mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-      ),
-    );
-  }
-
-  /// Toggle theme and show feedback
-  void toggleThemeWithFeedback(BuildContext context, String message) {
-    toggleTheme();
-
-    if (!context.mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-      ),
-    );
-  }
-}
+final localeProvider =
+    NotifierProvider<LocaleNotifier, Locale>(LocaleNotifier.new);
+    

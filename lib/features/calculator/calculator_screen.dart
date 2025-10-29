@@ -39,8 +39,7 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
   Widget buildBody(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final viewModel = ref.read(calculatorViewModelProvider.notifier);
-    // ignore: unused_local_variable
-    final state = ref.watch(calculatorViewModelProvider);
+    ref.watch(calculatorViewModelProvider); // Watch for rebuilds
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -116,8 +115,6 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
   @override
   void onError(ViewStateError state) {
     if (!mounted) return;
-
-    final l10n = AppLocalizations.of(context);
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
