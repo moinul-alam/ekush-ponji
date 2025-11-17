@@ -8,9 +8,9 @@ environment:
 
 flutter_launcher_icons:
   android: true
-  ios: false  # Since you only want Android
+  ios: false
   image_path: "assets/images/app_icon.png"
-  adaptive_icon_background: "#ffffff"  # Change to your preferred background color
+  adaptive_icon_background: "#ffffff"
   adaptive_icon_foreground: "assets/images/app_icon.png"
 
 dependencies:

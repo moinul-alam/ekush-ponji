@@ -124,9 +124,9 @@ abstract class AppLocalizations {
     String daysStr = localizeNumber(days.abs());
 
     if (days > 0) {
-      return format(inDays, [days]);
+      return format(inDays, [daysStr]);
     } else {
-      return format(daysAgo, [days.abs()]);
+      return format(daysAgo, [daysStr]);
     }
   }
 

@@ -8,9 +8,8 @@ class AppTheme {
   AppTheme._();
 
   // Font families
-  static const String englishFont = 'Inter'; // Primary font for English
-  static const String bengaliFont =
-      'Hind Siliguri'; // Automatic fallback for Bengali
+  static const String englishFont = 'Syne'; 
+  static const String bengaliFont = 'Tiro Bangla';
 
   // Light Theme
   static ThemeData get lightTheme {
@@ -53,113 +52,113 @@ class AppTheme {
   }
 
   // Text Theme with Automatic Font Fallback
-  // English text → Inter, Bengali text → Hind Siliguri (automatically)
+  // English text → Syne, Bengali text → Tiro Bangla (automatically)
   static TextTheme get _textTheme {
     return TextTheme(
-      displayLarge: GoogleFonts.inter(
+      displayLarge: GoogleFonts.syne(
         fontSize: 57,
         fontWeight: FontWeight.w400,
         letterSpacing: -0.25,
       ).copyWith(
-        fontFamilyFallback: [GoogleFonts.hindSiliguri().fontFamily!],
+        fontFamilyFallback: [GoogleFonts.tiroBangla().fontFamily!],
       ),
-      displayMedium: GoogleFonts.inter(
+      displayMedium: GoogleFonts.syne(
         fontSize: 45,
         fontWeight: FontWeight.w400,
         letterSpacing: 0,
       ).copyWith(
-        fontFamilyFallback: [GoogleFonts.hindSiliguri().fontFamily!],
+        fontFamilyFallback: [GoogleFonts.tiroBangla().fontFamily!],
       ),
-      displaySmall: GoogleFonts.inter(
+      displaySmall: GoogleFonts.syne(
         fontSize: 36,
         fontWeight: FontWeight.w400,
         letterSpacing: 0,
       ).copyWith(
-        fontFamilyFallback: [GoogleFonts.hindSiliguri().fontFamily!],
+        fontFamilyFallback: [GoogleFonts.tiroBangla().fontFamily!],
       ),
-      headlineLarge: GoogleFonts.inter(
+      headlineLarge: GoogleFonts.syne(
         fontSize: 32,
         fontWeight: FontWeight.w600,
         letterSpacing: 0,
       ).copyWith(
-        fontFamilyFallback: [GoogleFonts.hindSiliguri().fontFamily!],
+        fontFamilyFallback: [GoogleFonts.tiroBangla().fontFamily!],
       ),
-      headlineMedium: GoogleFonts.inter(
+      headlineMedium: GoogleFonts.syne(
         fontSize: 28,
         fontWeight: FontWeight.w600,
         letterSpacing: 0,
       ).copyWith(
-        fontFamilyFallback: [GoogleFonts.hindSiliguri().fontFamily!],
+        fontFamilyFallback: [GoogleFonts.tiroBangla().fontFamily!],
       ),
-      headlineSmall: GoogleFonts.inter(
+      headlineSmall: GoogleFonts.syne(
         fontSize: 24,
         fontWeight: FontWeight.w600,
         letterSpacing: 0,
       ).copyWith(
-        fontFamilyFallback: [GoogleFonts.hindSiliguri().fontFamily!],
+        fontFamilyFallback: [GoogleFonts.tiroBangla().fontFamily!],
       ),
-      titleLarge: GoogleFonts.inter(
+      titleLarge: GoogleFonts.syne(
         fontSize: 22,
         fontWeight: FontWeight.w500,
         letterSpacing: 0,
       ).copyWith(
-        fontFamilyFallback: [GoogleFonts.hindSiliguri().fontFamily!],
+        fontFamilyFallback: [GoogleFonts.tiroBangla().fontFamily!],
       ),
-      titleMedium: GoogleFonts.inter(
+      titleMedium: GoogleFonts.syne(
         fontSize: 16,
         fontWeight: FontWeight.w500,
         letterSpacing: 0.15,
       ).copyWith(
-        fontFamilyFallback: [GoogleFonts.hindSiliguri().fontFamily!],
+        fontFamilyFallback: [GoogleFonts.tiroBangla().fontFamily!],
       ),
-      titleSmall: GoogleFonts.inter(
+      titleSmall: GoogleFonts.syne(
         fontSize: 14,
         fontWeight: FontWeight.w500,
         letterSpacing: 0.1,
       ).copyWith(
-        fontFamilyFallback: [GoogleFonts.hindSiliguri().fontFamily!],
+        fontFamilyFallback: [GoogleFonts.tiroBangla().fontFamily!],
       ),
-      bodyLarge: GoogleFonts.inter(
+      bodyLarge: GoogleFonts.syne(
         fontSize: 16,
         fontWeight: FontWeight.w400,
         letterSpacing: 0.5,
       ).copyWith(
-        fontFamilyFallback: [GoogleFonts.hindSiliguri().fontFamily!],
+        fontFamilyFallback: [GoogleFonts.tiroBangla().fontFamily!],
       ),
-      bodyMedium: GoogleFonts.inter(
+      bodyMedium: GoogleFonts.syne(
         fontSize: 14,
         fontWeight: FontWeight.w400,
         letterSpacing: 0.25,
       ).copyWith(
-        fontFamilyFallback: [GoogleFonts.hindSiliguri().fontFamily!],
+        fontFamilyFallback: [GoogleFonts.tiroBangla().fontFamily!],
       ),
-      bodySmall: GoogleFonts.inter(
+      bodySmall: GoogleFonts.syne(
         fontSize: 12,
         fontWeight: FontWeight.w400,
         letterSpacing: 0.4,
       ).copyWith(
-        fontFamilyFallback: [GoogleFonts.hindSiliguri().fontFamily!],
+        fontFamilyFallback: [GoogleFonts.tiroBangla().fontFamily!],
       ),
-      labelLarge: GoogleFonts.inter(
+      labelLarge: GoogleFonts.syne(
         fontSize: 14,
         fontWeight: FontWeight.w500,
         letterSpacing: 0.1,
       ).copyWith(
-        fontFamilyFallback: [GoogleFonts.hindSiliguri().fontFamily!],
+        fontFamilyFallback: [GoogleFonts.tiroBangla().fontFamily!],
       ),
-      labelMedium: GoogleFonts.inter(
+      labelMedium: GoogleFonts.syne(
         fontSize: 12,
         fontWeight: FontWeight.w500,
         letterSpacing: 0.5,
       ).copyWith(
-        fontFamilyFallback: [GoogleFonts.hindSiliguri().fontFamily!],
+        fontFamilyFallback: [GoogleFonts.tiroBangla().fontFamily!],
       ),
-      labelSmall: GoogleFonts.inter(
+      labelSmall: GoogleFonts.syne(
         fontSize: 11,
         fontWeight: FontWeight.w500,
         letterSpacing: 0.5,
       ).copyWith(
-        fontFamilyFallback: [GoogleFonts.hindSiliguri().fontFamily!],
+        fontFamilyFallback: [GoogleFonts.tiroBangla().fontFamily!],
       ),
     );
   }
