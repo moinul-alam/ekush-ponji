@@ -1,20 +1,8 @@
-import 'package:hive/hive.dart';
-
-part 'holiday.g.dart';  // ← This will be generated
-
 /// Enum for holiday types
-@HiveType(typeId: 1)  // ← Add Hive annotation
 enum HolidayType {
-  @HiveField(0)
   national,
-  
-  @HiveField(1)
   religious,
-  
-  @HiveField(2)
   cultural,
-  
-  @HiveField(3)
   optional;
 
   String get displayName {
@@ -33,30 +21,14 @@ enum HolidayType {
 
 /// Model class for Holiday
 /// Represents a holiday in the calendar
-@HiveType(typeId: 0)  // ← Add Hive annotation
 class Holiday {
-  @HiveField(0)
   final String id;
-  
-  @HiveField(1)
   final String name;
-  
-  @HiveField(2)
   final String namebn;
-  
-  @HiveField(3)
   final DateTime date;
-  
-  @HiveField(4)
   final HolidayType type;
-  
-  @HiveField(5)
   final String? description;
-  
-  @HiveField(6)
   final String? descriptionbn;
-  
-  @HiveField(7)
   final bool isGovtHoliday;
 
   Holiday({

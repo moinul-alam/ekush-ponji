@@ -7,6 +7,7 @@ pluginManagement {
             require(flutterSdkPath != null) { "flutter.sdk not set in local.properties" }
             flutterSdkPath
         }
+        
 
     includeBuild("$flutterSdkPath/packages/flutter_tools/gradle")
 
@@ -14,6 +15,14 @@ pluginManagement {
         google()
         mavenCentral()
         gradlePluginPortal()
+    }
+
+    resolutionStrategy {
+        eachPlugin {
+            if (requested.id.id == "com.google.gms.google-services") {
+                useModule("com.google.gms:google-services:4.4.4")
+            }
+        }
     }
 }
 

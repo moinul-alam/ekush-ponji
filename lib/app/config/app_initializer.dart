@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ekush_ponji/core/themes/app_theme.dart';
+import 'package:ekush_ponji/features/home/models/holiday.dart';
 
 class AppInitializer {
   /// Initialize app services
@@ -10,6 +11,7 @@ class AppInitializer {
     try {
       await _setDeviceOrientation();
       await _initializeHive();
+      await _registerHiveAdapters();  // ← Add this
       await _openHiveBoxes();
       await _initializeSharedPreferences();
       
@@ -36,17 +38,24 @@ class AppInitializer {
     debugPrint('✅ Hive initialized successfully');
   }
 
+  /// Register Hive type adapters  ← NEW METHOD
+  static Future<void> _registerHiveAdapters() async {
+    try {
+      Hive.registerAdapter(HolidayAdapter());
+      Hive.registerAdapter(HolidayTypeAdapter());
+      debugPrint('✅ Hive adapters registered successfully');
+    } catch (e) {
+      debugPrint('❌ Failed to register Hive adapters: $e');
+      rethrow;
+    }
+  }
+
   /// Open all required Hive boxes
   static Future<void> _openHiveBoxes() async {
     try {
-      // Open settings box - CRITICAL: This must be opened before app starts
       await Hive.openBox('settings');
-      debugPrint('✅ Settings box opened successfully');
-
-      // Add other boxes here as needed in the future
-      // await Hive.openBox('calendar');
-      // await Hive.openBox('events');
-      // etc.
+      await Hive.openBox('holidays');  // ← Add holidays box
+      debugPrint('✅ Settings and holidays boxes opened successfully');
     } catch (e) {
       debugPrint('❌ Failed to open Hive boxes: $e');
       rethrow;
@@ -56,24 +65,20 @@ class AppInitializer {
   /// Initialize SharedPreferences for locale storage
   static Future<void> _initializeSharedPreferences() async {
     try {
-      // Pre-initialize SharedPreferences for faster first access
       await SharedPreferences.getInstance();
       debugPrint('✅ SharedPreferences initialized');
     } catch (e) {
       debugPrint('❌ Error initializing SharedPreferences: $e');
-      // Don't rethrow - SharedPreferences failure shouldn't block app start
     }
   }
 
   /// Update system UI based on current ThemeMode and platform brightness
-  /// This is called from app.dart using ref.listen
   static void updateSystemUIFromTheme(
       BuildContext context, ThemeMode themeMode) {
     final platformBrightness = MediaQuery.of(context).platformBrightness;
     final isDarkMode = themeMode == ThemeMode.dark ||
         (themeMode == ThemeMode.system &&
             platformBrightness == Brightness.dark);
-
     final colorScheme = isDarkMode
         ? AppTheme.darkTheme.colorScheme
         : AppTheme.lightTheme.colorScheme;
@@ -87,7 +92,7 @@ class AppInitializer {
     ));
   }
 
-  /// Close all Hive boxes and cleanup - Call this on app dispose if needed
+  /// Close all Hive boxes and cleanup
   static Future<void> dispose() async {
     try {
       await Hive.close();
@@ -96,9 +101,4 @@ class AppInitializer {
       debugPrint('❌ Failed to close Hive boxes: $e');
     }
   }
-
-  // TODO: Add other initialization methods as needed
-  // static Future<void> _initializeFirebase() async { }
-  // static Future<void> _initializeNotifications() async { }
-  // static Future<void> _initializeAnalytics() async { }
 }

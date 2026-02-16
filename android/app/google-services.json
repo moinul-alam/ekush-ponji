@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "806400115505",
+    "project_id": "ekush-ponji",
+    "storage_bucket": "ekush-ponji.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:806400115505:android:ae8f48ace080ce37466610",
+        "android_client_info": {
+          "package_name": "com.example.ekush_ponji"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDB89_OfC82Cd4QJTVuRlqgYkPN7QoXyUQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
