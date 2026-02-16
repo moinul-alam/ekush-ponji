@@ -3,11 +3,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:ekush_ponji/features/home/widgets/home_section_widget.dart';
+import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/core/services/bengali_calendar_service.dart';
 import 'package:ekush_ponji/features/calendar/models/bengali_date.dart';
+import 'package:ekush_ponji/features/home/widgets/home_section_widget.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
-import 'package:intl/intl.dart';
 
 /// Displays today's date in both Bengali and Gregorian format
 /// Side-by-side layout for modern phones, stacked for smaller screens
@@ -86,6 +86,14 @@ class _BengaliDateCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
+    final isBn = l10n.languageCode == 'bn';
+
+    final dayLabel = l10n.getDayName(gregorianDate.weekday);
+    final dayNum = isBn ? bengaliDate.dayBn : bengaliDate.day.toString();
+    final monthLabel = isBn ? bengaliDate.monthNameBn : bengaliDate.monthName;
+    final yearLabel = isBn ? bengaliDate.yearBn : bengaliDate.year.toString();
+    final seasonLabel = l10n.getBengaliSeasonName(bengaliDate.monthNumber);
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
@@ -111,9 +119,8 @@ class _BengaliDateCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Bengali Day of Week
           Text(
-            _getBengaliDayName(gregorianDate.weekday),
+            dayLabel,
             style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w600,
               color: colorScheme.onPrimaryContainer,
@@ -121,10 +128,8 @@ class _BengaliDateCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 6),
-
-          // Bengali Date (Large)
           Text(
-            bengaliDate.dayBn,
+            dayNum,
             style: theme.textTheme.displayMedium?.copyWith(
               fontWeight: FontWeight.bold,
               color: colorScheme.onPrimaryContainer,
@@ -132,28 +137,22 @@ class _BengaliDateCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 2),
-
-          // Bengali Month
           Text(
-            bengaliDate.monthNameBn,
+            monthLabel,
             style: theme.textTheme.titleMedium?.copyWith(
               color: colorScheme.onPrimaryContainer,
               fontWeight: FontWeight.w600,
             ),
             textAlign: TextAlign.center,
           ),
-          
-          // Bengali Year
           Text(
-            bengaliDate.yearBn,
+            yearLabel,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: colorScheme.onPrimaryContainer.withValues(alpha: 0.85),
               fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 8),
-
-          // Bengali Season Badge
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
@@ -161,7 +160,7 @@ class _BengaliDateCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              _getBengaliSeason(bengaliDate.monthNumber),
+              seasonLabel,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onPrimaryContainer,
                 fontWeight: FontWeight.w600,
@@ -172,29 +171,6 @@ class _BengaliDateCard extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _getBengaliDayName(int weekday) {
-    const days = [
-      'সোমবার',
-      'মঙ্গলবার',
-      'বুধবার',
-      'বৃহস্পতিবার',
-      'শুক্রবার',
-      'শনিবার',
-      'রবিবার',
-    ];
-    return days[weekday - 1];
-  }
-
-  String _getBengaliSeason(int monthNumber) {
-    // Bengali seasons: 6 seasons (Ritu)
-    if (monthNumber >= 1 && monthNumber <= 2) return 'গ্রীষ্ম'; // Summer
-    if (monthNumber >= 3 && monthNumber <= 4) return 'বর্ষা'; // Monsoon
-    if (monthNumber >= 5 && monthNumber <= 6) return 'শরৎ'; // Autumn
-    if (monthNumber >= 7 && monthNumber <= 8) return 'হেমন্ত'; // Late Autumn
-    if (monthNumber >= 9 && monthNumber <= 10) return 'শীত'; // Winter
-    return 'বসন্ত'; // Spring
   }
 }
 
@@ -213,6 +189,7 @@ class _GregorianDateCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
@@ -238,9 +215,8 @@ class _GregorianDateCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // English Day of Week
           Text(
-            DateFormat('EEEE').format(gregorianDate),
+            l10n.getDayName(gregorianDate.weekday),
             style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w600,
               color: colorScheme.onSecondaryContainer,
@@ -248,10 +224,8 @@ class _GregorianDateCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 6),
-
-          // Date Number (Large)
           Text(
-            DateFormat('dd').format(gregorianDate),
+            l10n.localizeNumber(gregorianDate.day),
             style: theme.textTheme.displayMedium?.copyWith(
               fontWeight: FontWeight.bold,
               color: colorScheme.onSecondaryContainer,
@@ -259,28 +233,22 @@ class _GregorianDateCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 2),
-
-          // Month Name
           Text(
-            DateFormat('MMMM').format(gregorianDate),
+            l10n.getMonthName(gregorianDate.month),
             style: theme.textTheme.titleMedium?.copyWith(
               color: colorScheme.onSecondaryContainer,
               fontWeight: FontWeight.w600,
             ),
             textAlign: TextAlign.center,
           ),
-          
-          // Year
           Text(
-            DateFormat('yyyy').format(gregorianDate),
+            l10n.localizeNumber(gregorianDate.year),
             style: theme.textTheme.bodyMedium?.copyWith(
               color: colorScheme.onSecondaryContainer.withValues(alpha: 0.85),
               fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 8),
-
-          // Season Badge
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
@@ -288,7 +256,7 @@ class _GregorianDateCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              _getEnglishSeason(gregorianDate.month),
+              l10n.getGregorianSeasonName(gregorianDate.month),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSecondaryContainer,
                 fontWeight: FontWeight.w600,
@@ -299,13 +267,5 @@ class _GregorianDateCard extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _getEnglishSeason(int month) {
-    // Meteorological seasons (Northern Hemisphere)
-    if (month >= 3 && month <= 5) return 'Spring';
-    if (month >= 6 && month <= 8) return 'Summer';
-    if (month >= 9 && month <= 11) return 'Autumn';
-    return 'Winter';
   }
 }

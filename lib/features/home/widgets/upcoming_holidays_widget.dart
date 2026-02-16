@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/features/home/widgets/home_section_widget.dart';
 
 /// Displays upcoming holidays
@@ -17,6 +18,7 @@ class UpcomingHolidaysWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     // Use sample data if no holidays provided
     final displayHolidays = holidays ?? _getSampleHolidays();
@@ -27,7 +29,7 @@ class UpcomingHolidaysWidget extends StatelessWidget {
     }
 
     return HomeSectionWidget(
-      title: 'Upcoming Holidays',
+      title: l10n.upcomingHolidays,
       trailing: Icon(
         Icons.celebration_outlined,
         color: colorScheme.primary,
@@ -92,7 +94,11 @@ class _HolidayItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final daysUntil = holiday.date.difference(DateTime.now()).inDays;
+    final l10n = AppLocalizations.of(context);
+    final isBangla = l10n.languageCode == 'bn';
+    final today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+    final holidayDate = DateTime(holiday.date.year, holiday.date.month, holiday.date.day);
+    final daysUntil = holidayDate.difference(today).inDays;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -108,14 +114,14 @@ class _HolidayItem extends StatelessWidget {
           child: Column(
             children: [
               Text(
-                holiday.date.day.toString(),
+                l10n.localizeNumber(holiday.date.day),
                 style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: colorScheme.onPrimary,
                 ),
               ),
               Text(
-                _getMonthAbbr(holiday.date.month),
+                l10n.getMonthAbbreviation(holiday.date.month),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: colorScheme.onPrimary.withValues(alpha: 0.9),
                   fontWeight: FontWeight.w500,
@@ -132,19 +138,21 @@ class _HolidayItem extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                holiday.name,
+                isBangla ? holiday.namebn : holiday.name,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: colorScheme.onSurface,
                 ),
               ),
-              const SizedBox(height: 2),
-              Text(
-                holiday.namebn,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+              if (!isBangla) ...[
+                const SizedBox(height: 2),
+                Text(
+                  holiday.namebn,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
-              ),
+              ],
               const SizedBox(height: 4),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -153,11 +161,9 @@ class _HolidayItem extends StatelessWidget {
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  daysUntil == 0
-                      ? 'Today'
-                      : daysUntil == 1
-                          ? 'Tomorrow'
-                          : 'In $daysUntil days',
+                  daysUntil < 0
+                      ? l10n.passed
+                      : l10n.formatDaysDistance(daysUntil),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: colorScheme.primary,
                     fontWeight: FontWeight.w500,
@@ -200,23 +206,6 @@ class _HolidayItem extends StatelessWidget {
     }
   }
 
-  String _getMonthAbbr(int month) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
-    return months[month - 1];
-  }
 }
 
 // Models

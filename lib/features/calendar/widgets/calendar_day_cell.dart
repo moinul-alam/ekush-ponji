@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/features/calendar/models/calendar_day.dart';
 
 /// Individual calendar day cell widget
@@ -17,23 +18,40 @@ class CalendarDayCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+    final isBengali = l10n.languageCode == 'bn';
+    final gregorianDayText =
+        l10n.localizeNumber(day.gregorianDay);
+    final bengaliDayText = isBengali
+        ? day.bengaliDate.dayBn
+        : day.bengaliDay.toString();
 
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        margin: const EdgeInsets.all(2),
+      borderRadius: BorderRadius.circular(10),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        margin: const EdgeInsets.all(1.5),
         decoration: BoxDecoration(
           color: _getBackgroundColor(theme),
           border: _getBorder(theme),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: day.isToday || day.isSelected
+              ? [
+                  BoxShadow(
+                    color: theme.colorScheme.primary.withOpacity(0.15),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Gregorian date (larger)
+            // Gregorian date (larger) — localized numerals
             Text(
-              day.gregorianDay.toString(),
+              gregorianDayText,
               style: theme.textTheme.bodyLarge?.copyWith(
                 fontWeight: day.isToday ? FontWeight.bold : FontWeight.w500,
                 color: _getTextColor(theme),
@@ -43,13 +61,15 @@ class CalendarDayCell extends StatelessWidget {
 
             const SizedBox(height: 2),
 
-            // Bengali date (smaller, green)
+            // Bengali date (smaller) — Bangla script when locale is bn; red for weekend/holiday
             Opacity(
               opacity: day.opacity,
               child: Text(
-                day.bengaliDay.toString(),
+                bengaliDayText,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: Colors.green.shade700,
+                  color: (_isWeekend || day.hasHoliday)
+                      ? Colors.red.shade700
+                      : theme.colorScheme.tertiary,
                   fontSize: 11,
                 ),
               ),
@@ -65,8 +85,13 @@ class CalendarDayCell extends StatelessWidget {
     );
   }
 
+  /// Whether this day is a govt weekend (Friday/Saturday in Bangladesh)
+  bool get _isWeekend =>
+      day.gregorianDate.weekday == DateTime.friday ||
+      day.gregorianDate.weekday == DateTime.saturday;
+
   /// Get background color based on priority
-  /// Priority: Today > Selected > Holiday > Default
+  /// Priority: Today > Selected > Holiday > Weekend (Fri/Sat) > Default
   Color _getBackgroundColor(ThemeData theme) {
     if (day.isToday) {
       return theme.colorScheme.primaryContainer.withOpacity(0.3);
@@ -77,12 +102,21 @@ class CalendarDayCell extends StatelessWidget {
     if (day.hasHoliday) {
       return Colors.red.withOpacity(0.1);
     }
+    if (_isWeekend) {
+      return Colors.red.withOpacity(0.08);
+    }
     return Colors.transparent;
   }
 
-  /// Get border based on events/reminders
-  /// Priority: Both > Events > Reminders > None
+  /// Get border based on today, events/reminders
+  /// Priority: Today > Both > Events > Reminders > None
   BoxBorder? _getBorder(ThemeData theme) {
+    if (day.isToday) {
+      return Border.all(
+        color: theme.colorScheme.primary,
+        width: 2,
+      );
+    }
     if (day.hasEvent && day.hasReminder) {
       // Both: solid border takes priority
       return Border.all(
@@ -108,12 +142,18 @@ class CalendarDayCell extends StatelessWidget {
   }
 
   /// Get text color based on state
+  /// Weekend (Fri/Sat) and govt holidays: dates shown in red
   Color _getTextColor(ThemeData theme) {
     if (!day.isCurrentMonth) {
-      return theme.colorScheme.onSurface.withOpacity(0.4);
+      return (_isWeekend || day.hasHoliday)
+          ? Colors.red.withOpacity(0.5)
+          : theme.colorScheme.onSurface.withOpacity(0.4);
     }
     if (day.isSelected) {
       return theme.colorScheme.primary;
+    }
+    if (_isWeekend || day.hasHoliday) {
+      return Colors.red.shade700;
     }
     return theme.colorScheme.onSurface;
   }

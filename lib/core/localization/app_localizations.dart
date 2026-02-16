@@ -228,6 +228,39 @@ abstract class AppLocalizations {
   String get failedToLoadData;
   String get noDataAvailable;
 
+  // Calendar
+  String get selectMonth;
+  String get selectYear;
+  String get calendarLegend;
+  String get calendarHoliday;
+  String get calendarEvent;
+  String get calendarReminder;
+  String get sectionHolidays;
+  String get sectionEvents;
+  String get sectionReminders;
+  String get showDetails;
+  String get addEvent;
+  String get addReminder;
+  String get allDay;
+  String get passed;
+  String formatUpcomingEventsInMonth(String monthName);
+  String formatUpcomingHolidaysInMonth(String monthName);
+
+  // Event categories (for calendar event labels)
+  String get categoryWork;
+  String get categoryPersonal;
+  String get categoryFamily;
+  String get categoryHealth;
+  String get categoryEducation;
+  String get categorySocial;
+  String get categoryOther;
+
+  // Reminder priority
+  String get priorityLow;
+  String get priorityMedium;
+  String get priorityHigh;
+  String get priorityUrgent;
+
   // Days of week
   String get monday;
   String get tuesday;
@@ -236,6 +269,15 @@ abstract class AppLocalizations {
   String get friday;
   String get saturday;
   String get sunday;
+
+  // Short day names for calendar header (Sun, Mon, ... / রবি, সোম, ...)
+  String get shortSunday;
+  String get shortMonday;
+  String get shortTuesday;
+  String get shortWednesday;
+  String get shortThursday;
+  String get shortFriday;
+  String get shortSaturday;
 
   // Months (English Calendar)
   String get january;
@@ -264,6 +306,18 @@ abstract class AppLocalizations {
   String get magh;
   String get falgun;
   String get choitra;
+
+  // Seasons (Bengali calendar + Gregorian)
+  String get seasonGrishmo;
+  String get seasonBorsha;
+  String get seasonSharat;
+  String get seasonHemonto;
+  String get seasonSheet;
+  String get seasonBosonto;
+  String get seasonSpring;
+  String get seasonSummer;
+  String get seasonAutumn;
+  String get seasonWinter;
 
   // Calculator
   String get calculatorTitle;
@@ -326,6 +380,14 @@ abstract class AppLocalizations {
     }
   }
 
+  /// Get abbreviated month name (for date badges in lists)
+  String getMonthAbbreviation(int month) {
+    final name = getMonthName(month);
+    if (name.isEmpty) return '';
+    if (name.length <= 4) return name;
+    return name.substring(0, 4);
+  }
+
   /// Get Bangla month name by number (1-12)
   String getBanglaMonthName(int month) {
     switch (month) {
@@ -378,6 +440,24 @@ abstract class AppLocalizations {
       default:
         return '';
     }
+  }
+
+  /// Bengali calendar season name (Ritu) by month number 1-12
+  String getBengaliSeasonName(int monthNumber) {
+    if (monthNumber >= 1 && monthNumber <= 2) return seasonGrishmo;
+    if (monthNumber >= 3 && monthNumber <= 4) return seasonBorsha;
+    if (monthNumber >= 5 && monthNumber <= 6) return seasonSharat;
+    if (monthNumber >= 7 && monthNumber <= 8) return seasonHemonto;
+    if (monthNumber >= 9 && monthNumber <= 10) return seasonSheet;
+    return seasonBosonto;
+  }
+
+  /// Gregorian season name by month 1-12
+  String getGregorianSeasonName(int month) {
+    if (month >= 3 && month <= 5) return seasonSpring;
+    if (month >= 6 && month <= 8) return seasonSummer;
+    if (month >= 9 && month <= 11) return seasonAutumn;
+    return seasonWinter;
   }
 
   /// Format date to localized string

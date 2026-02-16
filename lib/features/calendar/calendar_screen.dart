@@ -104,7 +104,8 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
             CalendarHeader(
               gregorianYear: monthData.gregorianYear,
               gregorianMonth: monthData.gregorianMonth,
-              bengaliMonthsDisplay: viewModel.bengaliMonthsDisplay,
+              bengaliMonthsDisplay: monthData.getBengaliMonthsDisplay(
+                  useBangla: l10n.languageCode == 'bn'),
               onPreviousMonth: () => viewModel.goToPreviousMonth(),
               onNextMonth: () => viewModel.goToNextMonth(),
               onMonthTap: () => _showMonthPicker(context, ref),
@@ -118,7 +119,7 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
               onSwipeRight: () => viewModel.goToPreviousMonth(),
             ),
             const SizedBox(height: 16),
-            const CalendarLegend(),
+            // const CalendarLegend(), // Commented out per design; keep for future use
             DayDetailsPanel(
               selectedDay: viewModel.selectedDay,
               isExpanded: viewModel.isDayDetailsPanelExpanded,
@@ -126,12 +127,12 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
             ),
             if (viewModel.upcomingHolidays.isNotEmpty)
               UpcomingHolidaysWidget(
-                monthName: monthData.monthName,
+                monthName: l10n.getMonthName(monthData.gregorianMonth),
                 holidays: viewModel.upcomingHolidays,
               ),
             if (viewModel.upcomingEvents.isNotEmpty)
               UpcomingEventsWidget(
-                monthName: monthData.monthName,
+                monthName: l10n.getMonthName(monthData.gregorianMonth),
                 events: viewModel.upcomingEvents,
               ),
             const SizedBox(height: 24),
@@ -153,13 +154,14 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
 
     final currentDate = DateTime(monthData.gregorianYear, monthData.gregorianMonth);
 
+    final l10n = AppLocalizations.of(context);
     final selectedDate = await showDatePicker(
       context: context,
       initialDate: currentDate,
       firstDate: DateTime(2020, 1),
       lastDate: DateTime(2030, 12),
       initialDatePickerMode: DatePickerMode.year,
-      helpText: 'Select Month',
+      helpText: l10n.selectMonth,
     );
 
     if (selectedDate != null && context.mounted) {
@@ -174,13 +176,14 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
 
     final currentDate = DateTime(monthData.gregorianYear, monthData.gregorianMonth);
 
+    final l10n = AppLocalizations.of(context);
     final selectedDate = await showDatePicker(
       context: context,
       initialDate: currentDate,
       firstDate: DateTime(2020, 1),
       lastDate: DateTime(2030, 12),
       initialDatePickerMode: DatePickerMode.year,
-      helpText: 'Select Year',
+      helpText: l10n.selectYear,
     );
 
     if (selectedDate != null && context.mounted) {

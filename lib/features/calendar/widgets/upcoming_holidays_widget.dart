@@ -56,7 +56,7 @@ class UpcomingHolidaysWidget extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                'Upcoming Holidays in $monthName',
+                localizations.formatUpcomingHolidaysInMonth(monthName),
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -91,14 +91,14 @@ class UpcomingHolidaysWidget extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          holiday.date.day.toString(),
+                          localizations.localizeNumber(holiday.date.day),
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: Colors.red,
                           ),
                         ),
                         Text(
-                          _getMonthAbbreviation(holiday.date.month),
+                          localizations.getMonthAbbreviation(holiday.date.month),
                           style: theme.textTheme.labelSmall?.copyWith(
                             color: Colors.red,
                           ),
@@ -122,7 +122,9 @@ class UpcomingHolidaysWidget extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          holiday.getDaysUntilText(),
+                          holiday.daysUntil < 0
+                              ? localizations.passed
+                              : localizations.formatDaysDistance(holiday.daysUntil),
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.primary,
                             fontWeight: FontWeight.w500,
@@ -153,10 +155,4 @@ class UpcomingHolidaysWidget extends StatelessWidget {
     );
   }
 
-  /// Get abbreviated month name
-  String _getMonthAbbreviation(int month) {
-    const months = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
-                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return months[month];
-  }
 }

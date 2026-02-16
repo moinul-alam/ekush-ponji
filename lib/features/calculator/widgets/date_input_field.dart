@@ -1,6 +1,7 @@
 // lib/features/calculator/widgets/date_input_field.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:ekush_ponji/core/localization/app_localizations.dart';
 
 class DateInputField extends StatefulWidget {
   final String label;
@@ -241,7 +242,7 @@ class DateInputFieldState extends State<DateInputField> {
               size: 20,
             ),
             onPressed: widget.onTap,
-            tooltip: 'Pick date',
+            tooltip: AppLocalizations.of(context).selectDate,
           ),
         ),
       ],

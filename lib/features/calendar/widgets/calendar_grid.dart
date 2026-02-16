@@ -21,10 +21,6 @@ class CalendarGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Ensure we have exactly 42 days
-    assert(days.length == 42,
-        'Calendar grid must have exactly 42 days (6 rows × 7 days)');
-
     return GestureDetector(
       onHorizontalDragEnd: (details) {
         // Detect swipe direction
@@ -39,17 +35,29 @@ class CalendarGrid extends StatelessWidget {
         }
       },
       child: Container(
-        padding: const EdgeInsets.all(8),
+        margin: const EdgeInsets.symmetric(horizontal: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Theme.of(context).colorScheme.shadow.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
         child: GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 7,
-            childAspectRatio: 0.8, // Slightly taller than wide
-            crossAxisSpacing: 0,
-            mainAxisSpacing: 0,
+            childAspectRatio: 0.85,
+            crossAxisSpacing: 2,
+            mainAxisSpacing: 2,
           ),
-          itemCount: 42,
+          itemCount: days.length,
           itemBuilder: (context, index) {
             final day = days[index];
             return CalendarDayCell(

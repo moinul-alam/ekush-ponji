@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ekush_ponji/core/localization/app_localizations.dart';
 
 /// Calendar legend widget showing symbol meanings
 /// Displays icons/colors for: Today, Holiday, Event, Reminder
@@ -16,14 +17,15 @@ class _CalendarLegendState extends State<CalendarLegend> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(12),
+        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.4),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: theme.dividerColor,
+          color: theme.colorScheme.outlineVariant.withOpacity(0.5),
           width: 1,
         ),
       ),
@@ -43,7 +45,7 @@ class _CalendarLegendState extends State<CalendarLegend> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Legend',
+                    l10n.calendarLegend,
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -71,7 +73,7 @@ class _CalendarLegendState extends State<CalendarLegend> {
                     context,
                     icon: Icons.circle,
                     color: theme.colorScheme.primaryContainer,
-                    label: 'Today',
+                    label: l10n.today,
                     description: 'Light background',
                   ),
 
@@ -82,7 +84,7 @@ class _CalendarLegendState extends State<CalendarLegend> {
                     context,
                     icon: Icons.circle,
                     color: Colors.red,
-                    label: 'Holiday',
+                    label: l10n.calendarHoliday,
                     description: 'Red dot',
                   ),
 
@@ -93,7 +95,7 @@ class _CalendarLegendState extends State<CalendarLegend> {
                     context,
                     icon: Icons.circle,
                     color: Colors.blue,
-                    label: 'Event',
+                    label: l10n.calendarEvent,
                     description: 'Blue dot / border',
                   ),
 
@@ -104,7 +106,7 @@ class _CalendarLegendState extends State<CalendarLegend> {
                     context,
                     icon: Icons.circle,
                     color: Colors.orange,
-                    label: 'Reminder',
+                    label: l10n.calendarReminder,
                     description: 'Orange dot / border',
                   ),
                 ],

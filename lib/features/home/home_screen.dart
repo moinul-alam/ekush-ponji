@@ -70,7 +70,6 @@ class _HomeScreenState extends BaseScreenState<HomeScreen> {
 
     final holidays = viewModel.holidays;
     final events = viewModel.events;
-    final userName = viewModel.userName;
 
     // FIX: Move SingleChildScrollView to the top level
     // and add bottom padding for the ad banner
@@ -81,7 +80,7 @@ class _HomeScreenState extends BaseScreenState<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              AppGreeter(userName: userName),
+              const AppGreeter(),
               const SizedBox(height: 8),
               const TodayDateWidget(),
               const SizedBox(height: 8),

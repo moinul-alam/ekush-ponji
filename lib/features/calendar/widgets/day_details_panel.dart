@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:ekush_ponji/features/calendar/models/calendar_day.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
+import 'package:ekush_ponji/core/utils/number_converter.dart';
+import 'package:ekush_ponji/features/calendar/models/calendar_day.dart';
 import 'package:go_router/go_router.dart';
 
 /// Day details panel widget
@@ -31,19 +32,19 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
     if (widget.selectedDay == null) return const SizedBox.shrink();
 
     return Container(
-      margin: const EdgeInsets.all(16),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: theme.dividerColor,
+          color: theme.colorScheme.outlineVariant.withOpacity(0.5),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: theme.colorScheme.shadow.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -53,7 +54,7 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
           // Header with date and expand/collapse button
           InkWell(
             onTap: widget.onToggleExpanded,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
@@ -63,20 +64,23 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Gregorian date
+                        // Gregorian date (localized: day month year e.g. ১৬ ফেব্রুয়ারি ২০২৬)
                         Text(
-                          _formatGregorianDate(widget.selectedDay!),
+                          localizations.formatDate(
+                              widget.selectedDay!.gregorianDate),
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: theme.colorScheme.primary,
                           ),
                         ),
                         const SizedBox(height: 4),
-                        // Bengali date
+                        // Bengali calendar date (English script when locale is English)
                         Text(
-                          widget.selectedDay!.bengaliDate.formatBn(),
+                          localizations.languageCode == 'bn'
+                              ? widget.selectedDay!.bengaliDate.formatBn()
+                              : widget.selectedDay!.bengaliDate.format(),
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: Colors.green.shade700,
+                            color: theme.colorScheme.tertiary,
                           ),
                         ),
                       ],
@@ -101,7 +105,8 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
                 children: [
                   // Holidays section
                   if (widget.selectedDay!.hasHoliday) ...[
-                    _buildSectionTitle(context, 'Holidays', Icons.celebration),
+                    _buildSectionTitle(
+                        context, localizations.sectionHolidays, Icons.celebration),
                     const SizedBox(height: 8),
                     ...widget.selectedDay!.holidays.map((holiday) => 
                       _buildHolidayItem(context, holiday, localizations),
@@ -111,20 +116,22 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
 
                   // Events section
                   if (widget.selectedDay!.hasEvent) ...[
-                    _buildSectionTitle(context, 'Events', Icons.event),
+                    _buildSectionTitle(
+                        context, localizations.sectionEvents, Icons.event),
                     const SizedBox(height: 8),
                     ...widget.selectedDay!.events.map((event) => 
-                      _buildEventItem(context, event),
+                      _buildEventItem(context, event, localizations),
                     ),
                     const SizedBox(height: 16),
                   ],
 
                   // Reminders section
                   if (widget.selectedDay!.hasReminder) ...[
-                    _buildSectionTitle(context, 'Reminders', Icons.notifications),
+                    _buildSectionTitle(context,
+                        localizations.sectionReminders, Icons.notifications),
                     const SizedBox(height: 8),
                     ...widget.selectedDay!.reminders.map((reminder) => 
-                      _buildReminderItem(context, reminder),
+                      _buildReminderItem(context, reminder, localizations),
                     ),
                     const SizedBox(height: 16),
                   ],
@@ -155,7 +162,7 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
                             context.push('/calendar/day-details');
                           },
                           icon: const Icon(Icons.info_outline, size: 18),
-                          label: const Text('Show Details'),
+                          label: Text(localizations.showDetails),
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 12),
                           ),
@@ -169,7 +176,7 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
                             context.push('/calendar/add-event');
                           },
                           icon: const Icon(Icons.add, size: 18),
-                          label: const Text('Add Event'),
+                          label: Text(localizations.addEvent),
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 12),
                           ),
@@ -186,7 +193,7 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
                         context.push('/calendar/add-reminder');
                       },
                       icon: const Icon(Icons.alarm_add, size: 18),
-                      label: const Text('Add Reminder'),
+                      label: Text(localizations.addReminder),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
@@ -279,9 +286,15 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
   }
 
   /// Build event item
-  Widget _buildEventItem(BuildContext context, dynamic event) {
+  Widget _buildEventItem(
+      BuildContext context, dynamic event, AppLocalizations l10n) {
     final theme = Theme.of(context);
-    
+    final timeText = event.isAllDay
+        ? l10n.allDay
+        : (l10n.languageCode == 'bn'
+            ? NumberConverter.toBengali(event.getTimeRange())
+            : event.getTimeRange());
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
@@ -316,7 +329,7 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  event.getTimeRange(),
+                  timeText,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -349,9 +362,13 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
   }
 
   /// Build reminder item
-  Widget _buildReminderItem(BuildContext context, dynamic reminder) {
+  Widget _buildReminderItem(
+      BuildContext context, dynamic reminder, AppLocalizations l10n) {
     final theme = Theme.of(context);
-    
+    final timeText = l10n.languageCode == 'bn'
+        ? NumberConverter.toBengali(reminder.getFormattedTime())
+        : reminder.getFormattedTime();
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
@@ -386,7 +403,7 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  reminder.getFormattedTime(),
+                  timeText,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -402,7 +419,7 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              reminder.priority.displayName,
+              _getPriorityLabel(reminder.priority, l10n),
               style: theme.textTheme.labelSmall?.copyWith(
                 color: _getPriorityColor(reminder.priority),
                 fontWeight: FontWeight.bold,
@@ -431,13 +448,20 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
     }
   }
 
-  /// Format Gregorian date
-  String _formatGregorianDate(CalendarDay day) {
-    final months = [
-      '', 'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ];
-    final month = months[day.gregorianDate.month];
-    return '$month ${day.gregorianDate.day}, ${day.gregorianDate.year}';
+  /// Get localized priority label
+  String _getPriorityLabel(dynamic priority, AppLocalizations l10n) {
+    final priorityName = priority.toString().split('.').last;
+    switch (priorityName) {
+      case 'urgent':
+        return l10n.priorityUrgent;
+      case 'high':
+        return l10n.priorityHigh;
+      case 'medium':
+        return l10n.priorityMedium;
+      case 'low':
+        return l10n.priorityLow;
+      default:
+        return l10n.priorityMedium;
+    }
   }
 }

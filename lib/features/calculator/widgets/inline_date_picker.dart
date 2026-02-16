@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ekush_ponji/core/localization/app_localizations.dart';
 
 /// Inline date picker widget (Option B)
 /// Bottom sheet with calendar view for date selection
@@ -59,7 +60,7 @@ class _InlineDatePickerState extends State<InlineDatePicker> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Select Date',
+                  AppLocalizations.of(context).selectDate,
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),

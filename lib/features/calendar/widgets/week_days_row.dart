@@ -12,52 +12,37 @@ class WeekDaysRow extends StatelessWidget {
     final theme = Theme.of(context);
     final localizations = AppLocalizations.of(context);
 
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
-        border: Border(
-          bottom: BorderSide(
-            color: theme.dividerColor,
-            width: 1,
-          ),
-        ),
-      ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
       child: Row(
         children: [
-          _buildDayCell(context, _getDayAbbreviation(localizations.sunday)),
-          _buildDayCell(context, _getDayAbbreviation(localizations.monday)),
-          _buildDayCell(context, _getDayAbbreviation(localizations.tuesday)),
-          _buildDayCell(context, _getDayAbbreviation(localizations.wednesday)),
-          _buildDayCell(context, _getDayAbbreviation(localizations.thursday)),
-          _buildDayCell(context, _getDayAbbreviation(localizations.friday)),
-          _buildDayCell(context, _getDayAbbreviation(localizations.saturday)),
+          _buildDayCell(context, localizations.shortSunday, false),
+          _buildDayCell(context, localizations.shortMonday, false),
+          _buildDayCell(context, localizations.shortTuesday, false),
+          _buildDayCell(context, localizations.shortWednesday, false),
+          _buildDayCell(context, localizations.shortThursday, false),
+          _buildDayCell(context, localizations.shortFriday, true),
+          _buildDayCell(context, localizations.shortSaturday, true),
         ],
       ),
     );
   }
 
-  /// Build a single day cell
-  Widget _buildDayCell(BuildContext context, String dayName) {
+  /// Build a single day cell. [isWeekend] true for Fri/Sat (govt holidays) — shown in red.
+  Widget _buildDayCell(BuildContext context, String dayName, bool isWeekend) {
     final theme = Theme.of(context);
 
     return Expanded(
       child: Center(
         child: Text(
           dayName,
-          style: theme.textTheme.labelMedium?.copyWith(
+          style: theme.textTheme.labelSmall?.copyWith(
             fontWeight: FontWeight.w600,
-            color: theme.colorScheme.onSurfaceVariant,
-            letterSpacing: 0.5,
+            color: isWeekend ? Colors.red.shade700 : theme.colorScheme.onSurfaceVariant,
+            letterSpacing: 0.3,
           ),
         ),
       ),
     );
-  }
-
-  /// Get abbreviated day name (first 3 characters)
-  String _getDayAbbreviation(String fullName) {
-    if (fullName.length <= 3) return fullName;
-    return fullName.substring(0, 3);
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/features/home/widgets/home_section_widget.dart';
 
 /// Displays upcoming events
@@ -17,6 +18,7 @@ class UpcomingEventsWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     // Use sample data if no events provided
     final displayEvents = events ?? _getSampleEvents();
@@ -24,7 +26,7 @@ class UpcomingEventsWidget extends StatelessWidget {
 
     if (limitedEvents.isEmpty) {
       return HomeSectionWidget(
-        title: 'Upcoming Events',
+        title: l10n.upcomingEvents,
         trailing: Icon(
           Icons.event_outlined,
           color: colorScheme.primary,
@@ -41,7 +43,7 @@ class UpcomingEventsWidget extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'No upcoming events',
+                  l10n.noUpcomingEvents,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -54,7 +56,7 @@ class UpcomingEventsWidget extends StatelessWidget {
     }
 
     return HomeSectionWidget(
-      title: 'Upcoming Events',
+      title: l10n.upcomingEvents,
       trailing: Icon(
         Icons.event_outlined,
         color: colorScheme.primary,
@@ -122,7 +124,8 @@ class _EventItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final timeUntil = _getTimeUntil(event.startTime);
+    final l10n = AppLocalizations.of(context);
+    final timeUntil = _getTimeUntil(context, event.startTime);
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -185,7 +188,7 @@ class _EventItem extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    _formatTime(event.startTime),
+                    _formatTime(context, event.startTime),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
@@ -265,40 +268,52 @@ class _EventItem extends StatelessWidget {
     }
   }
 
-  String _formatTime(DateTime dateTime) {
+  String _formatTime(BuildContext context, DateTime dateTime) {
+    final l10n = AppLocalizations.of(context);
     final hour = dateTime.hour;
     final minute = dateTime.minute.toString().padLeft(2, '0');
     final period = hour >= 12 ? 'PM' : 'AM';
     final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
 
     final now = DateTime.now();
-    final difference = dateTime.difference(now).inDays;
+    final today = DateTime(now.year, now.month, now.day);
+    final dateOnly = DateTime(dateTime.year, dateTime.month, dateTime.day);
+    final difference = dateOnly.difference(today).inDays;
 
     String dateStr;
     if (difference == 0) {
-      dateStr = 'Today';
+      dateStr = l10n.today;
     } else if (difference == 1) {
-      dateStr = 'Tomorrow';
+      dateStr = l10n.tomorrow;
     } else {
-      dateStr = '${dateTime.day}/${dateTime.month}';
+      dateStr =
+          '${l10n.localizeNumber(dateTime.day)}/${l10n.localizeNumber(dateTime.month)}';
     }
 
-    return '$dateStr, $displayHour:$minute $period';
+    final timePart = '$displayHour:$minute $period';
+    final timeDisplay = l10n.languageCode == 'bn'
+        ? _toBengaliNumerals(timePart)
+        : timePart;
+    return '$dateStr, $timeDisplay';
   }
 
-  String _getTimeUntil(DateTime dateTime) {
-    final now = DateTime.now();
-    final difference = dateTime.difference(now);
+  String _toBengaliNumerals(String s) {
+    const map = {
+      '0': '০', '1': '১', '2': '২', '3': '৩', '4': '৪',
+      '5': '৫', '6': '৬', '7': '৭', '8': '৮', '9': '৯',
+    };
+    return s.split('').map((c) => map[c] ?? c).join();
+  }
 
-    if (difference.inMinutes < 60) {
-      return 'In ${difference.inMinutes}m';
-    } else if (difference.inHours < 24) {
-      return 'In ${difference.inHours}h';
-    } else if (difference.inDays < 7) {
-      return 'In ${difference.inDays}d';
-    } else {
-      return 'In ${(difference.inDays / 7).floor()}w';
-    }
+  String _getTimeUntil(BuildContext context, DateTime dateTime) {
+    final l10n = AppLocalizations.of(context);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final dateOnly = DateTime(dateTime.year, dateTime.month, dateTime.day);
+    final difference = dateOnly.difference(today).inDays;
+
+    if (difference < 0) return l10n.passed;
+    return l10n.formatDaysDistance(difference);
   }
 }
 

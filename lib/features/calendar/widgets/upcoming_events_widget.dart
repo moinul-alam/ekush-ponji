@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:ekush_ponji/core/localization/app_localizations.dart';
+import 'package:ekush_ponji/core/utils/number_converter.dart';
 import 'package:ekush_ponji/features/home/models/event.dart';
 
 /// Widget showing upcoming events in current month
@@ -18,6 +20,7 @@ class UpcomingEventsWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
     // Filter upcoming events only
     final upcomingEvents =
@@ -51,7 +54,7 @@ class UpcomingEventsWidget extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                'Upcoming Events in $monthName',
+                l10n.formatUpcomingEventsInMonth(monthName),
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -86,14 +89,14 @@ class UpcomingEventsWidget extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          event.startTime.day.toString(),
+                          l10n.localizeNumber(event.startTime.day),
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: Colors.blue,
                           ),
                         ),
                         Text(
-                          _getMonthAbbreviation(event.startTime.month),
+                          l10n.getMonthAbbreviation(event.startTime.month),
                           style: theme.textTheme.labelSmall?.copyWith(
                             color: Colors.blue,
                           ),
@@ -125,7 +128,12 @@ class UpcomingEventsWidget extends StatelessWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              event.getTimeRange(),
+                              event.isAllDay
+                                  ? l10n.allDay
+                                  : (l10n.languageCode == 'bn'
+                                      ? NumberConverter.toBengali(
+                                          event.getTimeRange())
+                                      : event.getTimeRange()),
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: theme.colorScheme.onSurfaceVariant,
                               ),
@@ -157,7 +165,9 @@ class UpcomingEventsWidget extends StatelessWidget {
                         ],
                         const SizedBox(height: 4),
                         Text(
-                          event.getDaysUntilText(),
+                          event.daysUntil < 0
+                              ? l10n.passed
+                              : l10n.formatDaysDistance(event.daysUntil),
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.primary,
                             fontWeight: FontWeight.w500,
@@ -176,7 +186,7 @@ class UpcomingEventsWidget extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      event.category.displayName,
+                      _getCategoryLabel(event.category, l10n),
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: _getCategoryColor(event.category),
                         fontWeight: FontWeight.bold,
@@ -192,24 +202,24 @@ class UpcomingEventsWidget extends StatelessWidget {
     );
   }
 
-  /// Get abbreviated month name
-  String _getMonthAbbreviation(int month) {
-    const months = [
-      '',
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
-    return months[month];
+  /// Get localized category label
+  String _getCategoryLabel(EventCategory category, AppLocalizations l10n) {
+    switch (category) {
+      case EventCategory.work:
+        return l10n.categoryWork;
+      case EventCategory.personal:
+        return l10n.categoryPersonal;
+      case EventCategory.family:
+        return l10n.categoryFamily;
+      case EventCategory.health:
+        return l10n.categoryHealth;
+      case EventCategory.education:
+        return l10n.categoryEducation;
+      case EventCategory.social:
+        return l10n.categorySocial;
+      case EventCategory.other:
+        return l10n.categoryOther;
+    }
   }
 
   /// Get category color

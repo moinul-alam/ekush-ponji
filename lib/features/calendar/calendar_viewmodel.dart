@@ -125,12 +125,18 @@ class CalendarViewModel extends BaseViewModel {
 
   Future<MonthData> _generateMonthData(int year, int month) async {
     final firstDate = DateTime(year, month, 1);
-    final firstWeekday = firstDate.weekday % 7;
+    final firstWeekday = firstDate.weekday % 7; // 0 = Sunday
+    final daysInMonth = DateTime(year, month + 1, 0).day;
+    final totalCells = firstWeekday + daysInMonth;
+    final numRows = (totalCells + 6) ~/ 7;
+    final cellCount = numRows * 7;
+
     final gridStart = firstDate.subtract(Duration(days: firstWeekday));
     final days = <CalendarDay>[];
     final today = DateTime.now();
 
-    final dateList = List.generate(42, (i) => gridStart.add(Duration(days: i)));
+    final dateList = List.generate(
+        cellCount, (i) => gridStart.add(Duration(days: i)));
 
     final holidaysMap = await _repository.getHolidaysForDates(dateList);
     final eventsMap = await _repository.getEventsForDates(dateList);

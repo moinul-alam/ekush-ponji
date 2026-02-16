@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ekush_ponji/core/localization/app_localizations.dart';
 
 /// Bottom navigation bar with instant tab switching
 class AppBottomNav extends StatelessWidget {
@@ -14,6 +15,7 @@ class AppBottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return NavigationBar(
       selectedIndex: currentIndex,
@@ -21,21 +23,21 @@ class AppBottomNav extends StatelessWidget {
       backgroundColor: colorScheme.surface,
       elevation: 3,
       animationDuration: const Duration(milliseconds: 200),
-      destinations: const [
+      destinations: [
         NavigationDestination(
-          icon: Icon(Icons.home_outlined),
-          selectedIcon: Icon(Icons.home_rounded),
-          label: 'Home',
+          icon: const Icon(Icons.home_outlined),
+          selectedIcon: const Icon(Icons.home_rounded),
+          label: l10n.navHome,
         ),
         NavigationDestination(
-          icon: Icon(Icons.calendar_today_outlined),
-          selectedIcon: Icon(Icons.calendar_today_rounded),
-          label: 'Calendar',
+          icon: const Icon(Icons.calendar_today_outlined),
+          selectedIcon: const Icon(Icons.calendar_today_rounded),
+          label: l10n.navCalendar,
         ),
         NavigationDestination(
-          icon: Icon(Icons.calculate_outlined),
-          selectedIcon: Icon(Icons.calculate_rounded),
-          label: 'Calculator',
+          icon: const Icon(Icons.calculate_outlined),
+          selectedIcon: const Icon(Icons.calculate_rounded),
+          label: l10n.navCalculator,
         ),
       ],
     );

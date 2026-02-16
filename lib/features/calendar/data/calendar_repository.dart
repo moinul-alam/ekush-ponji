@@ -88,8 +88,8 @@ class CalendarRepository {
   List<Holiday> _getSampleHolidays() {
     return [
       Holiday(name: "New Year", namebn: "নতুন বছর", date: DateTime(2025, 1, 1), type: HolidayType.national, description: "First day of the year", descriptionbn: "বছরের প্রথম দিন"),
-      Holiday(name: "Pohela Boishakh", namebn: "পহেলা বৈশাখ", date: DateTime(2025, 4, 14), type: HolidayType.cultural, description: "Bengali New Year", descriptionbn: "বাংলা নববর্ষ"),
-      Holiday(name: "Independence Day", namebn: "স্বাধীনতা দিবস", date: DateTime(2025, 3, 26), type: HolidayType.national, description: "Bangladesh Independence", descriptionbn: "বাংলাদেশের স্বাধীনতা"),
+      Holiday(name: "Pohela Boishakh", namebn: "পহেলা বৈশাখ", date: DateTime(2026, 2, 9), type: HolidayType.cultural, description: "Bengali New Year", descriptionbn: "বাংলা নববর্ষ"),
+      Holiday(name: "Independence Day", namebn: "স্বাধীনতা দিবস", date: DateTime(2026, 2, 12), type: HolidayType.national, description: "Bangladesh Independence", descriptionbn: "বাংলাদেশের স্বাধীনতা"),
     ];
   }
 

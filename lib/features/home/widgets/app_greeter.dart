@@ -5,13 +5,40 @@ import 'package:ekush_ponji/core/localization/app_localizations.dart';
 
 /// Modern greeting widget with dynamic time-based backgrounds
 /// Uses app's color scheme for perfect consistency
-class AppGreeter extends StatelessWidget {
-  final String? userName;
+class AppGreeter extends StatefulWidget {
+  const AppGreeter({super.key});
 
-  const AppGreeter({
-    super.key,
-    this.userName,
-  });
+  @override
+  State<AppGreeter> createState() => _AppGreeterState();
+}
+
+class _AppGreeterState extends State<AppGreeter>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _rotationAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 20), // Slow, gentle rotation
+    );
+    _rotationAnimation = Tween<double>(
+      begin: 0,
+      end: 2 * 3.14159, // Full rotation in radians
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.linear,
+    ));
+    _animationController.repeat(); // Continuous rotation
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +50,7 @@ class AppGreeter extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
         gradient: LinearGradient(
           colors: greetingColors,
           begin: Alignment.topLeft,
@@ -31,82 +58,106 @@ class AppGreeter extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: greetingColors.first.withValues(alpha: 0.15),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
+            color: greetingColors.first.withValues(alpha: 0.2),
+            blurRadius: 20,
+            offset: const Offset(0, 6),
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Stack(
         children: [
-          // Decorative background shape
+          // Decorative background shapes
           Positioned(
-            top: -40,
-            right: -40,
+            top: -50,
+            right: -50,
             child: Container(
-              width: 120,
-              height: 120,
+              width: 140,
+              height: 140,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.08),
+                color: Colors.white.withValues(alpha: 0.1),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: -30,
+            left: -30,
+            child: Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withValues(alpha: 0.06),
               ),
             ),
           ),
 
           // Main content
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
             child: Row(
               children: [
-                // Icon container
+                // Enhanced icon container with glow effect - only icon rotates
                 Container(
-                  padding: const EdgeInsets.all(14),
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: _getIconBackgroundColor(colorScheme),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: _getIconBorderColor(colorScheme),
-                      width: 1.5,
+                      width: 2,
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: _getIconColor(colorScheme)
+                            .withValues(alpha: 0.3),
+                        blurRadius: 12,
+                        spreadRadius: 0,
+                      ),
+                    ],
                   ),
-                  child: Icon(
-                    _getGreetingIcon(),
-                    color: _getIconColor(colorScheme),
-                    size: 28,
+                  child: AnimatedBuilder(
+                    animation: _rotationAnimation,
+                    builder: (context, child) {
+                      return Transform.rotate(
+                        angle: _rotationAnimation.value,
+                        child: Icon(
+                          _getGreetingIcon(),
+                          color: _getIconColor(colorScheme),
+                          size: 32,
+                        ),
+                      );
+                    },
                   ),
                 ),
 
-                const SizedBox(width: 16),
+                const SizedBox(width: 20),
 
-                // Text content
+                // Text content - just the greeting
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        greeting,
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: _getTextColor(colorScheme),
-                          letterSpacing: -0.5,
-                          height: 1.2,
-                        ),
-                      ),
-                      if (userName != null && userName!.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          userName!,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: _getTextColor(colorScheme)
-                                .withValues(alpha: 0.85),
-                            fontWeight: FontWeight.w500,
-                            letterSpacing: 0.1,
-                          ),
-                          overflow: TextOverflow.ellipsis,
+                  child: Text(
+                    greeting,
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: _getTextColor(colorScheme),
+                      letterSpacing: -0.8,
+                      height: 1.1,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          offset: const Offset(0, 2),
+                          blurRadius: 4,
                         ),
                       ],
-                    ],
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                 ),
               ],

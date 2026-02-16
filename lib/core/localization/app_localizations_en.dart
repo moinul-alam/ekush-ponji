@@ -226,6 +226,102 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noDataAvailable => 'No data available';
 
   // ========================================
+  // CALENDAR
+  // ========================================
+
+  @override
+  String get selectMonth => 'Select Month';
+
+  @override
+  String get selectYear => 'Select Year';
+
+  @override
+  String get calendarLegend => 'Legend';
+
+  @override
+  String get calendarHoliday => 'Holiday';
+
+  @override
+  String get calendarEvent => 'Event';
+
+  @override
+  String get calendarReminder => 'Reminder';
+
+  @override
+  String get sectionHolidays => 'Holidays';
+
+  @override
+  String get sectionEvents => 'Events';
+
+  @override
+  String get sectionReminders => 'Reminders';
+
+  @override
+  String get showDetails => 'Show Details';
+
+  @override
+  String get addEvent => 'Add Event';
+
+  @override
+  String get addReminder => 'Add Reminder';
+
+  @override
+  String get allDay => 'All day';
+
+  @override
+  String get passed => 'Passed';
+
+  @override
+  String formatUpcomingEventsInMonth(String monthName) =>
+      'Upcoming Events in $monthName';
+
+  @override
+  String formatUpcomingHolidaysInMonth(String monthName) =>
+      'Upcoming Holidays in $monthName';
+
+  @override
+  String get categoryWork => 'Work';
+
+  @override
+  String get categoryPersonal => 'Personal';
+
+  @override
+  String get categoryFamily => 'Family';
+
+  @override
+  String get categoryHealth => 'Health';
+
+  @override
+  String get categoryEducation => 'Education';
+
+  @override
+  String get categorySocial => 'Social';
+
+  @override
+  String get categoryOther => 'Other';
+
+  @override
+  String get priorityLow => 'Low';
+
+  @override
+  String get priorityMedium => 'Medium';
+
+  @override
+  String get priorityHigh => 'High';
+
+  @override
+  String get priorityUrgent => 'Urgent';
+
+  @override
+  String getMonthAbbreviation(int month) {
+    const months = [
+      '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return months[month];
+  }
+
+  // ========================================
   // DAYS OF WEEK
   // ========================================
 
@@ -249,6 +345,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sunday => 'Sunday';
+
+  @override
+  String get shortSunday => 'Sun';
+
+  @override
+  String get shortMonday => 'Mon';
+
+  @override
+  String get shortTuesday => 'Tue';
+
+  @override
+  String get shortWednesday => 'Wed';
+
+  @override
+  String get shortThursday => 'Thu';
+
+  @override
+  String get shortFriday => 'Fri';
+
+  @override
+  String get shortSaturday => 'Sat';
 
   // ========================================
   // MONTHS (ENGLISH CALENDAR)
@@ -329,6 +446,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get choitra => 'Choitra';
+
+  // ========================================
+  // SEASONS
+  // ========================================
+
+  @override
+  String get seasonGrishmo => 'Summer';
+
+  @override
+  String get seasonBorsha => 'Monsoon';
+
+  @override
+  String get seasonSharat => 'Autumn';
+
+  @override
+  String get seasonHemonto => 'Late Autumn';
+
+  @override
+  String get seasonSheet => 'Winter';
+
+  @override
+  String get seasonBosonto => 'Spring';
+
+  @override
+  String get seasonSpring => 'Spring';
+
+  @override
+  String get seasonSummer => 'Summer';
+
+  @override
+  String get seasonAutumn => 'Autumn';
+
+  @override
+  String get seasonWinter => 'Winter';
 
   // ========================================
   // CALCULATOR

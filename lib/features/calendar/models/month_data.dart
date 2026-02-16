@@ -1,3 +1,4 @@
+import 'package:ekush_ponji/core/utils/number_converter.dart';
 import 'package:ekush_ponji/features/calendar/models/calendar_day.dart';
 import 'package:ekush_ponji/features/calendar/models/bengali_date.dart';
 import 'package:ekush_ponji/features/home/models/holiday.dart';
@@ -49,21 +50,25 @@ class MonthData {
 
   /// Get Bengali month(s) display string
   /// If spanning two months: "Poush–Magh 1431" (with em dash)
+  /// When [useBangla] is true, year is shown in Bengali numerals.
   String getBengaliMonthsDisplay({bool useBangla = false}) {
     if (bengaliMonths.isEmpty) return '';
-    
+
+    String yearStr(int y) =>
+        useBangla ? NumberConverter.toBengali(y) : y.toString();
+
     if (bengaliMonths.length == 1) {
       final month = bengaliMonths.first;
       final name = useBangla ? month.nameBn : month.name;
-      return '$name ${month.year}';
+      return '$name ${yearStr(month.year)}';
     }
-    
+
     // Two months: use em dash separator
     final month1 = bengaliMonths.first;
     final month2 = bengaliMonths.last;
     final name1 = useBangla ? month1.nameBn : month1.name;
     final name2 = useBangla ? month2.nameBn : month2.name;
-    return '$name1–$name2 ${month1.year}';
+    return '$name1–$name2 ${yearStr(month1.year)}';
   }
 
   /// Get all days that belong to the current month (exclude prev/next month days)

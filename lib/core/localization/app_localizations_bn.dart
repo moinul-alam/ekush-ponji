@@ -226,6 +226,101 @@ class AppLocalizationsBn extends AppLocalizations {
   String get noDataAvailable => 'কোন ডেটা উপলব্ধ নেই';
 
   // ========================================
+  // CALENDAR
+  // ========================================
+
+  @override
+  String get selectMonth => 'মাস নির্বাচন করুন';
+
+  @override
+  String get selectYear => 'বছর নির্বাচন করুন';
+
+  @override
+  String get calendarLegend => 'চিহ্নের অর্থ';
+
+  @override
+  String get calendarHoliday => 'ছুটি';
+
+  @override
+  String get calendarEvent => 'ইভেন্ট';
+
+  @override
+  String get calendarReminder => 'অনুস্মারক';
+
+  @override
+  String get sectionHolidays => 'ছুটির দিন';
+
+  @override
+  String get sectionEvents => 'ইভেন্ট';
+
+  @override
+  String get sectionReminders => 'অনুস্মারক';
+
+  @override
+  String get showDetails => 'বিস্তারিত দেখুন';
+
+  @override
+  String get addEvent => 'ইভেন্ট যোগ করুন';
+
+  @override
+  String get addReminder => 'অনুস্মারক যোগ করুন';
+
+  @override
+  String get allDay => 'সারাদিন';
+
+  @override
+  String get passed => 'গত';
+
+  @override
+  String formatUpcomingEventsInMonth(String monthName) =>
+      '$monthName-এ আসন্ন ইভেন্ট';
+
+  @override
+  String formatUpcomingHolidaysInMonth(String monthName) =>
+      '$monthName-এ আসন্ন ছুটির দিন';
+
+  @override
+  String get categoryWork => 'কর্ম';
+
+  @override
+  String get categoryPersonal => 'ব্যক্তিগত';
+
+  @override
+  String get categoryFamily => 'পরিবার';
+
+  @override
+  String get categoryHealth => 'স্বাস্থ্য';
+
+  @override
+  String get categoryEducation => 'শিক্ষা';
+
+  @override
+  String get categorySocial => 'সামাজিক';
+
+  @override
+  String get categoryOther => 'অন্যান্য';
+
+  @override
+  String get priorityLow => 'নিম্ন';
+
+  @override
+  String get priorityMedium => 'মাঝারি';
+
+  @override
+  String get priorityHigh => 'উচ্চ';
+
+  @override
+  String get priorityUrgent => 'জরুরি';
+
+  @override
+  String getMonthAbbreviation(int month) {
+    final name = getMonthName(month);
+    if (name.isEmpty) return '';
+    if (name.length <= 3) return name;
+    return name.substring(0, 3);
+  }
+
+  // ========================================
   // DAYS OF WEEK
   // ========================================
 
@@ -249,6 +344,27 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get sunday => 'রবিবার';
+
+  @override
+  String get shortSunday => 'রবি';
+
+  @override
+  String get shortMonday => 'সোম';
+
+  @override
+  String get shortTuesday => 'মঙ্গল';
+
+  @override
+  String get shortWednesday => 'বুধ';
+
+  @override
+  String get shortThursday => 'বৃহ';
+
+  @override
+  String get shortFriday => 'শুক্র';
+
+  @override
+  String get shortSaturday => 'শনি';
 
   // ========================================
   // MONTHS (ENGLISH CALENDAR)
@@ -329,6 +445,40 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get choitra => 'চৈত্র';
+
+  // ========================================
+  // SEASONS
+  // ========================================
+
+  @override
+  String get seasonGrishmo => 'গ্রীষ্ম';
+
+  @override
+  String get seasonBorsha => 'বর্ষা';
+
+  @override
+  String get seasonSharat => 'শরৎ';
+
+  @override
+  String get seasonHemonto => 'হেমন্ত';
+
+  @override
+  String get seasonSheet => 'শীত';
+
+  @override
+  String get seasonBosonto => 'বসন্ত';
+
+  @override
+  String get seasonSpring => 'বসন্ত';
+
+  @override
+  String get seasonSummer => 'গ্রীষ্ম';
+
+  @override
+  String get seasonAutumn => 'শরৎ';
+
+  @override
+  String get seasonWinter => 'শীত';
 
   // ========================================
   // CALCULATOR

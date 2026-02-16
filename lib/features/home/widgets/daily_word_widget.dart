@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/features/home/widgets/home_section_widget.dart';
 
 /// Displays a daily word with its meaning and usage
@@ -15,6 +16,7 @@ class DailyWordWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     // Use sample word if none provided
     final displayWord = word ?? _getSampleWord();
@@ -41,7 +43,7 @@ class DailyWordWidget extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Text(
-                'Word of the Day',
+                l10n.wordOfTheDay,
                 style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: colorScheme.onSurface,
@@ -137,7 +139,7 @@ class DailyWordWidget extends StatelessWidget {
                 _buildSection(
                   context,
                   icon: Icons.lightbulb_outline_rounded,
-                  title: 'Meaning',
+                  title: l10n.meaning,
                   content: displayWord.meaning,
                 ),
 
@@ -146,7 +148,7 @@ class DailyWordWidget extends StatelessWidget {
                   _buildSection(
                     context,
                     icon: Icons.sync_alt_rounded,
-                    title: 'Synonym',
+                    title: l10n.synonym,
                     content: displayWord.synonym!,
                   ),
                 ],
@@ -156,7 +158,7 @@ class DailyWordWidget extends StatelessWidget {
                   _buildSection(
                     context,
                     icon: Icons.chat_bubble_outline_rounded,
-                    title: 'Example',
+                    title: l10n.example,
                     content: displayWord.example!,
                     isItalic: true,
                   ),

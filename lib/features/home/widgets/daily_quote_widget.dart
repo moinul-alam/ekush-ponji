@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/features/home/widgets/home_section_widget.dart';
 
 /// Displays a daily inspirational quote
@@ -15,6 +16,7 @@ class DailyQuoteWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     // Use sample quote if none provided
     final displayQuote = quote ?? _getSampleQuote();
@@ -41,7 +43,7 @@ class DailyQuoteWidget extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Text(
-                'Quote of the Day',
+                l10n.quoteOfTheDay,
                 style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: colorScheme.onSurface,
