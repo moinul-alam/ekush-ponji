@@ -21,6 +21,24 @@ class CalendarScreen extends BaseScreen {
 }
 
 class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
+  late PageController _pageController;
+
+  // Page index represents offset from initial month
+  // We start at page 1000 to allow scrolling back in time
+  static const int _initialPage = 1000;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: _initialPage);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
   @override
   NotifierProvider<CalendarViewModel, ViewState> get viewModelProvider =>
       calendarViewModelProvider;
@@ -39,7 +57,6 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
   @override
   PreferredSizeWidget? buildAppBar(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-
     return AppBar(
       title: Text(l10n.navCalendar),
       centerTitle: true,
@@ -52,7 +69,14 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
           icon: const Icon(Icons.today),
           tooltip: l10n.today,
           onPressed: () {
-            ref.read(calendarViewModelProvider.notifier).loadCurrentMonth();
+            _pageController.animateToPage(
+              _initialPage,
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.easeInOut,
+            );
+            ref
+                .read(calendarViewModelProvider.notifier)
+                .loadCurrentMonth();
           },
         ),
       ],
@@ -92,7 +116,8 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
 
     return GestureDetector(
       onHorizontalDragEnd: (details) {
-        if (details.primaryVelocity != null && details.primaryVelocity! > 300) {
+        if (details.primaryVelocity != null &&
+            details.primaryVelocity! > 300) {
           context.go(RouteNames.home);
         }
       },
@@ -100,46 +125,141 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
         physics: const AlwaysScrollableScrollPhysics(),
         child: Column(
           children: [
-            CalendarHeader(
-              gregorianYear: monthData.gregorianYear,
-              gregorianMonth: monthData.gregorianMonth,
-              bengaliMonthsDisplay: monthData.getBengaliMonthsDisplay(
-                  useBangla: l10n.languageCode == 'bn'),
-              onPreviousMonth: () => viewModel.goToPreviousMonth(),
-              onNextMonth: () => viewModel.goToNextMonth(),
-              onMonthTap: () => _showMonthPicker(context, ref),
-              onYearTap: () => _showYearPicker(context, ref),
+            // ─── Unified Calendar Card ───────────────────────
+            Container(
+              margin: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .shadow
+                        .withOpacity(0.07),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+                border: Border.all(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .outlineVariant
+                      .withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              child: Column(
+                children: [
+                  // Header inside card
+                  CalendarHeader(
+                    gregorianYear: monthData.gregorianYear,
+                    gregorianMonth: monthData.gregorianMonth,
+                    bengaliMonthsDisplay:
+                        monthData.getBengaliMonthsDisplay(
+                      useBangla: l10n.languageCode == 'bn',
+                    ),
+                    onPreviousMonth: () {
+                      _pageController.previousPage(
+                        duration: const Duration(milliseconds: 350),
+                        curve: Curves.easeInOut,
+                      );
+                    },
+                    onNextMonth: () {
+                      _pageController.nextPage(
+                        duration: const Duration(milliseconds: 350),
+                        curve: Curves.easeInOut,
+                      );
+                    },
+                    onMonthTap: () => _showMonthPicker(context, ref),
+                    onYearTap: () => _showYearPicker(context, ref),
+                  ),
+
+                  // Week days row inside card
+                  const WeekDaysRow(),
+
+                  // PageView for animated month switching
+                  SizedBox(
+                    height: _gridHeight(viewModel.calendarDays.length),
+                    child: PageView.builder(
+                      controller: _pageController,
+                      onPageChanged: (page) {
+                        final offset = page - _initialPage;
+                        _onPageChanged(offset, viewModel);
+                      },
+                      itemBuilder: (context, page) {
+                        return CalendarGrid(
+                          days: viewModel.calendarDays,
+                          onDayTap: (day) =>
+                              viewModel.selectDate(day.gregorianDate),
+                        );
+                      },
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+                ],
+              ),
             ),
-            const WeekDaysRow(),
-            CalendarGrid(
-              days: viewModel.calendarDays,
-              onDayTap: (day) => viewModel.selectDate(day.gregorianDate),
-              onSwipeLeft: () => viewModel.goToNextMonth(),
-              onSwipeRight: () => viewModel.goToPreviousMonth(),
-            ),
-            const SizedBox(height: 16),
-            // const CalendarLegend(), // Commented out per design; keep for future use
-            if (viewModel.hasDateBeenSelected)  // ← Only show after a date is tapped
+
+            const SizedBox(height: 12),
+
+            // ─── Day Details Panel ───────────────────────────
+            if (viewModel.hasDateBeenSelected)
               DayDetailsPanel(
                 selectedDay: viewModel.selectedDay,
                 isExpanded: viewModel.isDayDetailsPanelExpanded,
-                onToggleExpanded: () => viewModel.toggleDayDetailsPanel(),
+                onToggleExpanded: () =>
+                    viewModel.toggleDayDetailsPanel(),
               ),
+
+            // ─── Upcoming Holidays ───────────────────────────
             if (viewModel.upcomingHolidays.isNotEmpty)
               UpcomingHolidaysWidget(
-                monthName: l10n.getMonthName(monthData.gregorianMonth),
+                monthName:
+                    l10n.getMonthName(monthData.gregorianMonth),
                 holidays: viewModel.upcomingHolidays,
               ),
+
+            // ─── Upcoming Events ─────────────────────────────
             if (viewModel.upcomingEvents.isNotEmpty)
               UpcomingEventsWidget(
-                monthName: l10n.getMonthName(monthData.gregorianMonth),
+                monthName:
+                    l10n.getMonthName(monthData.gregorianMonth),
                 events: viewModel.upcomingEvents,
               ),
+
             const SizedBox(height: 24),
           ],
         ),
       ),
     );
+  }
+
+  /// Calculate grid height based on number of day cells
+  double _gridHeight(int cellCount) {
+    final rows = (cellCount / 7).ceil();
+    // Each row is approximately 56px tall
+    return rows * 56.0 + 8;
+  }
+
+  /// Handle PageView page change → navigate months in ViewModel
+  void _onPageChanged(int offset, CalendarViewModel viewModel) {
+    final now = DateTime.now();
+    int targetMonth = now.month + offset;
+    int targetYear = now.year;
+
+    // Normalize month overflow/underflow
+    while (targetMonth > 12) {
+      targetMonth -= 12;
+      targetYear++;
+    }
+    while (targetMonth < 1) {
+      targetMonth += 12;
+      targetYear--;
+    }
+
+    viewModel.jumpToMonth(targetYear, targetMonth);
   }
 
   @override
@@ -152,9 +272,10 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
     final monthData = viewModel.currentMonthData;
     if (monthData == null) return;
 
-    final currentDate = DateTime(monthData.gregorianYear, monthData.gregorianMonth);
-
+    final currentDate =
+        DateTime(monthData.gregorianYear, monthData.gregorianMonth);
     final l10n = AppLocalizations.of(context);
+
     final selectedDate = await showDatePicker(
       context: context,
       initialDate: currentDate,
@@ -165,7 +286,8 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
     );
 
     if (selectedDate != null && context.mounted) {
-      await viewModel.jumpToMonth(selectedDate.year, selectedDate.month);
+      await viewModel.jumpToMonth(
+          selectedDate.year, selectedDate.month);
     }
   }
 
@@ -174,9 +296,10 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
     final monthData = viewModel.currentMonthData;
     if (monthData == null) return;
 
-    final currentDate = DateTime(monthData.gregorianYear, monthData.gregorianMonth);
-
+    final currentDate =
+        DateTime(monthData.gregorianYear, monthData.gregorianMonth);
     final l10n = AppLocalizations.of(context);
+
     final selectedDate = await showDatePicker(
       context: context,
       initialDate: currentDate,
@@ -187,7 +310,8 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
     );
 
     if (selectedDate != null && context.mounted) {
-      await viewModel.jumpToMonth(selectedDate.year, monthData.gregorianMonth);
+      await viewModel.jumpToMonth(
+          selectedDate.year, monthData.gregorianMonth);
     }
   }
 }

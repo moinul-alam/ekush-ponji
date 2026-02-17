@@ -1,10 +1,6 @@
-// lib/features/calendar/widgets/calendar_header.dart
-
 import 'package:flutter/material.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 
-/// Calendar header widget showing month/year with navigation
-/// Uses proper localization and theme colors
 class CalendarHeader extends StatelessWidget {
   final int gregorianYear;
   final int gregorianMonth;
@@ -28,94 +24,80 @@ class CalendarHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context);
 
-    return Container(
-      margin: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.shadow.withOpacity(0.06),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Previous month button
-          Material(
-            color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
-            borderRadius: BorderRadius.circular(12),
-            child: IconButton(
-              icon: const Icon(Icons.chevron_left),
-              onPressed: onPreviousMonth,
-              tooltip: l10n.previous,
-              color: colorScheme.primary,
-            ),
+          // Previous button
+          _NavButton(
+            icon: Icons.chevron_left_rounded,
+            onTap: onPreviousMonth,
+            tooltip: l10n.previous,
           ),
 
-          // Month and year display
+          // Month + Year + Bengali month
           Expanded(
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                // Gregorian Month & Year
-                InkWell(
-                  onTap: onMonthTap,
-                  borderRadius: BorderRadius.circular(12),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Month name
-                        Text(
-                          l10n.getMonthName(gregorianMonth),
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.primary,
-                            letterSpacing: 0.2,
-                          ),
+                // Gregorian month and year
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Month - tappable
+                    GestureDetector(
+                      onTap: onMonthTap,
+                      child: Text(
+                        l10n.getMonthName(gregorianMonth),
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: theme.colorScheme.onSurface,
+                          letterSpacing: 0.3,
                         ),
-                        const SizedBox(width: 6),
+                      ),
+                    ),
 
-                        // Year
-                        InkWell(
-                          onTap: onYearTap,
-                          borderRadius: BorderRadius.circular(8),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 6),
-                            child: Text(
-                              l10n.localizeNumber(gregorianYear),
-                              style: theme.textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: colorScheme.primary,
-                                letterSpacing: 0.2,
-                              ),
-                            ),
+                    const SizedBox(width: 6),
+
+                    // Year - tappable
+                    GestureDetector(
+                      onTap: onYearTap,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primaryContainer
+                              .withOpacity(0.5),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          l10n.localizeNumber(gregorianYear),
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: theme.colorScheme.primary,
+                            letterSpacing: 0.3,
                           ),
                         ),
-                      ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
 
+                // Bengali month
                 if (bengaliMonthsDisplay.isNotEmpty) ...[
-                  const SizedBox(height: 6),
-                  // Bengali month(s)
+                  const SizedBox(height: 3),
                   Text(
                     bengaliMonthsDisplay,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w500,
+                      letterSpacing: 0.2,
                     ),
                   ),
                 ],
@@ -123,18 +105,58 @@ class CalendarHeader extends StatelessWidget {
             ),
           ),
 
-          // Next month button
-          Material(
-            color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
-            borderRadius: BorderRadius.circular(12),
-            child: IconButton(
-              icon: const Icon(Icons.chevron_right),
-              onPressed: onNextMonth,
-              tooltip: l10n.next,
-              color: colorScheme.primary,
-            ),
+          // Next button
+          _NavButton(
+            icon: Icons.chevron_right_rounded,
+            onTap: onNextMonth,
+            tooltip: l10n.next,
           ),
         ],
+      ),
+    );
+  }
+}
+
+// Navigation button widget
+class _NavButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  final String tooltip;
+
+  const _NavButton({
+    required this.icon,
+    required this.onTap,
+    required this.tooltip,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: onTap,
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: theme.colorScheme.outlineVariant.withOpacity(0.5),
+                width: 1,
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              icon,
+              color: theme.colorScheme.onSurface,
+              size: 22,
+            ),
+          ),
+        ),
       ),
     );
   }

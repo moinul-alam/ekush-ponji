@@ -1,45 +1,52 @@
 import 'package:flutter/material.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 
-/// Week days header row widget
-/// Shows abbreviated day names: Sun, Mon, Tue, Wed, Thu, Fri, Sat
-/// Uses localized day names from AppLocalizations
 class WeekDaysRow extends StatelessWidget {
   const WeekDaysRow({super.key});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final localizations = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context);
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: theme.colorScheme.outlineVariant.withOpacity(0.4),
+            width: 1,
+          ),
+        ),
+      ),
       child: Row(
         children: [
-          _buildDayCell(context, localizations.shortSunday, false),
-          _buildDayCell(context, localizations.shortMonday, false),
-          _buildDayCell(context, localizations.shortTuesday, false),
-          _buildDayCell(context, localizations.shortWednesday, false),
-          _buildDayCell(context, localizations.shortThursday, false),
-          _buildDayCell(context, localizations.shortFriday, true),
-          _buildDayCell(context, localizations.shortSaturday, true),
+          _dayLabel(context, l10n.shortSunday, false),
+          _dayLabel(context, l10n.shortMonday, false),
+          _dayLabel(context, l10n.shortTuesday, false),
+          _dayLabel(context, l10n.shortWednesday, false),
+          _dayLabel(context, l10n.shortThursday, false),
+          _dayLabel(context, l10n.shortFriday, true),
+          _dayLabel(context, l10n.shortSaturday, true),
         ],
       ),
     );
   }
 
-  /// Build a single day cell. [isWeekend] true for Fri/Sat (govt holidays) — shown in red.
-  Widget _buildDayCell(BuildContext context, String dayName, bool isWeekend) {
+  Widget _dayLabel(BuildContext context, String label, bool isWeekend) {
     final theme = Theme.of(context);
-
     return Expanded(
       child: Center(
         child: Text(
-          dayName,
+          label,
           style: theme.textTheme.labelSmall?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: isWeekend ? Colors.red.shade700 : theme.colorScheme.onSurfaceVariant,
-            letterSpacing: 0.3,
+            fontWeight: FontWeight.w700,
+            fontSize: 11,
+            color: isWeekend
+                ? Colors.red.shade400
+                : theme.colorScheme.onSurfaceVariant.withOpacity(0.8),
+            letterSpacing: 0.5,
           ),
         ),
       ),

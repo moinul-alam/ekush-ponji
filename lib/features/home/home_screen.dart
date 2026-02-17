@@ -71,12 +71,10 @@ class _HomeScreenState extends BaseScreenState<HomeScreen> {
     final holidays = viewModel.holidays;
     final events = viewModel.events;
 
-    // FIX: Move SingleChildScrollView to the top level
-    // and add bottom padding for the ad banner
     return Stack(
       children: [
         SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 70), // Space for ad banner
+          padding: const EdgeInsets.only(bottom: 70),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -99,13 +97,6 @@ class _HomeScreenState extends BaseScreenState<HomeScreen> {
             ],
           ),
         ),
-        // Ad banner positioned at the bottom
-        // const Positioned(
-        //   left: 0,
-        //   right: 0,
-        //   bottom: 0,
-        //   child: AppAdBannerBottom(),
-        // ),
       ],
     );
   }
