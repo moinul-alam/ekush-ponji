@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ekush_ponji/core/themes/app_theme.dart';
 import 'package:ekush_ponji/features/home/models/holiday.dart';
+import 'package:ekush_ponji/core/services/sync_service.dart'; 
 
 class AppInitializer {
   /// Initialize app services
@@ -11,9 +12,10 @@ class AppInitializer {
     try {
       await _setDeviceOrientation();
       await _initializeHive();
-      await _registerHiveAdapters();  // ← Add this
+      await _registerHiveAdapters();
       await _openHiveBoxes();
       await _initializeSharedPreferences();
+      await _performInitialSync(); 
       
       debugPrint('✅ App initialization completed successfully');
     } catch (e, stackTrace) {
@@ -38,7 +40,7 @@ class AppInitializer {
     debugPrint('✅ Hive initialized successfully');
   }
 
-  /// Register Hive type adapters  ← NEW METHOD
+  /// Register Hive type adapters
   static Future<void> _registerHiveAdapters() async {
     try {
       Hive.registerAdapter(HolidayAdapter());
@@ -54,7 +56,7 @@ class AppInitializer {
   static Future<void> _openHiveBoxes() async {
     try {
       await Hive.openBox('settings');
-      await Hive.openBox('holidays');  // ← Add holidays box
+      await Hive.openBox('holidays');
       debugPrint('✅ Settings and holidays boxes opened successfully');
     } catch (e) {
       debugPrint('❌ Failed to open Hive boxes: $e');
@@ -69,6 +71,24 @@ class AppInitializer {
       debugPrint('✅ SharedPreferences initialized');
     } catch (e) {
       debugPrint('❌ Error initializing SharedPreferences: $e');
+    }
+  }
+
+  /// Perform initial holiday sync from Firebase
+  static Future<void> _performInitialSync() async {
+    try {
+      debugPrint('🔄 Starting initial holiday sync...');
+      
+      final syncService = SyncService();
+      final success = await syncService.syncHolidays();
+      
+      if (success) {
+        debugPrint('✅ Initial holiday sync completed successfully');
+      } else {
+        debugPrint('⚠️ Initial holiday sync failed (app will use cached data)');
+      }
+    } catch (e) {
+      debugPrint('⚠️ Error during initial sync: $e (app will continue)');
     }
   }
 

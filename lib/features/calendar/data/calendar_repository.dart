@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ekush_ponji/features/home/models/holiday.dart';
 import 'package:ekush_ponji/features/home/models/event.dart';
 import 'package:ekush_ponji/features/home/models/reminder.dart';
-import 'package:ekush_ponji/data/datasources/local/calendar_local_datasource.dart';
-import 'package:ekush_ponji/data/datasources/remote/calendar_remote_datasource.dart';
+import 'package:ekush_ponji/features/calendar/data/local/calendar_local_datasource.dart';
+import 'package:ekush_ponji/features/calendar/data/remote/calendar_remote_datasource.dart';
 
 /// CalendarRepository provides holidays, events, and reminders
 /// Reads from local storage (Hive) for offline-first experience

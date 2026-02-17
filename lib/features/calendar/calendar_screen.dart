@@ -7,7 +7,6 @@ import 'package:ekush_ponji/features/calendar/calendar_viewmodel.dart';
 import 'package:ekush_ponji/features/calendar/widgets/calendar_header.dart';
 import 'package:ekush_ponji/features/calendar/widgets/week_days_row.dart';
 import 'package:ekush_ponji/features/calendar/widgets/calendar_grid.dart';
-import 'package:ekush_ponji/features/calendar/widgets/calendar_legend.dart';
 import 'package:ekush_ponji/features/calendar/widgets/day_details_panel.dart';
 import 'package:ekush_ponji/features/calendar/widgets/upcoming_holidays_widget.dart';
 import 'package:ekush_ponji/features/calendar/widgets/upcoming_events_widget.dart';
@@ -120,11 +119,12 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
             ),
             const SizedBox(height: 16),
             // const CalendarLegend(), // Commented out per design; keep for future use
-            DayDetailsPanel(
-              selectedDay: viewModel.selectedDay,
-              isExpanded: viewModel.isDayDetailsPanelExpanded,
-              onToggleExpanded: () => viewModel.toggleDayDetailsPanel(),
-            ),
+            if (viewModel.hasDateBeenSelected)  // ← Only show after a date is tapped
+              DayDetailsPanel(
+                selectedDay: viewModel.selectedDay,
+                isExpanded: viewModel.isDayDetailsPanelExpanded,
+                onToggleExpanded: () => viewModel.toggleDayDetailsPanel(),
+              ),
             if (viewModel.upcomingHolidays.isNotEmpty)
               UpcomingHolidaysWidget(
                 monthName: l10n.getMonthName(monthData.gregorianMonth),

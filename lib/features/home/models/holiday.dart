@@ -1,6 +1,6 @@
 import 'package:hive/hive.dart';
 
-part 'holiday.g.dart';  // ← This will be generated
+part 'holiday.g.dart'; 
 
 /// Enum for holiday types
 @HiveType(typeId: 1)  // ← Add Hive annotation
@@ -149,8 +149,19 @@ class Holiday {
       ),
       description: json['description'] as String?,
       descriptionbn: json['descriptionbn'] as String?,
-      isGovtHoliday: json['isGovtHoliday'] as bool? ?? true,
+      isGovtHoliday: _parseBool(json['isGovtHoliday']),
     );
+  }
+
+  /// Helper method to parse boolean from various types
+  static bool _parseBool(dynamic value) {
+    if (value == null) return true;
+    if (value is bool) return value;
+    if (value is String) {
+      return value.toLowerCase() == 'true' || value == '1';
+    }
+    if (value is int) return value == 1;
+    return true;
   }
 
   @override

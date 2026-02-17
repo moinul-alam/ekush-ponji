@@ -17,6 +17,9 @@ class CalendarViewModel extends BaseViewModel {
   MonthData? _currentMonthData;
   DateTime? _selectedDate;
   bool _isDayDetailsPanelExpanded = false;
+  bool _hasDateBeenSelected = false;
+
+  bool get hasDateBeenSelected => _hasDateBeenSelected;
 
   /// Cache for months: 'year-month' -> MonthData
   final Map<String, MonthData> _monthCache = {};
@@ -50,8 +53,9 @@ class CalendarViewModel extends BaseViewModel {
 
   Future<void> loadCurrentMonth() async {
     final now = DateTime.now();
+    _hasDateBeenSelected = false; 
+    _isDayDetailsPanelExpanded = false; 
     await jumpToMonth(now.year, now.month);
-    selectDate(now);
   }
 
   Future<void> jumpToMonth(int year, int month) async {
@@ -104,6 +108,7 @@ class CalendarViewModel extends BaseViewModel {
 
   void selectDate(DateTime date) {
     _selectedDate = date;
+    _hasDateBeenSelected = true;  // ← ADD THIS
 
     if (_currentMonthData != null) {
       final updatedDays = _currentMonthData!.days.map((day) {
