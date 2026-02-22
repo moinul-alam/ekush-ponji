@@ -18,8 +18,8 @@ dependencies:
     sdk: flutter
 
   # State Management
-  flutter_riverpod: ^3.0.1
-  riverpod_annotation: ^3.0.1
+  flutter_riverpod: ^3.2.1
+  riverpod_annotation: ^4.0.2
 
   # Navigation
   go_router: ^16.2.4
@@ -58,7 +58,7 @@ dev_dependencies:
   flutter_launcher_icons: ^0.13.1
 
   # Code Generation - Compatible versions
-  riverpod_generator: ^3.0.0-dev.11
+  riverpod_generator: ^4.0.3
   build_runner: ^2.4.12
   riverpod_lint: ^3.0.0-dev.4
 
