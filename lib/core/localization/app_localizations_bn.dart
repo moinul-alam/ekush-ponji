@@ -142,7 +142,7 @@ class AppLocalizationsBn extends AppLocalizations {
   String get example => 'উদাহরণ';
 
   @override
-  String get inDays => '%d দিনে';
+  String get inDays => '%d দিন পর';
 
   @override
   String get daysAgo => '%d দিন আগে';
@@ -313,12 +313,23 @@ class AppLocalizationsBn extends AppLocalizations {
   String get priorityUrgent => 'জরুরি';
 
   @override
-  String getMonthAbbreviation(int month) {
-    final name = getMonthName(month);
-    if (name.isEmpty) return '';
-    if (name.length <= 3) return name;
-    return name.substring(0, 3);
-  }
+String getMonthAbbreviation(int month) {
+  const abbreviations = {
+    1:  'জানু',
+    2:  'ফেব্রু',
+    3:  'মার্চ',
+    4:  'এপ্রি',
+    5:  'মে',
+    6:  'জুন',
+    7:  'জুলা',
+    8:  'আগস্ট',
+    9:  'সেপ্টে',
+    10: 'অক্টো',
+    11: 'নভে',
+    12: 'ডিসে',
+  };
+  return abbreviations[month] ?? '';
+}
 
   // ========================================
   // DAYS OF WEEK
@@ -485,7 +496,7 @@ class AppLocalizationsBn extends AppLocalizations {
   // ========================================
 
   @override
-  String get calculatorTitle => 'তারিখ ক্যালকুলেটর';
+  String get calculatorTitle => 'ডেট ক্যালকুলেটর';
 
   @override
   String get fromDate => 'শুরুর তারিখ';

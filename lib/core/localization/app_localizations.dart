@@ -44,14 +44,6 @@ abstract class AppLocalizations {
   // FORMATTING HELPERS
   // ========================================
 
-  /// Format string with arguments
-  ///
-  /// Example:
-  /// ```dart
-  /// format("In %d days", [5])
-  /// // Bengali: "৫ দিনে"
-  /// // English: "In 5 days"
-  /// ```
   String format(String template, List<dynamic> args) {
     return StringFormatter.formatString(
       template,
@@ -60,12 +52,6 @@ abstract class AppLocalizations {
     );
   }
 
-  /// Format with named arguments
-  ///
-  /// Example:
-  /// ```dart
-  /// formatNamed("Hello {name}", {'name': 'John'})
-  /// ```
   String formatNamed(String template, Map<String, dynamic> args) {
     return StringFormatter.formatNamed(
       template,
@@ -74,38 +60,17 @@ abstract class AppLocalizations {
     );
   }
 
-  /// Convert number to localized string
-  ///
-  /// Example:
-  /// ```dart
-  /// localizeNumber(123)
-  /// // Bengali: "১২৩"
-  /// // English: "123"
-  /// ```
+  
   String localizeNumber(dynamic number) {
     return NumberConverter.convertToLocale(number, languageCode);
   }
 
-  /// Format number with thousands separator
-  ///
-  /// Example:
-  /// ```dart
-  /// formatNumber(1234567)
-  /// // Bengali: "১২,৩৪,৫৬৭"
-  /// // English: "1,234,567"
-  /// ```
+
   String formatNumber(int number) {
     return NumberConverter.formatWithSeparator(number, languageCode);
   }
 
-  /// Format count with plural
-  ///
-  /// Example:
-  /// ```dart
-  /// formatCount(5, day, days)
-  /// // Bengali: "৫ দিন"
-  /// // English: "5 days"
-  /// ```
+  
   String formatCount(int count, String singular, String plural) {
     return StringFormatter.formatPlural(
       count,
@@ -460,14 +425,7 @@ abstract class AppLocalizations {
     return seasonWinter;
   }
 
-  /// Format date to localized string
-  ///
-  /// Example:
-  /// ```dart
-  /// formatDate(DateTime(2025, 1, 5))
-  /// // Bengali: "৫ জানুয়ারি ২০২৫"
-  /// // English: "5 January 2025"
-  /// ```
+  
   String formatDate(DateTime date) {
     String day = localizeNumber(date.day);
     String month = getMonthName(date.month);

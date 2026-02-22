@@ -1,19 +1,20 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hive/hive.dart';
 
-part 'holiday.g.dart'; 
+part 'holiday.g.dart';
 
 /// Enum for holiday types
-@HiveType(typeId: 1)  // ← Add Hive annotation
+@HiveType(typeId: 1)
 enum HolidayType {
   @HiveField(0)
   national,
-  
+
   @HiveField(1)
   religious,
-  
+
   @HiveField(2)
   cultural,
-  
+
   @HiveField(3)
   optional;
 
@@ -33,29 +34,29 @@ enum HolidayType {
 
 /// Model class for Holiday
 /// Represents a holiday in the calendar
-@HiveType(typeId: 0)  // ← Add Hive annotation
+@HiveType(typeId: 0)
 class Holiday {
   @HiveField(0)
   final String id;
-  
+
   @HiveField(1)
   final String name;
-  
+
   @HiveField(2)
   final String namebn;
-  
+
   @HiveField(3)
   final DateTime date;
-  
+
   @HiveField(4)
   final HolidayType type;
-  
+
   @HiveField(5)
   final String? description;
-  
+
   @HiveField(6)
   final String? descriptionbn;
-  
+
   @HiveField(7)
   final bool isGovtHoliday;
 
@@ -69,6 +70,8 @@ class Holiday {
     this.descriptionbn,
     this.isGovtHoliday = true,
   }) : id = id ?? DateTime.now().millisecondsSinceEpoch.toString();
+
+  // ------------------- Computed Properties -------------------
 
   /// Check if holiday is today
   bool get isToday {
@@ -99,7 +102,59 @@ class Holiday {
     return 'Passed';
   }
 
-  /// Copy with method
+  // ------------------- Serialization -------------------
+
+  /// Create from JSON — handles both Firestore Timestamp and ISO String for date
+  factory Holiday.fromJson(Map<String, dynamic> json) {
+    return Holiday(
+      id: json['id'] as String?,
+      name: json['name'] as String,
+      namebn: json['namebn'] as String,
+      date: _parseDate(json['date']),
+      type: HolidayType.values.firstWhere(
+        (e) => e.name == json['type'],
+        orElse: () => HolidayType.national,
+      ),
+      description: json['description'] as String?,
+      descriptionbn: json['descriptionbn'] as String?,
+      isGovtHoliday: _parseBool(json['isGovtHoliday']),
+    );
+  }
+
+  /// Convert to JSON — always serializes date as ISO String
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'namebn': namebn,
+      'date': date.toIso8601String(),
+      'type': type.name,
+      'description': description,
+      'descriptionbn': descriptionbn,
+      'isGovtHoliday': isGovtHoliday,
+    };
+  }
+
+  // ------------------- Helpers -------------------
+
+  /// Handles both Firestore Timestamp and ISO String
+  static DateTime _parseDate(dynamic value) {
+    if (value is Timestamp) return value.toDate();
+    if (value is String) return DateTime.parse(value);
+    throw Exception('Unsupported date format: $value');
+  }
+
+  /// Handles bool from various types (bool, String, int)
+  static bool _parseBool(dynamic value) {
+    if (value == null) return true;
+    if (value is bool) return value;
+    if (value is String) return value.toLowerCase() == 'true' || value == '1';
+    if (value is int) return value == 1;
+    return true;
+  }
+
+  // ------------------- Object Overrides -------------------
+
   Holiday copyWith({
     String? id,
     String? name,
@@ -122,48 +177,6 @@ class Holiday {
     );
   }
 
-  /// Convert to JSON
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'namebn': namebn,
-      'date': date.toIso8601String(),
-      'type': type.name,
-      'description': description,
-      'descriptionbn': descriptionbn,
-      'isGovtHoliday': isGovtHoliday,
-    };
-  }
-
-  /// Create from JSON
-  factory Holiday.fromJson(Map<String, dynamic> json) {
-    return Holiday(
-      id: json['id'] as String?,
-      name: json['name'] as String,
-      namebn: json['namebn'] as String,
-      date: DateTime.parse(json['date'] as String),
-      type: HolidayType.values.firstWhere(
-        (e) => e.name == json['type'],
-        orElse: () => HolidayType.national,
-      ),
-      description: json['description'] as String?,
-      descriptionbn: json['descriptionbn'] as String?,
-      isGovtHoliday: _parseBool(json['isGovtHoliday']),
-    );
-  }
-
-  /// Helper method to parse boolean from various types
-  static bool _parseBool(dynamic value) {
-    if (value == null) return true;
-    if (value is bool) return value;
-    if (value is String) {
-      return value.toLowerCase() == 'true' || value == '1';
-    }
-    if (value is int) return value == 1;
-    return true;
-  }
-
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
@@ -174,7 +187,6 @@ class Holiday {
   int get hashCode => id.hashCode;
 
   @override
-  String toString() {
-    return 'Holiday(id: $id, name: $name, date: $date, type: ${type.name})';
-  }
+  String toString() =>
+      'Holiday(id: $id, name: $name, date: $date, type: ${type.name})';
 }

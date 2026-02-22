@@ -6,7 +6,6 @@ import 'package:ekush_ponji/core/base/base_screen.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
 import 'package:ekush_ponji/core/widgets/navigation/app_header.dart';
 import 'package:ekush_ponji/core/widgets/navigation/app_drawer.dart';
-// import 'package:ekush_ponji/core/widgets/ads/app_ad_banner_bottom.dart';
 import 'package:ekush_ponji/features/home/home_viewmodel.dart';
 import 'package:ekush_ponji/features/home/widgets/app_greeter.dart';
 import 'package:ekush_ponji/features/home/widgets/today_date_widget.dart';
@@ -45,20 +44,24 @@ class _HomeScreenState extends BaseScreenState<HomeScreen> {
   }
 
   @override
+  void onRetry() {
+    ref.read(homeViewModelProvider.notifier).loadHomeData();
+  }
+
+  @override
   PreferredSizeWidget? buildAppBar(BuildContext context, WidgetRef ref) {
     return const AppHeader();
   }
 
   @override
   Widget? buildDrawer(BuildContext context, WidgetRef ref) {
-    final viewModel = ref.read(homeViewModelProvider.notifier);
-    return AppDrawer(userName: viewModel.userName);
+    final userName = ref.watch(homeViewModelProvider.notifier).userName;
+    return AppDrawer(userName: userName);
   }
 
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
     final viewState = ref.watch(homeViewModelProvider);
-    final viewModel = ref.read(homeViewModelProvider.notifier);
 
     if (viewState is ViewStateLoading && !viewState.isRefreshing) {
       return const Center(child: CircularProgressIndicator());
@@ -68,8 +71,7 @@ class _HomeScreenState extends BaseScreenState<HomeScreen> {
       return buildErrorWidget(viewState);
     }
 
-    final holidays = viewModel.holidays;
-    final events = viewModel.events;
+    final viewModel = ref.read(homeViewModelProvider.notifier);
 
     return Stack(
       children: [
@@ -83,11 +85,11 @@ class _HomeScreenState extends BaseScreenState<HomeScreen> {
               const TodayDateWidget(),
               const SizedBox(height: 8),
               UpcomingHolidaysWidget(
-                holidays: holidays.isEmpty ? null : holidays,
+                holidays: viewModel.holidays.isEmpty ? null : viewModel.holidays,
               ),
               const SizedBox(height: 8),
               UpcomingEventsWidget(
-                events: events.isEmpty ? null : events,
+                events: viewModel.events.isEmpty ? null : viewModel.events,
               ),
               const SizedBox(height: 8),
               const DailyQuoteWidget(),
@@ -97,12 +99,8 @@ class _HomeScreenState extends BaseScreenState<HomeScreen> {
             ],
           ),
         ),
+        // Reserved for ad banner
       ],
     );
-  }
-
-  @override
-  void onRetry() {
-    ref.read(homeViewModelProvider.notifier).loadHomeData();
   }
 }

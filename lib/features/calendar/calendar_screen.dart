@@ -9,7 +9,7 @@ import 'package:ekush_ponji/features/calendar/widgets/week_days_row.dart';
 import 'package:ekush_ponji/features/calendar/widgets/calendar_grid.dart';
 import 'package:ekush_ponji/features/calendar/widgets/day_details_panel.dart';
 import 'package:ekush_ponji/features/calendar/widgets/upcoming_holidays_widget.dart';
-import 'package:ekush_ponji/features/calendar/widgets/upcoming_events_widget.dart';
+// import 'package:ekush_ponji/features/calendar/widgets/upcoming_events_widget.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
 import 'package:go_router/go_router.dart';
 
@@ -222,12 +222,12 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
               ),
 
             // ─── Upcoming Events ─────────────────────────────
-            if (viewModel.upcomingEvents.isNotEmpty)
-              UpcomingEventsWidget(
-                monthName:
-                    l10n.getMonthName(monthData.gregorianMonth),
-                events: viewModel.upcomingEvents,
-              ),
+            // if (viewModel.upcomingEvents.isNotEmpty)
+            //   UpcomingEventsWidget(
+            //     monthName:
+            //         l10n.getMonthName(monthData.gregorianMonth),
+            //     events: viewModel.upcomingEvents,
+            //   ),
 
             const SizedBox(height: 24),
           ],
@@ -240,7 +240,7 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
   double _gridHeight(int cellCount) {
     final rows = (cellCount / 7).ceil();
     // Each row is approximately 56px tall
-    return rows * 56.0 + 8;
+    return rows * 68.0 + 8;
   }
 
   /// Handle PageView page change → navigate months in ViewModel

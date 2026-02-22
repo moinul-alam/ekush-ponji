@@ -33,13 +33,13 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
   bool get showLoadingOverlay => false;
 
   @override
-  bool get autoHandleError => false; // Manual error handling for validation
+  bool get autoHandleError => false; 
 
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final viewModel = ref.read(calculatorViewModelProvider.notifier);
-    ref.watch(calculatorViewModelProvider); // Watch for rebuilds
+    ref.watch(calculatorViewModelProvider); 
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -70,7 +70,7 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
           // To Date Input (with GlobalKey attached)
           DateInputField(
             key: _toDateKey,
-            label: l10n.toDate, // "শেষ তারিখ" or "To Date"
+            label: l10n.toDate, 
             selectedDate: viewModel.toDate,
             onTap: () => _showDatePicker(context, ref, isFromDate: false),
             onClear: viewModel.clearToDate,
@@ -102,12 +102,12 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
     final l10n = AppLocalizations.of(context);
     
     return AppBar(
-      title: Text(l10n.calculatorTitle), // "তারিখ ক্যালকুলেটর" or "Date Calculator"
+      title: Text(l10n.calculatorTitle), 
       centerTitle: true,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
         onPressed: () => context.go(RouteNames.home),
-        tooltip: l10n.back, // "পিছনে" or "Back"
+        tooltip: l10n.back, 
       ),
     );
   }
@@ -156,7 +156,7 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              l10n.selectDatesToSeeResults, // "ফলাফল দেখতে তারিখ নির্বাচন করুন"
+              l10n.selectDatesToSeeResults, 
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurface,
               ),
@@ -401,7 +401,7 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                '${l10n.copiedToClipboard}: $text', // "কপি হয়েছে: ..."
+                '${l10n.copiedToClipboard}: $text',
               ),
             ),
           ],

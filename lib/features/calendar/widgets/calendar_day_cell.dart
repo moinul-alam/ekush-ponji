@@ -12,7 +12,28 @@ class CalendarDayCell extends StatelessWidget {
     required this.onTap,
   });
 
-  // Bangladesh weekends
+  // ─── Font Sizes ────────────────────────────────────────
+  static const double gregorianFontSize = 18;
+  static const double gregorianTodayFontSize = 20;
+  static const double gregorianSelectedFontSize = 18;
+  static const double bengaliFontSize = 12;
+
+  // ─── Bengali Date Color Slots (from colorScheme) ───────
+  // Change these to any colorScheme slot: primary, secondary,
+  // tertiary, onSurface, etc.
+  static const _BengaliColorSlot bengaliColorSlot = _BengaliColorSlot.primary;
+
+  // ─── Gregorian Special Color ───────────────────────────
+  // Used for weekends and holidays
+  static const Color gregorianSpecialColor = Color(0xFFCC0000); // red shade 600 equivalent
+
+  // ─── Cell Border Radius ────────────────────────────────
+  static const double cellBorderRadius = 4;
+
+  // ─── Today Glow Opacity ────────────────────────────────
+  static const double todayGlowOpacity1 = 0.55;
+  static const double todayGlowOpacity2 = 0.30;
+
   bool get _isWeekend =>
       day.gregorianDate.weekday == DateTime.friday ||
       day.gregorianDate.weekday == DateTime.saturday;
@@ -49,7 +70,7 @@ class CalendarDayCell extends StatelessWidget {
                   child: Container(
                     width: 3,
                     decoration: BoxDecoration(
-                      color: Colors.red.shade400,
+                      color: gregorianSpecialColor.withOpacity(0.7),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -57,24 +78,28 @@ class CalendarDayCell extends StatelessWidget {
 
               // Main content
               Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Gregorian date with circle for today/selected
-                  _buildGregorianDate(theme, gregorianText),
-
-                  const SizedBox(height: 1),
-
-                  // Bengali date
-                  Text(
-                    bengaliText,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      fontSize: 10,
-                      color: _bengaliTextColor(theme),
-                      fontWeight: FontWeight.w500,
+                  // Top: Gregorian date
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.center,
+                      child: _buildGregorianDate(theme, gregorianText),
                     ),
                   ),
 
-                  const SizedBox(height: 3),
+                  // Bottom: Bengali date centered
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Text(
+                      bengaliText,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        fontSize: bengaliFontSize,
+                        color: _bengaliTextColor(theme),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
 
                   // Indicator dots
                   _buildIndicators(theme),
@@ -88,31 +113,19 @@ class CalendarDayCell extends StatelessWidget {
   }
 
   // ------------------- Gregorian Date -------------------
-
   Widget _buildGregorianDate(ThemeData theme, String text) {
     if (day.isToday) {
-      // Filled circle - primary color
-      return Container(
-        width: 28,
-        height: 28,
-        decoration: BoxDecoration(
-          color: theme.colorScheme.primary,
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: theme.colorScheme.primary.withOpacity(0.35),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
+      return SizedBox(
+        width: 32,
+        height: 32,
         child: Center(
           child: Text(
             text,
             style: theme.textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w900,
               color: theme.colorScheme.onPrimary,
-              fontSize: 14,
+              fontSize: gregorianTodayFontSize,
+              letterSpacing: -0.5,
             ),
           ),
         ),
@@ -120,7 +133,6 @@ class CalendarDayCell extends StatelessWidget {
     }
 
     if (day.isSelected) {
-      // Outlined circle - primary color
       return Container(
         width: 28,
         height: 28,
@@ -138,14 +150,13 @@ class CalendarDayCell extends StatelessWidget {
             style: theme.textTheme.bodyMedium?.copyWith(
               fontWeight: FontWeight.bold,
               color: theme.colorScheme.primary,
-              fontSize: 14,
+              fontSize: gregorianSelectedFontSize,
             ),
           ),
         ),
       );
     }
 
-    // Normal date
     return SizedBox(
       width: 28,
       height: 28,
@@ -153,10 +164,9 @@ class CalendarDayCell extends StatelessWidget {
         child: Text(
           text,
           style: theme.textTheme.bodyMedium?.copyWith(
-            fontWeight:
-                _isSpecial ? FontWeight.w700 : FontWeight.w500,
+            fontWeight: _isSpecial ? FontWeight.w700 : FontWeight.w500,
             color: _gregorianTextColor(theme),
-            fontSize: 14,
+            fontSize: gregorianFontSize,
           ),
         ),
       ),
@@ -164,12 +174,10 @@ class CalendarDayCell extends StatelessWidget {
   }
 
   // ------------------- Indicators -------------------
-
   Widget _buildIndicators(ThemeData theme) {
     if (!day.hasAnyItem) return const SizedBox(height: 5);
 
     final dots = <Widget>[];
-
     if (day.hasHoliday) dots.add(_dot(Colors.red.shade400));
     if (day.hasEvent) dots.add(_dot(Colors.blue.shade400));
     if (day.hasReminder) dots.add(_dot(Colors.orange.shade400));
@@ -207,51 +215,118 @@ class CalendarDayCell extends StatelessWidget {
   }
 
   // ------------------- Decoration -------------------
-
   BoxDecoration _buildDecoration(ThemeData theme) {
-    // Today and selected have no background box - circle handles it
-    if (day.isToday || day.isSelected) {
-      return const BoxDecoration(
-        color: Colors.transparent,
+    final isDark = theme.brightness == Brightness.dark;
+
+    final tileShadows = [
+      BoxShadow(
+        color: isDark
+            ? Colors.black.withOpacity(0.4)
+            : Colors.black.withOpacity(0.12),
+        offset: const Offset(2, 2),
+        blurRadius: 0,
+        spreadRadius: 0,
+      ),
+      BoxShadow(
+        color: isDark
+            ? Colors.black.withOpacity(0.25)
+            : Colors.black.withOpacity(0.07),
+        offset: const Offset(1, 1),
+        blurRadius: 2,
+        spreadRadius: 0,
+      ),
+    ];
+
+    if (day.isToday) {
+      return BoxDecoration(
+        color: theme.colorScheme.primary,
+        borderRadius: BorderRadius.circular(cellBorderRadius),
+        boxShadow: [
+          BoxShadow(
+            color: theme.colorScheme.primary.withOpacity(todayGlowOpacity1),
+            blurRadius: 10,
+            spreadRadius: 1,
+            offset: Offset.zero,
+          ),
+          BoxShadow(
+            color: theme.colorScheme.primary.withOpacity(todayGlowOpacity2),
+            blurRadius: 16,
+            spreadRadius: 2,
+            offset: Offset.zero,
+          ),
+          ...tileShadows,
+        ],
       );
     }
 
     if (day.hasHoliday) {
       return BoxDecoration(
-        color: Colors.red.withOpacity(0.06),
-        borderRadius: BorderRadius.circular(8),
+        color: gregorianSpecialColor.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(cellBorderRadius),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withOpacity(0.3),
+          width: 0.5,
+        ),
+        boxShadow: tileShadows,
       );
     }
 
     if (_isWeekend) {
       return BoxDecoration(
-        color: Colors.red.withOpacity(0.04),
-        borderRadius: BorderRadius.circular(8),
+        color: gregorianSpecialColor.withOpacity(0.04),
+        borderRadius: BorderRadius.circular(cellBorderRadius),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withOpacity(0.3),
+          width: 0.5,
+        ),
+        boxShadow: tileShadows,
       );
     }
 
-    return const BoxDecoration(color: Colors.transparent);
+    return BoxDecoration(
+      color: theme.colorScheme.surface,
+      borderRadius: BorderRadius.circular(cellBorderRadius),
+      border: Border.all(
+        color: theme.colorScheme.outlineVariant.withOpacity(0.3),
+        width: 0.5,
+      ),
+      boxShadow: tileShadows,
+    );
   }
 
   // ------------------- Colors -------------------
-
   Color _gregorianTextColor(ThemeData theme) {
     if (!day.isCurrentMonth) {
       return _isSpecial
-          ? Colors.red.withOpacity(0.4)
+          ? gregorianSpecialColor.withOpacity(0.4)
           : theme.colorScheme.onSurface.withOpacity(0.3);
     }
-    if (_isSpecial) return Colors.red.shade600;
+    if (_isSpecial) return gregorianSpecialColor;
     return theme.colorScheme.onSurface;
   }
 
   Color _bengaliTextColor(ThemeData theme) {
-    if (!day.isCurrentMonth) {
-      return theme.colorScheme.onSurface.withOpacity(0.25);
-    }
+    final base = _resolveBengaliColor(theme);
+    if (!day.isCurrentMonth) return base.withOpacity(0.3);
     if (day.isToday) return theme.colorScheme.onPrimary.withOpacity(0.85);
-    if (day.isSelected) return theme.colorScheme.primary.withOpacity(0.8);
-    if (_isSpecial) return Colors.red.shade400;
-    return theme.colorScheme.onSurface.withOpacity(0.45);
+    if (day.isSelected) return base.withOpacity(0.9);
+    if (_isSpecial) return base.withOpacity(0.7);
+    return base;
+  }
+
+  Color _resolveBengaliColor(ThemeData theme) {
+    switch (bengaliColorSlot) {
+      case _BengaliColorSlot.primary:
+        return theme.colorScheme.primary;
+      case _BengaliColorSlot.secondary:
+        return theme.colorScheme.secondary;
+      case _BengaliColorSlot.tertiary:
+        return theme.colorScheme.tertiary;
+      case _BengaliColorSlot.onSurface:
+        return theme.colorScheme.onSurface;
+    }
   }
 }
+
+// ─── Bengali Color Slot Enum ───────────────────────────────
+enum _BengaliColorSlot { primary, secondary, tertiary, onSurface }

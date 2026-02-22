@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:ekush_ponji/features/home/models/holiday.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 
-/// Widget showing upcoming holidays in current month
-/// Displays next 3-5 holidays with countdown
 class UpcomingHolidaysWidget extends StatelessWidget {
   final String monthName;
   final List<Holiday> holidays;
@@ -13,7 +11,7 @@ class UpcomingHolidaysWidget extends StatelessWidget {
     super.key,
     required this.monthName,
     required this.holidays,
-    this.maxItems = 5,
+    this.maxItems = 10,
   });
 
   @override
@@ -22,13 +20,10 @@ class UpcomingHolidaysWidget extends StatelessWidget {
     final localizations = AppLocalizations.of(context);
     final isBangla = localizations.locale.languageCode == 'bn';
 
-    // Filter upcoming holidays only
-    final upcomingHolidays = holidays
-        .where((h) => h.isUpcoming)
-        .take(maxItems)
-        .toList();
+    // Show ALL holidays of the month, not just upcoming
+    final allHolidays = holidays.take(maxItems).toList();
 
-    if (upcomingHolidays.isEmpty) {
+    if (allHolidays.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -56,97 +51,99 @@ class UpcomingHolidaysWidget extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                localizations.formatUpcomingHolidaysInMonth(monthName),
+                isBangla
+                    ? '$monthName-এর ছুটির দিন'
+                    : 'Holidays in $monthName',
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ],
           ),
-          
+
           const SizedBox(height: 12),
           const Divider(height: 1),
           const SizedBox(height: 12),
 
           // Holiday items
-          ...upcomingHolidays.map((holiday) {
+          ...allHolidays.map((holiday) {
+            final isPast = holiday.daysUntil < 0;
+
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Date badge
-                  Container(
-                    width: 50,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: Colors.red.withOpacity(0.3),
-                        width: 1,
+              child: Opacity(
+                opacity: isPast ? 0.5 : 1.0,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Date badge
+                    Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: Colors.red.withOpacity(isPast ? 0.05 : 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Colors.red.withOpacity(isPast ? 0.15 : 0.3),
+                          width: 1,
+                        ),
                       ),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          localizations.localizeNumber(holiday.date.day),
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.red,
-                          ),
-                        ),
-                        Text(
-                          localizations.getMonthAbbreviation(holiday.date.month),
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: Colors.red,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  
-                  const SizedBox(width: 12),
-                  
-                  // Holiday details
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          isBangla ? holiday.namebn : holiday.name,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          holiday.daysUntil < 0
-                              ? localizations.passed
-                              : localizations.formatDaysDistance(holiday.daysUntil),
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.primary,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        if (holiday.description != null) ...[
-                          const SizedBox(height: 2),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
                           Text(
-                            isBangla 
-                                ? (holiday.descriptionbn ?? holiday.description!)
-                                : holiday.description!,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
+                            localizations.localizeNumber(holiday.date.day),
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.red,
                             ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            localizations.getMonthAbbreviation(
+                                holiday.date.month),
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: Colors.red,
+                            ),
                           ),
                         ],
-                      ],
+                      ),
                     ),
-                  ),
-                ],
+
+                    const SizedBox(width: 12),
+
+                    // Holiday details
+                    // Holiday details
+Expanded(
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        isBangla ? holiday.namebn : holiday.name,
+        style: theme.textTheme.bodyMedium?.copyWith(
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      const SizedBox(height: 4),
+      Text(
+        isPast
+            ? localizations.passed
+            : holiday.daysUntil == 0
+                ? localizations.today
+                : '${localizations.formatDaysDistance(holiday.daysUntil)} ${isBangla ? (holiday.descriptionbn ?? holiday.description ?? '') : (holiday.description ?? '')}',
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: isPast
+              ? theme.colorScheme.onSurfaceVariant
+              : theme.colorScheme.primary,
+          fontWeight: FontWeight.w500,
+        ),
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+      ),
+    ],
+  ),
+),
+                  ],
+                ),
               ),
             );
           }),
@@ -154,5 +151,4 @@ class UpcomingHolidaysWidget extends StatelessWidget {
       ),
     );
   }
-
 }

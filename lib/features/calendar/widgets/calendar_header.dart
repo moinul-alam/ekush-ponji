@@ -55,7 +55,6 @@ class CalendarHeader extends StatelessWidget {
                         l10n.getMonthName(gregorianMonth),
                         style: theme.textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.w800,
-                          color: theme.colorScheme.onSurface,
                           letterSpacing: 0.3,
                         ),
                       ),
@@ -71,16 +70,10 @@ class CalendarHeader extends StatelessWidget {
                           horizontal: 8,
                           vertical: 2,
                         ),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.primaryContainer
-                              .withOpacity(0.5),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
                         child: Text(
                           l10n.localizeNumber(gregorianYear),
                           style: theme.textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.w800,
-                            color: theme.colorScheme.primary,
                             letterSpacing: 0.3,
                           ),
                         ),
@@ -95,7 +88,8 @@ class CalendarHeader extends StatelessWidget {
                   Text(
                     bengaliMonthsDisplay,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+                      fontSize: 16,
+                      color: theme.colorScheme.primary,
                       fontWeight: FontWeight.w500,
                       letterSpacing: 0.2,
                     ),
