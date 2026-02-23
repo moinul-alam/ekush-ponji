@@ -1,3 +1,4 @@
+// Home Screen
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ekush_ponji/core/base/base_screen.dart';
@@ -7,8 +8,8 @@ import 'package:ekush_ponji/core/widgets/navigation/app_drawer.dart';
 import 'package:ekush_ponji/features/home/home_viewmodel.dart';
 import 'package:ekush_ponji/features/home/widgets/app_greeter.dart';
 import 'package:ekush_ponji/features/home/widgets/today_date_widget.dart';
-import 'package:ekush_ponji/features/home/widgets/upcoming_holidays_widget.dart';
-// import 'package:ekush_ponji/features/home/widgets/upcoming_events_widget.dart';
+import 'package:ekush_ponji/features/home/widgets/home_holidays_widget.dart';
+// import 'package:ekush_ponji/features/home/widgets/home_events_widget.dart';
 import 'package:ekush_ponji/features/home/widgets/daily_quote_widget.dart';
 import 'package:ekush_ponji/features/home/widgets/daily_word_widget.dart';
 
@@ -57,15 +58,6 @@ class _HomeScreenState extends BaseScreenState<HomeScreen> {
     return AppDrawer(userName: userName);
   }
 
-  String _getCurrentMonthName() {
-    const months = [
-      'January', 'February', 'March', 'April',
-      'May', 'June', 'July', 'August',
-      'September', 'October', 'November', 'December',
-    ];
-    return months[DateTime.now().month - 1];
-  }
-
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
     final viewState = ref.watch(homeViewModelProvider);
@@ -91,8 +83,7 @@ class _HomeScreenState extends BaseScreenState<HomeScreen> {
               const SizedBox(height: 8),
               const TodayDateWidget(),
               const SizedBox(height: 8),
-              UpcomingHolidaysWidget(
-                monthName: _getCurrentMonthName(),
+              HomeHolidaysWidget(
                 holidays: viewModel.holidays,
               ),
               const SizedBox(height: 8),

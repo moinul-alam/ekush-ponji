@@ -1,36 +1,50 @@
+// lib/features/calendar/widgets/calendar_day_cell.dart
+
 import 'package:flutter/material.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/features/calendar/models/calendar_day.dart';
+import 'package:ekush_ponji/features/calendar/models/hijri_date.dart';
+import 'package:ekush_ponji/features/home/models/holiday.dart';
 
 class CalendarDayCell extends StatelessWidget {
   final CalendarDay day;
+  final HijriDate hijriDate;
   final VoidCallback onTap;
 
   const CalendarDayCell({
     super.key,
     required this.day,
+    required this.hijriDate,
     required this.onTap,
   });
+
+  Color _holidayAccentColor(HolidayType type) {
+    switch (type) {
+      case HolidayType.national:
+        return const Color(0xFF1565C0);
+      case HolidayType.religious:
+        return const Color(0xFF2E7D32);
+      case HolidayType.cultural:
+        return const Color(0xFFE65100);
+      case HolidayType.optional:
+        return const Color(0xFF6A1B9A);
+    }
+  }
 
   // ─── Font Sizes ────────────────────────────────────────
   static const double gregorianFontSize = 18;
   static const double gregorianTodayFontSize = 20;
   static const double gregorianSelectedFontSize = 18;
-  static const double bengaliFontSize = 12;
+  static const double subDateFontSize = 14;
 
-  // ─── Bengali Date Color Slots (from colorScheme) ───────
-  // Change these to any colorScheme slot: primary, secondary,
-  // tertiary, onSurface, etc.
+  // ─── Color Slots ───────────────────────────────────────
   static const _BengaliColorSlot bengaliColorSlot = _BengaliColorSlot.primary;
 
-  // ─── Gregorian Special Color ───────────────────────────
-  // Used for weekends and holidays
-  static const Color gregorianSpecialColor = Color(0xFFCC0000); // red shade 600 equivalent
+  // Hijri uses tertiary — distinct from Bengali (primary) and Gregorian (onSurface)
+  static const _HijriColorSlot hijriColorSlot = _HijriColorSlot.tertiary;
 
-  // ─── Cell Border Radius ────────────────────────────────
+  static const Color gregorianSpecialColor = Color(0xFFCC0000);
   static const double cellBorderRadius = 4;
-
-  // ─── Today Glow Opacity ────────────────────────────────
   static const double todayGlowOpacity1 = 0.55;
   static const double todayGlowOpacity2 = 0.30;
 
@@ -44,11 +58,11 @@ class CalendarDayCell extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
-    final isBengali = l10n.languageCode == 'bn';
+    final isBn = l10n.languageCode == 'bn';
 
     final gregorianText = l10n.localizeNumber(day.gregorianDay);
-    final bengaliText =
-        isBengali ? day.bengaliDate.dayBn : day.bengaliDay.toString();
+    final bengaliText = isBn ? day.bengaliDate.dayBn : day.bengaliDay.toString();
+    final hijriText = hijriDate.dayForLocale(l10n.languageCode);
 
     return GestureDetector(
       onTap: onTap,
@@ -70,7 +84,8 @@ class CalendarDayCell extends StatelessWidget {
                   child: Container(
                     width: 3,
                     decoration: BoxDecoration(
-                      color: gregorianSpecialColor.withOpacity(0.7),
+                      color: _holidayAccentColor(day.firstHoliday!.type)
+                          .withOpacity(0.85),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -80,7 +95,7 @@ class CalendarDayCell extends StatelessWidget {
               Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Top: Gregorian date
+                  // ── Gregorian date (center) ─────────────
                   Expanded(
                     child: Align(
                       alignment: Alignment.center,
@@ -88,20 +103,37 @@ class CalendarDayCell extends StatelessWidget {
                     ),
                   ),
 
-                  // Bottom: Bengali date centered
+                  // ── Sub-dates row: Bengali left, Hijri right ──
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
-                    child: Text(
-                      bengaliText,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        fontSize: bengaliFontSize,
-                        color: _bengaliTextColor(theme),
-                        fontWeight: FontWeight.w600,
-                      ),
+                    padding: const EdgeInsets.fromLTRB(3, 0, 3, 3),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // Bengali date — left, primary color
+                        Text(
+                          bengaliText,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            fontSize: subDateFontSize,
+                            color: _bengaliTextColor(theme),
+                            fontWeight: FontWeight.w700,
+                            height: 1,
+                          ),
+                        ),
+                        // Hijri date — right, tertiary color
+                        Text(
+                          hijriText,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            fontSize: subDateFontSize,
+                            color: _hijriTextColor(theme),
+                            fontWeight: FontWeight.w700,
+                            height: 1,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
 
-                  // Indicator dots
+                  // ── Indicator dots ──────────────────────
                   _buildIndicators(theme),
                 ],
               ),
@@ -138,10 +170,7 @@ class CalendarDayCell extends StatelessWidget {
         height: 28,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          border: Border.all(
-            color: theme.colorScheme.primary,
-            width: 2,
-          ),
+          border: Border.all(color: theme.colorScheme.primary, width: 2),
           color: theme.colorScheme.primary.withOpacity(0.08),
         ),
         child: Center(
@@ -205,10 +234,7 @@ class CalendarDayCell extends StatelessWidget {
         color: color,
         shape: BoxShape.circle,
         boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.4),
-            blurRadius: 2,
-          ),
+          BoxShadow(color: color.withOpacity(0.4), blurRadius: 2),
         ],
       ),
     );
@@ -225,7 +251,6 @@ class CalendarDayCell extends StatelessWidget {
             : Colors.black.withOpacity(0.12),
         offset: const Offset(2, 2),
         blurRadius: 0,
-        spreadRadius: 0,
       ),
       BoxShadow(
         color: isDark
@@ -233,7 +258,6 @@ class CalendarDayCell extends StatelessWidget {
             : Colors.black.withOpacity(0.07),
         offset: const Offset(1, 1),
         blurRadius: 2,
-        spreadRadius: 0,
       ),
     ];
 
@@ -246,13 +270,11 @@ class CalendarDayCell extends StatelessWidget {
             color: theme.colorScheme.primary.withOpacity(todayGlowOpacity1),
             blurRadius: 10,
             spreadRadius: 1,
-            offset: Offset.zero,
           ),
           BoxShadow(
             color: theme.colorScheme.primary.withOpacity(todayGlowOpacity2),
             blurRadius: 16,
             spreadRadius: 2,
-            offset: Offset.zero,
           ),
           ...tileShadows,
         ],
@@ -308,7 +330,16 @@ class CalendarDayCell extends StatelessWidget {
   Color _bengaliTextColor(ThemeData theme) {
     final base = _resolveBengaliColor(theme);
     if (!day.isCurrentMonth) return base.withOpacity(0.3);
-    if (day.isToday) return theme.colorScheme.onPrimary.withOpacity(0.85);
+    if (day.isToday) return theme.colorScheme.onPrimary.withOpacity(0.75);
+    if (day.isSelected) return base.withOpacity(0.9);
+    if (_isSpecial) return base.withOpacity(0.7);
+    return base;
+  }
+
+  Color _hijriTextColor(ThemeData theme) {
+    final base = _resolveHijriColor(theme);
+    if (!day.isCurrentMonth) return base.withOpacity(0.3);
+    if (day.isToday) return theme.colorScheme.onPrimary.withOpacity(0.75);
     if (day.isSelected) return base.withOpacity(0.9);
     if (_isSpecial) return base.withOpacity(0.7);
     return base;
@@ -326,7 +357,19 @@ class CalendarDayCell extends StatelessWidget {
         return theme.colorScheme.onSurface;
     }
   }
+
+  Color _resolveHijriColor(ThemeData theme) {
+    switch (hijriColorSlot) {
+      case _HijriColorSlot.tertiary:
+        return theme.colorScheme.tertiary;
+      case _HijriColorSlot.secondary:
+        return theme.colorScheme.secondary;
+      case _HijriColorSlot.onSurfaceVariant:
+        return theme.colorScheme.onSurfaceVariant;
+    }
+  }
 }
 
-// ─── Bengali Color Slot Enum ───────────────────────────────
+// ─── Color Slot Enums ─────────────────────────────────────────
 enum _BengaliColorSlot { primary, secondary, tertiary, onSurface }
+enum _HijriColorSlot { tertiary, secondary, onSurfaceVariant }

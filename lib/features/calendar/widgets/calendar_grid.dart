@@ -1,8 +1,12 @@
+// lib/features/calendar/widgets/calendar_grid.dart
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ekush_ponji/core/services/hijri_calendar_service.dart';
 import 'package:ekush_ponji/features/calendar/models/calendar_day.dart';
 import 'package:ekush_ponji/features/calendar/widgets/calendar_day_cell.dart';
 
-class CalendarGrid extends StatelessWidget {
+class CalendarGrid extends ConsumerWidget {
   final List<CalendarDay> days;
   final Function(CalendarDay) onDayTap;
 
@@ -13,7 +17,9 @@ class CalendarGrid extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final hijriService = ref.watch(hijriCalendarServiceProvider);
+
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -27,8 +33,10 @@ class CalendarGrid extends StatelessWidget {
       itemCount: days.length,
       itemBuilder: (context, index) {
         final day = days[index];
+        final hijriDate = hijriService.getHijriDate(day.gregorianDate);
         return CalendarDayCell(
           day: day,
+          hijriDate: hijriDate,
           onTap: () => onDayTap(day),
         );
       },

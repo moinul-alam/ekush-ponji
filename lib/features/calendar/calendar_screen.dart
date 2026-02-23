@@ -1,15 +1,18 @@
+// lib/features/calendar/calendar_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ekush_ponji/core/base/base_screen.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
+import 'package:ekush_ponji/core/services/hijri_calendar_service.dart';
 import 'package:ekush_ponji/features/calendar/calendar_viewmodel.dart';
 import 'package:ekush_ponji/features/calendar/widgets/calendar_header.dart';
 import 'package:ekush_ponji/features/calendar/widgets/week_days_row.dart';
 import 'package:ekush_ponji/features/calendar/widgets/calendar_grid.dart';
 import 'package:ekush_ponji/features/calendar/widgets/day_details_panel.dart';
-import 'package:ekush_ponji/features/calendar/widgets/upcoming_holidays_widget.dart';
-// import 'package:ekush_ponji/features/calendar/widgets/upcoming_events_widget.dart';
+import 'package:ekush_ponji/features/calendar/widgets/calendar_holidays_widget.dart';
+import 'package:ekush_ponji/features/calendar/widgets/custom_month_year_picker.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
 import 'package:go_router/go_router.dart';
 
@@ -23,8 +26,6 @@ class CalendarScreen extends BaseScreen {
 class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
   late PageController _pageController;
 
-  // Page index represents offset from initial month
-  // We start at page 1000 to allow scrolling back in time
   static const int _initialPage = 1000;
 
   @override
@@ -74,9 +75,7 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
               duration: const Duration(milliseconds: 400),
               curve: Curves.easeInOut,
             );
-            ref
-                .read(calendarViewModelProvider.notifier)
-                .loadCurrentMonth();
+            ref.read(calendarViewModelProvider.notifier).loadCurrentMonth();
           },
         ),
       ],
@@ -88,6 +87,7 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
     final viewState = ref.watch(calendarViewModelProvider);
     final viewModel = ref.read(calendarViewModelProvider.notifier);
     final l10n = AppLocalizations.of(context);
+    final hijriService = ref.watch(hijriCalendarServiceProvider);
 
     if (viewState is ViewStateLoading) {
       return Center(
@@ -113,6 +113,13 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
     if (monthData == null) {
       return Center(child: Text(l10n.loadingData));
     }
+
+    // Compute Hijri months display string for the header
+    final hijriMonthsDisplay = hijriService.getHijriMonthsDisplay(
+      gregorianYear: monthData.gregorianYear,
+      gregorianMonth: monthData.gregorianMonth,
+      languageCode: l10n.languageCode,
+    );
 
     return GestureDetector(
       onHorizontalDragEnd: (details) {
@@ -151,14 +158,13 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
               ),
               child: Column(
                 children: [
-                  // Header inside card
                   CalendarHeader(
                     gregorianYear: monthData.gregorianYear,
                     gregorianMonth: monthData.gregorianMonth,
-                    bengaliMonthsDisplay:
-                        monthData.getBengaliMonthsDisplay(
+                    bengaliMonthsDisplay: monthData.getBengaliMonthsDisplay(
                       useBangla: l10n.languageCode == 'bn',
                     ),
+                    hijriMonthsDisplay: hijriMonthsDisplay,
                     onPreviousMonth: () {
                       _pageController.previousPage(
                         duration: const Duration(milliseconds: 350),
@@ -175,10 +181,8 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
                     onYearTap: () => _showYearPicker(context, ref),
                   ),
 
-                  // Week days row inside card
                   const WeekDaysRow(),
 
-                  // PageView for animated month switching
                   SizedBox(
                     height: _gridHeight(viewModel.calendarDays.length),
                     child: PageView.builder(
@@ -209,25 +213,14 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
               DayDetailsPanel(
                 selectedDay: viewModel.selectedDay,
                 isExpanded: viewModel.isDayDetailsPanelExpanded,
-                onToggleExpanded: () =>
-                    viewModel.toggleDayDetailsPanel(),
+                onToggleExpanded: () => viewModel.toggleDayDetailsPanel(),
               ),
 
-            // ─── Upcoming Holidays ───────────────────────────
-            if (viewModel.upcomingHolidays.isNotEmpty)
-              UpcomingHolidaysWidget(
-                monthName:
-                    l10n.getMonthName(monthData.gregorianMonth),
-                holidays: viewModel.upcomingHolidays,
-              ),
-
-            // ─── Upcoming Events ─────────────────────────────
-            // if (viewModel.upcomingEvents.isNotEmpty)
-            //   UpcomingEventsWidget(
-            //     monthName:
-            //         l10n.getMonthName(monthData.gregorianMonth),
-            //     events: viewModel.upcomingEvents,
-            //   ),
+            // ─── All Month Holidays ──────────────────────────
+            CalendarHolidaysWidget(
+              monthName: l10n.getMonthName(monthData.gregorianMonth),
+              holidays: viewModel.monthHolidays,
+            ),
 
             const SizedBox(height: 24),
           ],
@@ -236,20 +229,16 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
     );
   }
 
-  /// Calculate grid height based on number of day cells
   double _gridHeight(int cellCount) {
     final rows = (cellCount / 7).ceil();
-    // Each row is approximately 56px tall
     return rows * 68.0 + 8;
   }
 
-  /// Handle PageView page change → navigate months in ViewModel
   void _onPageChanged(int offset, CalendarViewModel viewModel) {
     final now = DateTime.now();
     int targetMonth = now.month + offset;
     int targetYear = now.year;
 
-    // Normalize month overflow/underflow
     while (targetMonth > 12) {
       targetMonth -= 12;
       targetYear++;
@@ -268,50 +257,25 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
   }
 
   Future<void> _showMonthPicker(BuildContext context, WidgetRef ref) async {
-    final viewModel = ref.read(calendarViewModelProvider.notifier);
-    final monthData = viewModel.currentMonthData;
-    if (monthData == null) return;
+  final viewModel = ref.read(calendarViewModelProvider.notifier);
+  final monthData = viewModel.currentMonthData;
+  if (monthData == null) return;
+  final l10n = AppLocalizations.of(context);
 
-    final currentDate =
-        DateTime(monthData.gregorianYear, monthData.gregorianMonth);
-    final l10n = AppLocalizations.of(context);
+  await showDialog(
+    context: context,
+    builder: (context) => MonthYearPickerDialog(
+      initialYear: monthData.gregorianYear,
+      initialMonth: monthData.gregorianMonth,
+      l10n: l10n,
+      onSelected: (year, month) {
+        viewModel.jumpToMonth(year, month);
+      },
+    ),
+  );
+}
 
-    final selectedDate = await showDatePicker(
-      context: context,
-      initialDate: currentDate,
-      firstDate: DateTime(2020, 1),
-      lastDate: DateTime(2030, 12),
-      initialDatePickerMode: DatePickerMode.year,
-      helpText: l10n.selectMonth,
-    );
-
-    if (selectedDate != null && context.mounted) {
-      await viewModel.jumpToMonth(
-          selectedDate.year, selectedDate.month);
-    }
-  }
-
-  Future<void> _showYearPicker(BuildContext context, WidgetRef ref) async {
-    final viewModel = ref.read(calendarViewModelProvider.notifier);
-    final monthData = viewModel.currentMonthData;
-    if (monthData == null) return;
-
-    final currentDate =
-        DateTime(monthData.gregorianYear, monthData.gregorianMonth);
-    final l10n = AppLocalizations.of(context);
-
-    final selectedDate = await showDatePicker(
-      context: context,
-      initialDate: currentDate,
-      firstDate: DateTime(2020, 1),
-      lastDate: DateTime(2030, 12),
-      initialDatePickerMode: DatePickerMode.year,
-      helpText: l10n.selectYear,
-    );
-
-    if (selectedDate != null && context.mounted) {
-      await viewModel.jumpToMonth(
-          selectedDate.year, monthData.gregorianMonth);
-    }
-  }
+Future<void> _showYearPicker(BuildContext context, WidgetRef ref) async {
+  await _showMonthPicker(context, ref);
+}
 }

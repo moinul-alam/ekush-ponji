@@ -5,7 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/core/services/bengali_calendar_service.dart';
+import 'package:ekush_ponji/core/services/hijri_calendar_service.dart';
 import 'package:ekush_ponji/features/calendar/models/bengali_date.dart';
+import 'package:ekush_ponji/features/calendar/models/hijri_date.dart';
 import 'package:ekush_ponji/features/home/widgets/home_section_widget.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
 
@@ -15,14 +17,15 @@ class TodayDateWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final now = DateTime.now();
-    final bengaliCalendarService = ref.watch(bengaliCalendarServiceProvider);
-    final bengaliDate = bengaliCalendarService.getBengaliDate(now);
+    final bengaliDate = ref.watch(bengaliCalendarServiceProvider).getBengaliDate(now);
+    final hijriDate = ref.watch(hijriCalendarServiceProvider).getHijriDate(now);
 
     return HomeSectionWidget(
       padding: EdgeInsets.zero,
       onTap: () => context.go(RouteNames.calendar),
       child: _MergedDateCard(
         bengaliDate: bengaliDate,
+        hijriDate: hijriDate,
         gregorianDate: now,
       ),
     );
@@ -35,16 +38,18 @@ class TodayDateWidget extends ConsumerWidget {
 
 class _MergedDateCard extends StatelessWidget {
   final BengaliDate bengaliDate;
+  final HijriDate hijriDate;
   final DateTime gregorianDate;
 
   const _MergedDateCard({
     required this.bengaliDate,
+    required this.hijriDate,
     required this.gregorianDate,
   });
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final cs = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context);
     final isBn = l10n.languageCode == 'bn';
 
@@ -52,29 +57,51 @@ class _MergedDateCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(16),
       child: Column(
         children: [
-          _DateRow(
-            dayNum: isBn ? bengaliDate.dayBn : bengaliDate.day.toString(),
-            month: isBn ? bengaliDate.monthNameBn : bengaliDate.monthName,
-            year: isBn ? bengaliDate.yearBn : bengaliDate.year.toString(),
-            era: isBn ? 'বঙ্গাব্দ' : 'BS',
-            season: l10n.getBengaliSeasonName(bengaliDate.monthNumber),
-            backgroundColor: colorScheme.primaryContainer,
-            textColor: colorScheme.onPrimaryContainer,
-          ),
-          _OrnateDivider(
-            topColor: colorScheme.primaryContainer,
-            bottomColor: colorScheme.secondaryContainer,
-            diamondColor: colorScheme.primary,
-            lineColor: colorScheme.outline.withValues(alpha: 0.25),
-          ),
+          // ── Row 1: Gregorian (tertiaryContainer) ───────
           _DateRow(
             dayNum: l10n.localizeNumber(gregorianDate.day),
             month: l10n.getMonthName(gregorianDate.month),
             year: l10n.localizeNumber(gregorianDate.year),
             era: isBn ? 'খ্রিস্টাব্দ' : 'AD',
             season: l10n.getGregorianSeasonName(gregorianDate.month),
-            backgroundColor: colorScheme.secondaryContainer,
-            textColor: colorScheme.onSecondaryContainer,
+            backgroundColor: cs.tertiaryContainer,
+            textColor: cs.onTertiaryContainer,
+          ),
+
+          _OrnateDivider(
+            topColor: cs.tertiaryContainer,
+            bottomColor: cs.primaryContainer,
+            diamondColor: cs.tertiary,
+            lineColor: cs.outline,
+          ),
+
+          // ── Row 2: Bengali (primaryContainer) ──────────
+          _DateRow(
+            dayNum: isBn ? bengaliDate.dayBn : bengaliDate.day.toString(),
+            month: isBn ? bengaliDate.monthNameBn : bengaliDate.monthName,
+            year: isBn ? bengaliDate.yearBn : bengaliDate.year.toString(),
+            era: isBn ? 'বঙ্গাব্দ' : 'BS',
+            season: l10n.getBengaliSeasonName(bengaliDate.monthNumber),
+            backgroundColor: cs.primaryContainer,
+            textColor: cs.onPrimaryContainer,
+          ),
+
+          _OrnateDivider(
+            topColor: cs.primaryContainer,
+            bottomColor: cs.secondaryContainer,
+            diamondColor: cs.primary,
+            lineColor: cs.outline,
+          ),
+
+          // ── Row 3: Hijri (secondaryContainer) ──────────
+          _DateRow(
+            dayNum: hijriDate.dayForLocale(l10n.languageCode),
+            month: hijriDate.monthNameForLocale(l10n.languageCode),
+            year: hijriDate.yearForLocale(l10n.languageCode),
+            era: isBn ? 'হিজরি' : 'AH',
+            season: '',   // No season concept for Hijri
+            backgroundColor: cs.secondaryContainer,
+            textColor: cs.onSecondaryContainer,
           ),
         ],
       ),
@@ -83,7 +110,7 @@ class _MergedDateCard extends StatelessWidget {
 }
 
 // ============================================================================
-// DATE ROW — 33% | 33% | 33%
+// DATE ROW — 3 equal sections, all centered
 // ============================================================================
 
 class _DateRow extends StatelessWidget {
@@ -91,7 +118,7 @@ class _DateRow extends StatelessWidget {
   final String month;
   final String year;
   final String era;
-  final String season;
+  final String season; // empty string hides the third column gracefully
   final Color backgroundColor;
   final Color textColor;
 
@@ -108,26 +135,25 @@ class _DateRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
-    final bodyStyle = theme.textTheme.titleSmall?.copyWith(
-      color: textColor,
-      fontWeight: FontWeight.bold,
-    );
-
     final dividerColor = textColor.withValues(alpha: 0.2);
+
+    final labelStyle = theme.textTheme.titleSmall?.copyWith(
+      color: textColor.withValues(alpha: 0.85),
+      fontWeight: FontWeight.w600,
+    );
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: const EdgeInsets.symmetric(vertical: 16),
       color: backgroundColor,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // 33% — day number + month
+          // ── Section 1: Day + Month ─────────────────────
           Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
                   dayNum,
@@ -137,43 +163,63 @@ class _DateRow extends StatelessWidget {
                     height: 1.0,
                   ),
                 ),
-                const SizedBox(width: 6),
-                Flexible(
-                  child: Text(
-                    month,
-                    style: bodyStyle,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                const SizedBox(height: 2),
+                Text(
+                  month,
+                  style: labelStyle,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
                 ),
               ],
             ),
           ),
+
           _VerticalDivider(color: dividerColor),
-          // 33% — year + era
+
+          // ── Section 2: Year + Era side-by-side ─────────
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
+            child: Center(
+              child: Wrap(
+                alignment: WrapAlignment.center,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 5,
                 children: [
-                  Text(year, style: bodyStyle, overflow: TextOverflow.ellipsis),
-                  Text(era, style: bodyStyle, overflow: TextOverflow.ellipsis),
+                  Text(
+                    year,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: textColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    era,
+                    style: labelStyle,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ],
               ),
             ),
           ),
+
           _VerticalDivider(color: dividerColor),
-          // 33% — season
+
+          // ── Section 3: Season (hidden for Hijri) ───────
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(left: 10),
-              child: Text(
-                season,
-                style: bodyStyle,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
+            child: season.isEmpty
+                ? Center(
+                    child: Icon(
+                      Icons.mosque_outlined,
+                      color: textColor.withValues(alpha: 0.4),
+                      size: 20,
+                    ),
+                  )
+                : Text(
+                    season,
+                    style: labelStyle,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                  ),
           ),
         ],
       ),
@@ -187,14 +233,13 @@ class _DateRow extends StatelessWidget {
 
 class _VerticalDivider extends StatelessWidget {
   final Color color;
-
   const _VerticalDivider({required this.color});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: 1,
-      height: 36,
+      height: 44,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -230,29 +275,29 @@ class _OrnateDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 20,
+      height: 16,
       child: Stack(
         alignment: Alignment.center,
         children: [
           Positioned(
-            top: 0, left: 0, right: 0, height: 10,
+            top: 0, left: 0, right: 0, height: 8,
             child: ColoredBox(color: topColor),
           ),
           Positioned(
-            bottom: 0, left: 0, right: 0, height: 10,
+            bottom: 0, left: 0, right: 0, height: 8,
             child: ColoredBox(color: bottomColor),
           ),
           Positioned(
-            left: 16,
-            right: 16,
+            left: 24,
+            right: 24,
             child: Container(
               height: 1,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
                     lineColor.withValues(alpha: 0.0),
-                    lineColor,
-                    lineColor,
+                    lineColor.withValues(alpha: 0.3),
+                    lineColor.withValues(alpha: 0.3),
                     lineColor.withValues(alpha: 0.0),
                   ],
                   stops: const [0.0, 0.2, 0.8, 1.0],
@@ -269,8 +314,8 @@ class _OrnateDivider extends StatelessWidget {
                 color: diamondColor,
                 boxShadow: [
                   BoxShadow(
-                    color: diamondColor.withValues(alpha: 0.4),
-                    blurRadius: 6,
+                    color: diamondColor.withValues(alpha: 0.45),
+                    blurRadius: 8,
                     spreadRadius: 1,
                   ),
                 ],
@@ -284,9 +329,9 @@ class _OrnateDivider extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _DotAccent(color: diamondColor),
-                const SizedBox(width: 24),
+                const SizedBox(width: 28),
                 const SizedBox(width: 10),
-                const SizedBox(width: 24),
+                const SizedBox(width: 28),
                 _DotAccent(color: diamondColor),
               ],
             ),
@@ -299,7 +344,6 @@ class _OrnateDivider extends StatelessWidget {
 
 class _DotAccent extends StatelessWidget {
   final Color color;
-
   const _DotAccent({required this.color});
 
   @override

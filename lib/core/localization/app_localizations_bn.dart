@@ -127,6 +127,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get noUpcomingEvents => 'কোন আসন্ন ইভেন্ট নেই';
 
   @override
+  String get noUpcomingHolidays => 'কোন আসন্ন ছুটির দিন নেই';
+
+  @override
   String get quoteOfTheDay => 'আজকের উক্তি';
 
   @override
@@ -273,11 +276,11 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String formatUpcomingEventsInMonth(String monthName) =>
-      '$monthName-এ আসন্ন ইভেন্ট';
+      '$monthName মাসে আসন্ন ইভেন্ট';
 
   @override
   String formatUpcomingHolidaysInMonth(String monthName) =>
-      '$monthName-এ আসন্ন ছুটির দিন';
+      '$monthName মাসে আসন্ন ছুটির দিন';
 
   @override
   String get categoryWork => 'কর্ম';

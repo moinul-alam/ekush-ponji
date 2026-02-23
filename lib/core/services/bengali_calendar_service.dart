@@ -5,7 +5,6 @@ import 'package:ekush_ponji/features/calendar/models/bengali_date.dart';
 
 /// Bengali Calendar Service
 /// Fast, algorithmic conversion for Gregorian → Bengali
-/// Accurate from 1987 onwards (Bangladesh revised calendar)
 class BengaliCalendarService {
   // Month start dates (Gregorian) for Bengali months
   static const Map<int, List<int>> _monthTransitions = {

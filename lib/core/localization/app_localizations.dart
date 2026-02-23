@@ -157,6 +157,7 @@ abstract class AppLocalizations {
   String get upcomingHolidays;
   String get upcomingEvents;
   String get noUpcomingEvents;
+  String get noUpcomingHolidays;
   String get quoteOfTheDay;
   String get wordOfTheDay;
   String get meaning;

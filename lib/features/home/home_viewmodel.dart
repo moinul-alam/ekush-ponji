@@ -26,42 +26,56 @@ class HomeViewModel extends BaseViewModel {
   }
 
   Future<void> loadHomeData() async {
-    await executeAsync(
-      operation: () async {
-        _userName = 'User';
+  await executeAsync(
+    operation: () async {
+      _userName = 'User';
 
-        // Sync holidays from Firestore if needed
-        final now = DateTime.now();
-        await _calendarRepository.syncHolidaysIfNeeded(now.year);
+      final now = DateTime.now();
+      await _calendarRepository.syncHolidaysIfNeeded(now.year);
 
-        // Load upcoming holidays (next 30 days)
-        _holidays = await _calendarRepository.getUpcomingHolidays(days: 30);
+      // Fetch current month holidays then filter to upcoming only
+      final monthHolidays = await _calendarRepository.getHolidaysForMonth(
+        now.year,
+        now.month,
+      );
 
-        // Events — real data coming later
-        _events = [];
-      },
-      loadingMessage: 'Loading home data...',
-      successMessage: null,
-      showLoading: true,
-      setSuccessState: true,
-    );
-  }
+      _holidays = monthHolidays
+          .where((h) => h.daysUntil >= 0)
+          .toList();
 
-  @override
-  Future<bool> refresh() async {
-    return await executeAsync(
-      operation: () async {
-        _userName = 'User';
+      _events = [];
+    },
+    loadingMessage: 'Loading home data...',
+    successMessage: null,
+    showLoading: true,
+    setSuccessState: true,
+  );
+}
 
-        final now = DateTime.now();
-        await _calendarRepository.syncHolidaysIfNeeded(now.year);
-        _holidays = await _calendarRepository.getUpcomingHolidays(days: 30);
-        _events = [];
-      },
-      showLoading: false,
-      setSuccessState: false,
-    );
-  }
+@override
+Future<bool> refresh() async {
+  return await executeAsync(
+    operation: () async {
+      _userName = 'User';
+
+      final now = DateTime.now();
+      await _calendarRepository.syncHolidaysIfNeeded(now.year);
+
+      final monthHolidays = await _calendarRepository.getHolidaysForMonth(
+        now.year,
+        now.month,
+      );
+
+      _holidays = monthHolidays
+          .where((h) => h.daysUntil >= 0)
+          .toList();
+
+      _events = [];
+    },
+    showLoading: false,
+    setSuccessState: false,
+  );
+}
 
   // ------------------- Sample Data (quote & word — kept until models ready) -------------------
 

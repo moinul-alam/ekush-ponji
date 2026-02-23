@@ -1,3 +1,5 @@
+// lib/features/calendar/widgets/calendar_header.dart
+
 import 'package:flutter/material.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 
@@ -5,6 +7,7 @@ class CalendarHeader extends StatelessWidget {
   final int gregorianYear;
   final int gregorianMonth;
   final String bengaliMonthsDisplay;
+  final String hijriMonthsDisplay;   // ← NEW
   final VoidCallback onPreviousMonth;
   final VoidCallback onNextMonth;
   final VoidCallback onMonthTap;
@@ -15,6 +18,7 @@ class CalendarHeader extends StatelessWidget {
     required this.gregorianYear,
     required this.gregorianMonth,
     required this.bengaliMonthsDisplay,
+    required this.hijriMonthsDisplay,  // ← NEW
     required this.onPreviousMonth,
     required this.onNextMonth,
     required this.onMonthTap,
@@ -38,17 +42,16 @@ class CalendarHeader extends StatelessWidget {
             tooltip: l10n.previous,
           ),
 
-          // Month + Year + Bengali month
+          // Centre: Gregorian + Bengali + Hijri
           Expanded(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Gregorian month and year
+                // ── Gregorian month + year ─────────────────
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Month - tappable
                     GestureDetector(
                       onTap: onMonthTap,
                       child: Text(
@@ -59,17 +62,12 @@ class CalendarHeader extends StatelessWidget {
                         ),
                       ),
                     ),
-
                     const SizedBox(width: 6),
-
-                    // Year - tappable
                     GestureDetector(
                       onTap: onYearTap,
-                      child: Container(
+                      child: Padding(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
+                            horizontal: 8, vertical: 2),
                         child: Text(
                           l10n.localizeNumber(gregorianYear),
                           style: theme.textTheme.titleLarge?.copyWith(
@@ -82,17 +80,65 @@ class CalendarHeader extends StatelessWidget {
                   ],
                 ),
 
-                // Bengali month
-                if (bengaliMonthsDisplay.isNotEmpty) ...[
-                  const SizedBox(height: 3),
-                  Text(
-                    bengaliMonthsDisplay,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      fontSize: 16,
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: 0.2,
-                    ),
+                // ── Bengali (left) | divider | Hijri (right) ──
+                if (bengaliMonthsDisplay.isNotEmpty ||
+                    hijriMonthsDisplay.isNotEmpty) ...[
+                  const SizedBox(height: 5),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (bengaliMonthsDisplay.isNotEmpty)
+                        Flexible(
+                          child: Text(
+                            bengaliMonthsDisplay,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              fontSize: 13,
+                              color: theme.colorScheme.primary,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.1,
+                            ),
+                            textAlign: TextAlign.right,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      if (bengaliMonthsDisplay.isNotEmpty &&
+                          hijriMonthsDisplay.isNotEmpty) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          width: 1,
+                          height: 14,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                theme.colorScheme.outlineVariant
+                                    .withOpacity(0.0),
+                                theme.colorScheme.outlineVariant,
+                                theme.colorScheme.outlineVariant
+                                    .withOpacity(0.0),
+                              ],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                      ],
+                      if (hijriMonthsDisplay.isNotEmpty)
+                        Flexible(
+                          child: Text(
+                            hijriMonthsDisplay,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              fontSize: 13,
+                              color: theme.colorScheme.tertiary,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.1,
+                            ),
+                            textAlign: TextAlign.left,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                    ],
                   ),
                 ],
               ],
@@ -111,7 +157,7 @@ class CalendarHeader extends StatelessWidget {
   }
 }
 
-// Navigation button widget
+// ─── Navigation button ────────────────────────────────────────
 class _NavButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;

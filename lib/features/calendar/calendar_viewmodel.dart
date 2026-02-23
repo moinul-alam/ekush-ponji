@@ -3,12 +3,10 @@ import 'package:ekush_ponji/core/base/base_viewmodel.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
 import 'package:ekush_ponji/features/calendar/models/calendar_day.dart';
 import 'package:ekush_ponji/features/calendar/models/month_data.dart';
-// import 'package:ekush_ponji/features/calendar/models/bengali_date.dart';
 import 'package:ekush_ponji/features/calendar/data/calendar_repository.dart';
 import 'package:ekush_ponji/core/services/bengali_calendar_service.dart';
 import 'package:ekush_ponji/features/home/models/holiday.dart';
 import 'package:ekush_ponji/features/home/models/event.dart';
-// import 'package:ekush_ponji/features/home/models/reminder.dart';
 
 class CalendarViewModel extends BaseViewModel {
   late final CalendarRepository _repository;
@@ -29,14 +27,17 @@ class CalendarViewModel extends BaseViewModel {
   bool get isDayDetailsPanelExpanded => _isDayDetailsPanelExpanded;
 
   List<CalendarDay> get calendarDays => _currentMonthData?.days ?? [];
-  String get bengaliMonthsDisplay => _currentMonthData?.getBengaliMonthsDisplay() ?? '';
-  List<Holiday> get upcomingHolidays => _currentMonthData?.upcomingHolidays ?? [];
+  String get bengaliMonthsDisplay =>
+      _currentMonthData?.getBengaliMonthsDisplay() ?? '';
+
+  /// All holidays for the current month — includes past and future
+  List<Holiday> get monthHolidays => _currentMonthData?.holidays ?? [];
+
   List<Event> get upcomingEvents => _currentMonthData?.upcomingEvents ?? [];
 
-  /// **Selected day getter for the screen**
+  /// Selected day getter for the screen
   CalendarDay? get selectedDay {
     if (_selectedDate == null || _currentMonthData == null) return null;
-
     return _currentMonthData!.days.firstWhere(
       (day) => _isSameDay(day.gregorianDate, _selectedDate!),
       orElse: () => _currentMonthData!.days.first,
@@ -53,8 +54,8 @@ class CalendarViewModel extends BaseViewModel {
 
   Future<void> loadCurrentMonth() async {
     final now = DateTime.now();
-    _hasDateBeenSelected = false; 
-    _isDayDetailsPanelExpanded = false; 
+    _hasDateBeenSelected = false;
+    _isDayDetailsPanelExpanded = false;
     await jumpToMonth(now.year, now.month);
   }
 
@@ -68,7 +69,6 @@ class CalendarViewModel extends BaseViewModel {
           final monthData = await _generateMonthData(year, month);
           _monthCache[cacheKey] = monthData;
           _currentMonthData = monthData;
-
           _prefetchAdjacentMonths(year, month);
         }
       },
@@ -108,7 +108,7 @@ class CalendarViewModel extends BaseViewModel {
 
   void selectDate(DateTime date) {
     _selectedDate = date;
-    _hasDateBeenSelected = true;  // ← ADD THIS
+    _hasDateBeenSelected = true;
 
     if (_currentMonthData != null) {
       final updatedDays = _currentMonthData!.days.map((day) {
@@ -130,7 +130,7 @@ class CalendarViewModel extends BaseViewModel {
 
   Future<MonthData> _generateMonthData(int year, int month) async {
     final firstDate = DateTime(year, month, 1);
-    final firstWeekday = firstDate.weekday % 7; // 0 = Sunday
+    final firstWeekday = firstDate.weekday % 7;
     final daysInMonth = DateTime(year, month + 1, 0).day;
     final totalCells = firstWeekday + daysInMonth;
     final numRows = (totalCells + 6) ~/ 7;
@@ -140,8 +140,8 @@ class CalendarViewModel extends BaseViewModel {
     final days = <CalendarDay>[];
     final today = DateTime.now();
 
-    final dateList = List.generate(
-        cellCount, (i) => gridStart.add(Duration(days: i)));
+    final dateList =
+        List.generate(cellCount, (i) => gridStart.add(Duration(days: i)));
 
     final holidaysMap = await _repository.getHolidaysForDates(dateList);
     final eventsMap = await _repository.getEventsForDates(dateList);
@@ -153,14 +153,16 @@ class CalendarViewModel extends BaseViewModel {
         bengaliDate: _bengaliService.getBengaliDate(date),
         isCurrentMonth: date.month == month && date.year == year,
         isToday: _isSameDay(date, today),
-        isSelected: _selectedDate != null && _isSameDay(date, _selectedDate!),
+        isSelected:
+            _selectedDate != null && _isSameDay(date, _selectedDate!),
         holidays: holidaysMap[date] ?? [],
         events: eventsMap[date] ?? [],
         reminders: remindersMap[date] ?? [],
       ));
     }
 
-    final bengaliMonths = _bengaliService.getBengaliMonthsForGregorianMonth(year, month);
+    final bengaliMonths =
+        _bengaliService.getBengaliMonthsForGregorianMonth(year, month);
     final monthHolidays = await _repository.getHolidaysForMonth(year, month);
     final monthEvents = await _repository.getEventsForMonth(year, month);
     final monthReminders = await _repository.getRemindersForMonth(year, month);
@@ -199,7 +201,8 @@ class CalendarViewModel extends BaseViewModel {
           }
           final nextKey = '$nextYear-$nextMonth';
           if (!_monthCache.containsKey(nextKey)) {
-            _monthCache[nextKey] = await _generateMonthData(nextYear, nextMonth);
+            _monthCache[nextKey] =
+                await _generateMonthData(nextYear, nextMonth);
           }
         }
       } catch (_) {}
@@ -211,7 +214,6 @@ class CalendarViewModel extends BaseViewModel {
         date1.month == date2.month &&
         date1.day == date2.day;
   }
-
 
   @override
   void onDispose() {
