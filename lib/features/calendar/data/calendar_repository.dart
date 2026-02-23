@@ -7,7 +7,7 @@ import 'package:ekush_ponji/features/calendar/data/local/calendar_local_datasour
 import 'package:ekush_ponji/features/calendar/data/remote/calendar_remote_datasource.dart';
 
 /// CalendarRepository provides holidays, events, and reminders
-/// Reads from local storage (Hive) for offline-first experience
+/// Offline-first: reads from Hive, syncs from Firestore on startup
 class CalendarRepository {
   final CalendarLocalDatasource _localDatasource;
   final CalendarRemoteDatasource _remoteDatasource;
@@ -18,21 +18,68 @@ class CalendarRepository {
   })  : _localDatasource = localDatasource ?? CalendarLocalDatasource(),
         _remoteDatasource = remoteDatasource ?? CalendarRemoteDatasource();
 
+  // ------------------- Sync -------------------
+
+  /// Called on app startup — syncs if Firestore lastUpdated differs from local
+  Future<void> syncHolidaysIfNeeded(int year) async {
+    try {
+      // Get Firestore lastUpdated
+      final remoteLastUpdated =
+          await _remoteDatasource.getLastUpdatedTimestamp(year);
+
+      if (remoteLastUpdated == null) {
+        debugPrint('ℹ️ No remote holidays found for $year');
+        return;
+      }
+
+      // Get local lastUpdated
+      final localLastUpdated = await _localDatasource.getLastUpdated(year);
+
+      // Skip if timestamps match
+      if (localLastUpdated != null &&
+          remoteLastUpdated.isAtSameMomentAs(localLastUpdated)) {
+        debugPrint('✅ Holidays for $year are up to date, skipping sync');
+        return;
+      }
+
+      // Fetch and save
+      debugPrint('🔄 Syncing holidays for $year...');
+      final holidays = await _remoteDatasource.fetchGovtHolidays(year);
+      await _localDatasource.saveGovtHolidays(year, holidays);
+      await _localDatasource.saveLastUpdated(year, remoteLastUpdated);
+      debugPrint('✅ Synced ${holidays.length} holidays for $year');
+    } catch (e) {
+      // Offline or error — silently serve cache
+      debugPrint('⚠️ Sync failed, serving cache: $e');
+    }
+  }
+
   // ------------------- Holiday Methods -------------------
 
   /// Get holidays for a specific month
-  /// Reads from local storage (already synced from Firebase)
+  /// Multi-day holidays are included if any part falls within the month
   Future<List<Holiday>> getHolidaysForMonth(int year, int month) async {
     try {
-      // Get all holidays for the year from local storage
       final yearHolidays = await _localDatasource.getAllHolidaysForYear(year);
-      
-      // Filter by month
-      final monthHolidays = yearHolidays
-          .where((h) => h.date.month == month)
-          .toList();
 
-      debugPrint('📅 Found ${monthHolidays.length} holidays for $year-$month');
+      final monthHolidays = yearHolidays.where((h) {
+        // Single-day: check if it's in this month
+        if (!h.isMultiDay) {
+          return h.date.year == year && h.date.month == month;
+        }
+
+        // Multi-day: include if any day of the range falls in this month
+        final monthStart = DateTime(year, month, 1);
+        final monthEnd = DateTime(year, month + 1, 0); // last day of month
+        final startDay = DateTime(h.date.year, h.date.month, h.date.day);
+        final endDay = DateTime(
+            h.endDate!.year, h.endDate!.month, h.endDate!.day);
+
+        return !endDay.isBefore(monthStart) && !startDay.isAfter(monthEnd);
+      }).toList();
+
+      debugPrint(
+          '📅 Found ${monthHolidays.length} holidays for $year-$month');
       return monthHolidays;
     } catch (e) {
       debugPrint('❌ Error getting holidays for month: $e');
@@ -41,14 +88,14 @@ class CalendarRepository {
   }
 
   /// Get holidays for a specific date
+  /// Uses containsDate() to support multi-day holiday ranges
   Future<List<Holiday>> getHolidaysForDate(DateTime date) async {
     try {
-      final monthHolidays = await getHolidaysForMonth(date.year, date.month);
+      final monthHolidays =
+          await getHolidaysForMonth(date.year, date.month);
+
       return monthHolidays
-          .where((h) =>
-              h.date.year == date.year &&
-              h.date.month == date.month &&
-              h.date.day == date.day)
+          .where((h) => h.containsDate(date))
           .toList();
     } catch (e) {
       debugPrint('❌ Error getting holidays for date: $e');
@@ -60,7 +107,7 @@ class CalendarRepository {
   Future<Map<DateTime, List<Holiday>>> getHolidaysForDates(
       List<DateTime> dates) async {
     final Map<DateTime, List<Holiday>> map = {};
-    
+
     // Group dates by year-month for efficient fetching
     final Map<String, List<DateTime>> datesByMonth = {};
     for (final date in dates) {
@@ -73,13 +120,13 @@ class CalendarRepository {
       final parts = entry.key.split('-');
       final year = int.parse(parts[0]);
       final month = int.parse(parts[1]);
-      
+
       final monthHolidays = await getHolidaysForMonth(year, month);
-      
-      // Map holidays to specific dates
+
+      // Map holidays to specific dates using containsDate()
       for (final date in entry.value) {
         map[date] = monthHolidays
-            .where((h) => h.date.day == date.day)
+            .where((h) => h.containsDate(date))
             .toList();
       }
     }
@@ -97,25 +144,22 @@ class CalendarRepository {
     }
   }
 
-  /// Get upcoming holidays (next 30 days)
+  /// Get upcoming holidays (next N days)
   Future<List<Holiday>> getUpcomingHolidays({int days = 30}) async {
     try {
       final now = DateTime.now();
       final currentYear = now.year;
       final nextYear = currentYear + 1;
 
-      // Get holidays for current and next year
       final currentYearHolidays = await getHolidaysForYear(currentYear);
       final nextYearHolidays = await getHolidaysForYear(nextYear);
 
-      // Combine and filter upcoming
       final allHolidays = [...currentYearHolidays, ...nextYearHolidays];
       final upcoming = allHolidays.where((h) {
         final daysUntil = h.daysUntil;
         return daysUntil >= 0 && daysUntil <= days;
       }).toList();
 
-      // Sort by date
       upcoming.sort((a, b) => a.date.compareTo(b.date));
 
       debugPrint('📅 Found ${upcoming.length} upcoming holidays');
@@ -128,7 +172,6 @@ class CalendarRepository {
 
   // ------------------- Custom Holiday Management -------------------
 
-  /// Add a custom holiday
   Future<void> addCustomHoliday(Holiday holiday) async {
     try {
       await _localDatasource.addCustomHoliday(holiday);
@@ -139,7 +182,6 @@ class CalendarRepository {
     }
   }
 
-  /// Delete a custom holiday
   Future<void> deleteCustomHoliday(String id) async {
     try {
       await _localDatasource.deleteCustomHoliday(id);
@@ -150,15 +192,12 @@ class CalendarRepository {
     }
   }
 
-  /// Edit a holiday (govt or custom)
   Future<void> editHoliday(Holiday holiday) async {
     try {
       if (holiday.isGovtHoliday) {
-        // If govt holiday, save as modified
         await _localDatasource.saveModifiedHoliday(holiday);
         debugPrint('✅ Modified govt holiday: ${holiday.name}');
       } else {
-        // If custom holiday, update in custom list
         final customHolidays = await _localDatasource.getCustomHolidays();
         final index = customHolidays.indexWhere((h) => h.id == holiday.id);
         if (index != -1) {
@@ -173,7 +212,6 @@ class CalendarRepository {
     }
   }
 
-  /// Hide a holiday
   Future<void> hideHoliday(String id) async {
     try {
       await _localDatasource.hideHoliday(id);
@@ -184,7 +222,6 @@ class CalendarRepository {
     }
   }
 
-  /// Unhide a holiday
   Future<void> unhideHoliday(String id) async {
     try {
       await _localDatasource.unhideHoliday(id);
@@ -195,7 +232,7 @@ class CalendarRepository {
     }
   }
 
-  // ------------------- Event Methods (Sample Data for now) -------------------
+  // ------------------- Event Methods -------------------
 
   Future<List<Event>> getEventsForMonth(int year, int month) async {
     return _getSampleEvents()
@@ -222,7 +259,7 @@ class CalendarRepository {
     return map;
   }
 
-  // ------------------- Reminder Methods (Sample Data for now) -------------------
+  // ------------------- Reminder Methods -------------------
 
   Future<List<Reminder>> getRemindersForMonth(int year, int month) async {
     return _getSampleReminders()
@@ -249,7 +286,7 @@ class CalendarRepository {
     return map;
   }
 
-  // ------------------- Sample Data (to be replaced) -------------------
+  // ------------------- Sample Data -------------------
 
   List<Event> _getSampleEvents() {
     final now = DateTime.now();

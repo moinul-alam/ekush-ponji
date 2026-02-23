@@ -20,12 +20,32 @@ class UpcomingHolidaysWidget extends StatelessWidget {
     final localizations = AppLocalizations.of(context);
     final isBangla = localizations.locale.languageCode == 'bn';
 
-    // Show ALL holidays of the month, not just upcoming
     final allHolidays = holidays.take(maxItems).toList();
 
     if (allHolidays.isEmpty) {
-      return const SizedBox.shrink();
-    }
+  return Container(
+    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: theme.colorScheme.surface,
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: theme.dividerColor, width: 1),
+    ),
+    child: Row(
+      children: [
+        Icon(Icons.celebration_outlined,
+            color: theme.colorScheme.onSurfaceVariant, size: 20),
+        const SizedBox(width: 8),
+        Text(
+          isBangla ? 'এই মাসে কোনো ছুটি নেই' : 'No holidays available',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ],
+    ),
+  );
+}
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -76,77 +96,102 @@ class UpcomingHolidaysWidget extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Date badge
-                    Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(isPast ? 0.05 : 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: Colors.red.withOpacity(isPast ? 0.15 : 0.3),
-                          width: 1,
-                        ),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            localizations.localizeNumber(holiday.date.day),
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.red,
-                            ),
-                          ),
-                          Text(
-                            localizations.getMonthAbbreviation(
-                                holiday.date.month),
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: Colors.red,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    // Date badge — single or range
+                    _buildDateBadge(holiday, isPast, localizations, theme),
 
                     const SizedBox(width: 12),
 
                     // Holiday details
-                    // Holiday details
-Expanded(
-  child: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        isBangla ? holiday.namebn : holiday.name,
-        style: theme.textTheme.bodyMedium?.copyWith(
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-      const SizedBox(height: 4),
-      Text(
-        isPast
-            ? localizations.passed
-            : holiday.daysUntil == 0
-                ? localizations.today
-                : '${localizations.formatDaysDistance(holiday.daysUntil)} ${isBangla ? (holiday.descriptionbn ?? holiday.description ?? '') : (holiday.description ?? '')}',
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: isPast
-              ? theme.colorScheme.onSurfaceVariant
-              : theme.colorScheme.primary,
-          fontWeight: FontWeight.w500,
-        ),
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-      ),
-    ],
-  ),
-),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            isBangla ? holiday.namebn : holiday.name,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            isPast
+                                ? localizations.passed
+                                : holiday.daysUntil == 0
+                                    ? localizations.today
+                                    : '${localizations.formatDaysDistance(holiday.daysUntil)} ${isBangla ? (holiday.descriptionbn ?? holiday.description ?? '') : (holiday.description ?? '')}',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: isPast
+                                  ? theme.colorScheme.onSurfaceVariant
+                                  : theme.colorScheme.primary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
             );
           }),
+        ],
+      ),
+    );
+  }
+
+  // ------------------- Date Badge -------------------
+
+  Widget _buildDateBadge(
+    Holiday holiday,
+    bool isPast,
+    AppLocalizations localizations,
+    ThemeData theme,
+  ) {
+    final isRange = holiday.isMultiDay;
+
+    return Container(
+      width: 50,
+      height: 50,
+      decoration: BoxDecoration(
+        color: Colors.red.withOpacity(isPast ? 0.05 : 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: Colors.red.withOpacity(isPast ? 0.15 : 0.3),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (isRange) ...[
+            // Range: show "19-23"
+            Text(
+              '${localizations.localizeNumber(holiday.date.day)}-${localizations.localizeNumber(holiday.endDate!.day)}',
+              style: theme.textTheme.labelSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Colors.red,
+                fontSize: 10,
+              ),
+            ),
+          ] else ...[
+            // Single day: show day number
+            Text(
+              localizations.localizeNumber(holiday.date.day),
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Colors.red,
+              ),
+            ),
+          ],
+          // Month abbreviation always shown
+          Text(
+            localizations.getMonthAbbreviation(holiday.date.month),
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: Colors.red,
+            ),
+          ),
         ],
       ),
     );

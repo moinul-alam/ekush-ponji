@@ -23,6 +23,9 @@ async function importHolidays() {
     const mappedHolidays = holidays.map((h) => ({
       id: h.id,
       date: admin.firestore.Timestamp.fromDate(new Date(h.date)),
+      endDate: h.endDate
+        ? admin.firestore.Timestamp.fromDate(new Date(h.endDate))
+        : null,
       name: h.name,
       namebn: h.namebn,
       description: h.description,

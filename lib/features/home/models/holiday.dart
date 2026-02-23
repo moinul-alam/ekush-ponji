@@ -1,21 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hive/hive.dart';
 
-part 'holiday.g.dart';
-
 /// Enum for holiday types
-@HiveType(typeId: 1)
 enum HolidayType {
-  @HiveField(0)
   national,
-
-  @HiveField(1)
   religious,
-
-  @HiveField(2)
   cultural,
-
-  @HiveField(3)
   optional;
 
   String get displayName {
@@ -33,31 +23,16 @@ enum HolidayType {
 }
 
 /// Model class for Holiday
-/// Represents a holiday in the calendar
-@HiveType(typeId: 0)
+/// Supports both single-day and multi-day holidays via optional endDate
 class Holiday {
-  @HiveField(0)
   final String id;
-
-  @HiveField(1)
   final String name;
-
-  @HiveField(2)
   final String namebn;
-
-  @HiveField(3)
-  final DateTime date;
-
-  @HiveField(4)
+  final DateTime date;       // startDate
+  final DateTime? endDate;   // null for single-day holidays
   final HolidayType type;
-
-  @HiveField(5)
   final String? description;
-
-  @HiveField(6)
   final String? descriptionbn;
-
-  @HiveField(7)
   final bool isGovtHoliday;
 
   Holiday({
@@ -65,6 +40,7 @@ class Holiday {
     required this.name,
     required this.namebn,
     required this.date,
+    this.endDate,
     required this.type,
     this.description,
     this.descriptionbn,
@@ -73,13 +49,22 @@ class Holiday {
 
   // ------------------- Computed Properties -------------------
 
-  /// Check if holiday is today
-  bool get isToday {
-    final now = DateTime.now();
-    return date.year == now.year &&
-        date.month == now.month &&
-        date.day == now.day;
+  /// Whether this holiday spans multiple days
+  bool get isMultiDay => endDate != null;
+
+  /// Check if a given date falls within this holiday's range
+  bool containsDate(DateTime target) {
+    final targetDay = DateTime(target.year, target.month, target.day);
+    final startDay = DateTime(date.year, date.month, date.day);
+
+    if (endDate == null) return targetDay == startDay;
+
+    final endDay = DateTime(endDate!.year, endDate!.month, endDate!.day);
+    return !targetDay.isBefore(startDay) && !targetDay.isAfter(endDay);
   }
+
+  /// Check if holiday is today
+  bool get isToday => containsDate(DateTime.now());
 
   /// Check if holiday is upcoming (within next 30 days)
   bool get isUpcoming {
@@ -88,13 +73,13 @@ class Holiday {
     return difference.inDays >= 0 && difference.inDays <= 30;
   }
 
-  /// Get days until this holiday
+  /// Days until this holiday (based on startDate)
   int get daysUntil {
     final now = DateTime.now();
     return date.difference(DateTime(now.year, now.month, now.day)).inDays;
   }
 
-  /// Get display text for days until
+  /// Display text for days until
   String getDaysUntilText() {
     if (daysUntil == 0) return 'Today';
     if (daysUntil == 1) return 'Tomorrow';
@@ -104,13 +89,13 @@ class Holiday {
 
   // ------------------- Serialization -------------------
 
-  /// Create from JSON — handles both Firestore Timestamp and ISO String for date
   factory Holiday.fromJson(Map<String, dynamic> json) {
     return Holiday(
       id: json['id'] as String?,
       name: json['name'] as String,
       namebn: json['namebn'] as String,
       date: _parseDate(json['date']),
+      endDate: json['endDate'] != null ? _parseDate(json['endDate']) : null,
       type: HolidayType.values.firstWhere(
         (e) => e.name == json['type'],
         orElse: () => HolidayType.national,
@@ -121,13 +106,13 @@ class Holiday {
     );
   }
 
-  /// Convert to JSON — always serializes date as ISO String
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'name': name,
       'namebn': namebn,
       'date': date.toIso8601String(),
+      'endDate': endDate?.toIso8601String(),
       'type': type.name,
       'description': description,
       'descriptionbn': descriptionbn,
@@ -137,14 +122,12 @@ class Holiday {
 
   // ------------------- Helpers -------------------
 
-  /// Handles both Firestore Timestamp and ISO String
   static DateTime _parseDate(dynamic value) {
     if (value is Timestamp) return value.toDate();
     if (value is String) return DateTime.parse(value);
     throw Exception('Unsupported date format: $value');
   }
 
-  /// Handles bool from various types (bool, String, int)
   static bool _parseBool(dynamic value) {
     if (value == null) return true;
     if (value is bool) return value;
@@ -160,6 +143,7 @@ class Holiday {
     String? name,
     String? namebn,
     DateTime? date,
+    DateTime? endDate,
     HolidayType? type,
     String? description,
     String? descriptionbn,
@@ -170,6 +154,7 @@ class Holiday {
       name: name ?? this.name,
       namebn: namebn ?? this.namebn,
       date: date ?? this.date,
+      endDate: endDate ?? this.endDate,
       type: type ?? this.type,
       description: description ?? this.description,
       descriptionbn: descriptionbn ?? this.descriptionbn,
@@ -188,5 +173,84 @@ class Holiday {
 
   @override
   String toString() =>
-      'Holiday(id: $id, name: $name, date: $date, type: ${type.name})';
+      'Holiday(id: $id, name: $name, date: $date, endDate: $endDate, type: ${type.name})';
+}
+
+// ─────────────────────────────────────────────────────────────
+// Manual Hive Adapters — replaces generated holiday.g.dart
+// ─────────────────────────────────────────────────────────────
+
+class HolidayTypeAdapter extends TypeAdapter<HolidayType> {
+  @override
+  final int typeId = 1;
+
+  @override
+  HolidayType read(BinaryReader reader) {
+    final index = reader.readByte();
+    return HolidayType.values[index];
+  }
+
+  @override
+  void write(BinaryWriter writer, HolidayType obj) {
+    writer.writeByte(obj.index);
+  }
+}
+
+class HolidayAdapter extends TypeAdapter<Holiday> {
+  @override
+  final int typeId = 0;
+
+  @override
+  Holiday read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+
+    return Holiday(
+      id: fields[0] as String?,
+      name: fields[1] as String,
+      namebn: fields[2] as String,
+      date: fields[3] as DateTime,
+      type: fields[4] as HolidayType,
+      description: fields[5] as String?,
+      descriptionbn: fields[6] as String?,
+      isGovtHoliday: fields[7] as bool? ?? true,
+      endDate: fields[8] as DateTime?,
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, Holiday obj) {
+    writer.writeByte(9); // number of fields
+    writer
+      ..writeByte(0)
+      ..write(obj.id)
+      ..writeByte(1)
+      ..write(obj.name)
+      ..writeByte(2)
+      ..write(obj.namebn)
+      ..writeByte(3)
+      ..write(obj.date)
+      ..writeByte(4)
+      ..write(obj.type)
+      ..writeByte(5)
+      ..write(obj.description)
+      ..writeByte(6)
+      ..write(obj.descriptionbn)
+      ..writeByte(7)
+      ..write(obj.isGovtHoliday)
+      ..writeByte(8)
+      ..write(obj.endDate);
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is HolidayAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+
+  @override
+  int get hashCode => typeId.hashCode;
 }

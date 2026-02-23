@@ -5,16 +5,16 @@
       "id": "bd_2026_001",
       "date": "2026-02-04T00:00:00.000Z",
       "name": "Shab-e-Barat",
-      "namebn": "শব-ই-বরাত",
-      "description": "Shab-e-Barat",
-      "descriptionbn": "শব-ই-বরাত",
+      "namebn": "শবে বরাত",
+      "description": "Islamic observance before Ramadan",
+      "descriptionbn": "রমজান শুরুর আগে ইসলামী পালন",
       "type": "religious",
       "isGovtHoliday": true
     },
     {
       "id": "bd_2026_002",
       "date": "2026-02-21T00:00:00.000Z",
-      "name": "International Mother Language Day (Shaheed Day)",
+      "name": "International Mother Language Day",
       "namebn": "আন্তর্জাতিক মাতৃভাষা দিবস (শহীদ দিবস)",
       "description": "Commemorates the martyrs of the Bengali language movement",
       "descriptionbn": "বাংলা ভাষা আন্দোলনের শহীদের স্মরণ",
@@ -34,26 +34,7 @@
     {
       "id": "bd_2026_004",
       "date": "2026-03-19T00:00:00.000Z",
-      "name": "Eid ul-Fitr Holiday",
-      "namebn": "ঈদুল ফিতর ছুটি",
-      "description": "First day of Eid ul-Fitr holiday period",
-      "descriptionbn": "ঈদুল ফিতরের ছুটির প্রথম দিন",
-      "type": "religious",
-      "isGovtHoliday": true
-    },
-    {
-      "id": "bd_2026_005",
-      "date": "2026-03-20T00:00:00.000Z",
-      "name": "Eid ul-Fitr Holiday",
-      "namebn": "ঈদুল ফিতর ছুটি",
-      "description": "Second day of Eid ul-Fitr holiday period",
-      "descriptionbn": "ঈদুল ফিতরের ছুটির দ্বিতীয় দিন",
-      "type": "religious",
-      "isGovtHoliday": true
-    },
-    {
-      "id": "bd_2026_006",
-      "date": "2026-03-21T00:00:00.000Z",
+      "endDate": "2026-03-23T00:00:00.000Z",
       "name": "Eid ul-Fitr",
       "namebn": "ঈদুল ফিতর",
       "description": "Festival of Breaking the Fast",
@@ -62,27 +43,7 @@
       "isGovtHoliday": true
     },
     {
-      "id": "bd_2026_007",
-      "date": "2026-03-22T00:00:00.000Z",
-      "name": "Eid ul-Fitr Holiday",
-      "namebn": "ঈদুল ফিতর ছুটি",
-      "description": "Fourth day of Eid ul-Fitr holiday period",
-      "descriptionbn": "ঈদুল ফিতরের ছুটির চতুর্থ দিন",
-      "type": "religious",
-      "isGovtHoliday": true
-    },
-    {
-      "id": "bd_2026_008",
-      "date": "2026-03-23T00:00:00.000Z",
-      "name": "Eid ul-Fitr Holiday",
-      "namebn": "ঈদুল ফিতর ছুটি",
-      "description": "Fifth day of Eid ul-Fitr holiday period",
-      "descriptionbn": "ঈদুল ফিতরের ছুটির পঞ্চম দিন",
-      "type": "religious",
-      "isGovtHoliday": true
-    },
-    {
-      "id": "bd_2026_009",
+      "id": "bd_2026_005",
       "date": "2026-03-26T00:00:00.000Z",
       "name": "Independence and National Day",
       "namebn": "স্বাধীনতা ও জাতীয় দিবস",
@@ -92,7 +53,7 @@
       "isGovtHoliday": true
     },
     {
-      "id": "bd_2026_010",
+      "id": "bd_2026_006",
       "date": "2026-04-14T00:00:00.000Z",
       "name": "Pohela Boishakh (Bengali New Year)",
       "namebn": "পহেলা বৈশাখ",
@@ -102,7 +63,7 @@
       "isGovtHoliday": true
     },
     {
-      "id": "bd_2026_011",
+      "id": "bd_2026_007",
       "date": "2026-05-01T00:00:00.000Z",
       "name": "May Day & Buddha Purnima",
       "namebn": "মে দিবস ও বুদ্ধ পূর্ণিমা",
@@ -112,28 +73,9 @@
       "isGovtHoliday": true
     },
     {
-      "id": "bd_2026_012",
+      "id": "bd_2026_008",
       "date": "2026-05-26T00:00:00.000Z",
-      "name": "Eid ul-Adha Holiday",
-      "namebn": "ঈদুল আজহা ছুটি",
-      "description": "First day of Eid ul-Adha holiday period",
-      "descriptionbn": "ঈদুল আজহার ছুটির প্রথম দিন",
-      "type": "religious",
-      "isGovtHoliday": true
-    },
-    {
-      "id": "bd_2026_013",
-      "date": "2026-05-27T00:00:00.000Z",
-      "name": "Eid ul-Adha Holiday",
-      "namebn": "ঈদুল আজহা ছুটি",
-      "description": "Second day of Eid ul-Adha holiday period",
-      "descriptionbn": "ঈদুল আজহার ছুটির দ্বিতীয় দিন",
-      "type": "religious",
-      "isGovtHoliday": true
-    },
-    {
-      "id": "bd_2026_014",
-      "date": "2026-05-28T00:00:00.000Z",
+      "endDate": "2026-05-31T00:00:00.000Z",
       "name": "Eid ul-Adha",
       "namebn": "ঈদুল আজহা",
       "description": "Festival of Sacrifice",
@@ -142,37 +84,7 @@
       "isGovtHoliday": true
     },
     {
-      "id": "bd_2026_015",
-      "date": "2026-05-29T00:00:00.000Z",
-      "name": "Eid ul-Adha Holiday",
-      "namebn": "ঈদুল আজহা ছুটি",
-      "description": "Fourth day of Eid ul-Adha holiday period",
-      "descriptionbn": "ঈদুল আজহার ছুটির চতুর্থ দিন",
-      "type": "religious",
-      "isGovtHoliday": true
-    },
-    {
-      "id": "bd_2026_016",
-      "date": "2026-05-30T00:00:00.000Z",
-      "name": "Eid ul-Adha Holiday",
-      "namebn": "ঈদুল আজহা ছুটি",
-      "description": "Fifth day of Eid ul-Adha holiday period",
-      "descriptionbn": "ঈদুল আজহার ছুটির পঞ্চম দিন",
-      "type": "religious",
-      "isGovtHoliday": true
-    },
-    {
-      "id": "bd_2026_017",
-      "date": "2026-05-31T00:00:00.000Z",
-      "name": "Eid ul-Adha Holiday",
-      "namebn": "ঈদুল আজহা ছুটি",
-      "description": "Sixth day of Eid ul-Adha holiday period",
-      "descriptionbn": "ঈদুল আজহার ছুটির ষষ্ঠ দিন",
-      "type": "religious",
-      "isGovtHoliday": true
-    },
-    {
-      "id": "bd_2026_018",
+      "id": "bd_2026_009",
       "date": "2026-06-26T00:00:00.000Z",
       "name": "Ashura",
       "namebn": "আশুরা",
@@ -182,17 +94,17 @@
       "isGovtHoliday": true
     },
     {
-      "id": "bd_2026_019",
+      "id": "bd_2026_010",
       "date": "2026-08-05T00:00:00.000Z",
       "name": "July Mass Uprising Day",
-      "namebn": "জুলাই গণউৎপ থান দিবস",
-      "description": "Commemorates the 1969 uprising",
-      "descriptionbn": "১৯৬৯ সালের গণউৎপ থান স্মরণ",
+      "namebn": "জুলাই গণউৎথান দিবস",
+      "description": "Commemorates the mass uprising",
+      "descriptionbn": "গণউৎথান স্মরণ",
       "type": "national",
       "isGovtHoliday": true
     },
     {
-      "id": "bd_2026_020",
+      "id": "bd_2026_011",
       "date": "2026-08-26T00:00:00.000Z",
       "name": "Eid-e-Miladunnabi",
       "namebn": "ঈদে মিলাদুন্নবী",
@@ -202,7 +114,7 @@
       "isGovtHoliday": true
     },
     {
-      "id": "bd_2026_021",
+      "id": "bd_2026_012",
       "date": "2026-09-04T00:00:00.000Z",
       "name": "Janmashtami",
       "namebn": "জন্মাষ্টমী",
@@ -212,27 +124,18 @@
       "isGovtHoliday": true
     },
     {
-      "id": "bd_2026_022",
+      "id": "bd_2026_013",
       "date": "2026-10-20T00:00:00.000Z",
-      "name": "Durga Puja (Navami)",
-      "namebn": "দুর্গা পূজা (নবমী)",
-      "description": "Hindu festival Durga Puja Navami",
-      "descriptionbn": "দেবী দুর্গার পূজা নবমী",
+      "endDate": "2026-10-21T00:00:00.000Z",
+      "name": "Durga Puja",
+      "namebn": "দুর্গা পূজা",
+      "description": "Hindu festival Durga Puja (Navami & Bijoya Dashami)",
+      "descriptionbn": "দেবী দুর্গার পূজা (নবমী ও বিজয়া দশমী)",
       "type": "religious",
       "isGovtHoliday": true
     },
     {
-      "id": "bd_2026_023",
-      "date": "2026-10-21T00:00:00.000Z",
-      "name": "Durga Puja (Bijoya Dashami)",
-      "namebn": "দুর্গা পূজা (বিজয়া দশমী)",
-      "description": "Hindu festival Durga Puja Vijaya Dashami",
-      "descriptionbn": "দেবী দুর্গার পূজা বিজয়া দশমী",
-      "type": "religious",
-      "isGovtHoliday": true
-    },
-    {
-      "id": "bd_2026_024",
+      "id": "bd_2026_014",
       "date": "2026-12-16T00:00:00.000Z",
       "name": "Victory Day",
       "namebn": "বিজয় দিবস",
@@ -242,7 +145,7 @@
       "isGovtHoliday": true
     },
     {
-      "id": "bd_2026_025",
+      "id": "bd_2026_015",
       "date": "2026-12-25T00:00:00.000Z",
       "name": "Christmas Day",
       "namebn": "ক্রিসমাস দিবস",
