@@ -1,8 +1,9 @@
+// lib/app/router/route_names.dart
+
 class RouteNames {
-  // Private constructor to prevent instantiation
   RouteNames._();
 
-  // Root routes
+  // Root
   static const String splash = '/';
   static const String home = '/home';
 
@@ -14,6 +15,9 @@ class RouteNames {
 
   // Calculator
   static const String calculator = '/calculator';
+
+  // Prayer Times
+  static const String prayerTimes = '/prayer-times';
 
   // Events
   static const String eventsList = '/events';

@@ -1,8 +1,11 @@
+// lib/app/router/app_router.dart
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ekush_ponji/features/splash/splash_screen.dart';
 import 'package:ekush_ponji/features/home/home_screen.dart';
 import 'package:ekush_ponji/features/calendar/calendar_screen.dart';
+// import 'package:ekush_ponji/features/prayer_times/prayer_times_screen.dart';
 import 'package:ekush_ponji/features/calculator/calculator_screen.dart';
 import 'package:ekush_ponji/features/settings/settings_screen.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
@@ -13,22 +16,22 @@ class AppRouter {
 
   static final GoRouter router = GoRouter(
     initialLocation: RouteNames.splash,
-    debugLogDiagnostics: false, // Disable in production for better performance
+    debugLogDiagnostics: false,
     routes: [
-      // Splash Screen (outside main navigation)
+      // Splash (outside main navigation)
       GoRoute(
         path: RouteNames.splash,
         name: 'splash',
         builder: (context, state) => const SplashScreen(),
       ),
 
-      // Main Navigation Shell with Bottom Nav (Persistent State)
+      // Main Navigation Shell
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
           return _ScaffoldWithNavBar(navigationShell: navigationShell);
         },
         branches: [
-          // Home Branch
+          // 0 — Home
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -39,7 +42,7 @@ class AppRouter {
             ],
           ),
 
-          // Calendar Branch
+          // 1 — Calendar
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -70,7 +73,18 @@ class AppRouter {
             ],
           ),
 
-          // Calculator Branch
+          // 2 — Prayer Times (new, between Calendar and Calculator)
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.prayerTimes,
+                name: 'prayerTimes',
+                builder: (context, state) => const PrayerTimesScreen(),
+              ),
+            ],
+          ),
+
+          // 3 — Calculator
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -83,21 +97,19 @@ class AppRouter {
         ],
       ),
 
-      // Standalone Routes (outside bottom nav)
+      // Standalone routes (outside bottom nav)
       GoRoute(
         path: RouteNames.eventsList,
         name: 'eventsList',
         builder: (context, state) =>
             const _PlaceholderScreen(title: 'Events'),
       ),
-
       GoRoute(
         path: RouteNames.addEvent,
         name: 'addEvent',
         builder: (context, state) =>
             const _PlaceholderScreen(title: 'Add Event'),
       ),
-
       GoRoute(
         path: RouteNames.editEvent,
         name: 'editEvent',
@@ -106,49 +118,42 @@ class AppRouter {
           return _PlaceholderScreen(title: 'Edit Event: $eventId');
         },
       ),
-
       GoRoute(
         path: RouteNames.reminders,
         name: 'reminders',
         builder: (context, state) =>
             const _PlaceholderScreen(title: 'Reminders'),
       ),
-
       GoRoute(
         path: RouteNames.addReminder,
         name: 'addReminder',
         builder: (context, state) =>
             const _PlaceholderScreen(title: 'Add Reminder'),
       ),
-
       GoRoute(
         path: RouteNames.quotes,
         name: 'quotes',
         builder: (context, state) =>
             const _PlaceholderScreen(title: 'Quotes'),
       ),
-
       GoRoute(
         path: RouteNames.savedQuotes,
         name: 'savedQuotes',
         builder: (context, state) =>
             const _PlaceholderScreen(title: 'Saved Quotes'),
       ),
-
       GoRoute(
         path: RouteNames.words,
         name: 'words',
         builder: (context, state) =>
             const _PlaceholderScreen(title: 'Words'),
       ),
-
       GoRoute(
         path: RouteNames.savedWords,
         name: 'savedWords',
         builder: (context, state) =>
             const _PlaceholderScreen(title: 'Saved Words'),
       ),
-
       GoRoute(
         path: RouteNames.settings,
         name: 'settings',
@@ -156,12 +161,11 @@ class AppRouter {
       ),
     ],
 
-    // Optimized error handling
     errorBuilder: (context, state) => _ErrorScreen(state: state),
   );
 }
 
-/// Scaffold with persistent bottom navigation bar
+// ─── Scaffold with bottom nav ─────────────────────────────────
 class _ScaffoldWithNavBar extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
 
@@ -174,7 +178,6 @@ class _ScaffoldWithNavBar extends StatelessWidget {
       bottomNavigationBar: AppBottomNav(
         currentIndex: navigationShell.currentIndex,
         onTap: (index) {
-          // Instant tab switching with state preservation
           navigationShell.goBranch(
             index,
             initialLocation: index == navigationShell.currentIndex,
@@ -185,32 +188,23 @@ class _ScaffoldWithNavBar extends StatelessWidget {
   }
 }
 
-/// Optimized error screen
+// ─── Error screen ─────────────────────────────────────────────
 class _ErrorScreen extends StatelessWidget {
   final GoRouterState state;
-
   const _ErrorScreen({required this.state});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     return Scaffold(
       appBar: AppBar(title: const Text('Error')),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: theme.colorScheme.error,
-            ),
+            Icon(Icons.error_outline, size: 64, color: theme.colorScheme.error),
             const SizedBox(height: 16),
-            Text(
-              'Page not found',
-              style: theme.textTheme.headlineSmall,
-            ),
+            Text('Page not found', style: theme.textTheme.headlineSmall),
             const SizedBox(height: 8),
             Text(
               state.uri.toString(),
@@ -232,27 +226,21 @@ class _ErrorScreen extends StatelessWidget {
   }
 }
 
-/// Optimized placeholder screen
+// ─── Placeholder screen ───────────────────────────────────────
 class _PlaceholderScreen extends StatelessWidget {
   final String title;
-
   const _PlaceholderScreen({required this.title});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     return Scaffold(
       appBar: AppBar(title: Text(title)),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.construction,
-              size: 64,
-              color: theme.colorScheme.primary,
-            ),
+            Icon(Icons.construction, size: 64, color: theme.colorScheme.primary),
             const SizedBox(height: 16),
             Text(title, style: theme.textTheme.headlineSmall),
             const SizedBox(height: 8),
@@ -272,5 +260,16 @@ class _PlaceholderScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+
+//Delete later
+class PrayerTimesScreen extends StatelessWidget {
+  const PrayerTimesScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return const _PlaceholderScreen(title: 'Prayer Times');
   }
 }
