@@ -125,6 +125,7 @@ abstract class AppLocalizations {
   // Navigation
   String get navHome;
   String get navCalendar;
+  String get navPrayerTimes;
   String get navCalculator;
   String get navSettings;
 

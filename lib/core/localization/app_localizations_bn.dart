@@ -35,6 +35,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get navCalendar => 'ক্যালেন্ডার';
 
   @override
+  String get navPrayerTimes => 'নামাজের সময়';
+
+  @override
   String get navCalculator => 'ক্যালকুলেটর';
 
   @override

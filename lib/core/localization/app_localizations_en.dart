@@ -34,6 +34,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get navCalendar => 'Calendar';
 
+
+  @override
+  String get navPrayerTimes => 'Prayer Times';
+
   @override
   String get navCalculator => 'Calculator';
 

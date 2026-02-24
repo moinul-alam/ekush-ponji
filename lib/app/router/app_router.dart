@@ -5,11 +5,12 @@ import 'package:go_router/go_router.dart';
 import 'package:ekush_ponji/features/splash/splash_screen.dart';
 import 'package:ekush_ponji/features/home/home_screen.dart';
 import 'package:ekush_ponji/features/calendar/calendar_screen.dart';
-// import 'package:ekush_ponji/features/prayer_times/prayer_times_screen.dart';
+import 'package:ekush_ponji/features/prayer_times/prayer_times_screen.dart';
 import 'package:ekush_ponji/features/calculator/calculator_screen.dart';
 import 'package:ekush_ponji/features/settings/settings_screen.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
 import 'package:ekush_ponji/core/widgets/navigation/app_bottom_nav.dart';
+
 
 class AppRouter {
   AppRouter._();
@@ -260,16 +261,5 @@ class _PlaceholderScreen extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-
-//Delete later
-class PrayerTimesScreen extends StatelessWidget {
-  const PrayerTimesScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    return const _PlaceholderScreen(title: 'Prayer Times');
   }
 }
