@@ -14,22 +14,18 @@ class PrayerTimelineWidget extends StatelessWidget {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     final l10n = AppLocalizations.of(context);
-    final progress = times.dayProgress.clamp(0.0, 1.0);
+    final progress = times.dayProgress;
 
-    final now = DateTime.now();
-
-    /// ✅ Include sunrise & sunset
+    // Only show the 5 main prayers on the timeline (not sunrise)
     final markers = [
       (Prayer.fajr, times.fajr),
-      (Prayer.sunrise, times.sunrise), // exists
       (Prayer.dhuhr, times.dhuhr),
       (Prayer.asr, times.asr),
-      (Prayer.maghrib, times.maghrib), // sunset = maghrib
+      (Prayer.maghrib, times.maghrib),
       (Prayer.isha, times.isha),
-    ];  
+    ];
 
-    final totalSpan =
-        times.isha.difference(times.fajr).inSeconds.toDouble();
+    final totalSpan = times.isha.difference(times.fajr).inSeconds;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -44,14 +40,12 @@ class PrayerTimelineWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          /// Header
+          // ── Header ───────────────────────────────────────
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                l10n.languageCode == 'bn'
-                    ? 'দিনের অগ্রগতি'
-                    : 'Day Progress',
+                l10n.languageCode == 'bn' ? 'দিনের অগ্রগতি' : 'Day Progress',
                 style: theme.textTheme.labelMedium?.copyWith(
                   color: cs.onSurfaceVariant,
                   fontWeight: FontWeight.w600,
@@ -67,168 +61,147 @@ class PrayerTimelineWidget extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 18),
+          const SizedBox(height: 16),
 
-          /// Timeline
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final width = constraints.maxWidth;
+          // ── Timeline bar ──────────────────────────────────
+          LayoutBuilder(builder: (context, constraints) {
+            final width = constraints.maxWidth;
 
-              return SizedBox(
-                height: 56,
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    /// Background track
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      top: 22,
-                      child: Container(
-                        height: 6,
-                        decoration: BoxDecoration(
-                          color: cs.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(3),
-                        ),
+            return SizedBox(
+              height: 48,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  // Background track
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    top: 18,
+                    child: Container(
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: cs.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(3),
                       ),
                     ),
+                  ),
 
-                    /// Progress track
-                    Positioned(
-                      left: 0,
-                      top: 22,
-                      child: AnimatedContainer(
-                        duration:
-                            const Duration(milliseconds: 400),
-                        width: width * progress,
-                        height: 6,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              cs.primary,
-                              cs.tertiary,
-                            ],
+                  // Filled progress track
+                  Positioned(
+                    left: 0,
+                    top: 18,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 500),
+                      width: (width * progress).clamp(0.0, width),
+                      height: 6,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            cs.primary,
+                            cs.tertiary,
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                    ),
+                  ),
+
+                  // Prayer markers
+                  ...markers.map((entry) {
+                    final prayer = entry.$1;
+                    final time = entry.$2;
+                    final isPast = time.isBefore(DateTime.now());
+
+                    final elapsed =
+                        time.difference(times.fajr).inSeconds;
+                    final fraction =
+                        (elapsed / totalSpan).clamp(0.0, 1.0);
+                    final x = width * fraction;
+
+                    return Positioned(
+                      left: x - 4,
+                      top: 12,
+                      child: Column(
+                        children: [
+                          // Dot
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: isPast ? cs.primary : cs.outlineVariant,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: cs.surface,
+                                width: 1.5,
+                              ),
+                            ),
                           ),
-                          borderRadius:
-                              BorderRadius.circular(3),
-                        ),
-                      ),
-                    ),
-
-                    /// Markers
-                    ...markers.map((entry) {
-                      final prayer = entry.$1;
-                      final time = entry.$2;
-
-                      final isPast = time.isBefore(now);
-
-                      final elapsed =
-                          time.difference(times.fajr).inSeconds;
-
-                      final fraction =
-                          (elapsed / totalSpan).clamp(0.0, 1.0);
-
-                      /// Prevent overflow at edges
-                      final x =
-                          (fraction * width).clamp(8.0, width - 8);
-
-                      final label = _shortLabel(
-                        prayer,
-                        l10n.languageCode,
-                      );
-
-                      return Positioned(
-                        left: x - 10,
-                        top: 8,
-                        child: Column(
-                          children: [
-                            /// Dot
-                            Container(
-                              width: 10,
-                              height: 10,
-                              decoration: BoxDecoration(
+                          const SizedBox(height: 6),
+                          // Label
+                          SizedBox(
+                            width: 36,
+                            child: Text(
+                              prayer.nameForLocale(l10n.languageCode)
+                                  .substring(0, prayer == Prayer.maghrib ? 4 : 3),
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                fontSize: 9,
                                 color: isPast
                                     ? cs.primary
-                                    : cs.outlineVariant,
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: cs.surface,
-                                  width: 2,
-                                ),
+                                    : cs.onSurfaceVariant.withOpacity(0.6),
+                                fontWeight: FontWeight.w600,
                               ),
+                              textAlign: TextAlign.center,
+                              overflow: TextOverflow.visible,
                             ),
-
-                            const SizedBox(height: 6),
-
-                            /// Label
-                            SizedBox(
-                              width: 32,
-                              child: Text(
-                                label,
-                                style: theme
-                                    .textTheme.labelSmall
-                                    ?.copyWith(
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.w600,
-                                  color: isPast
-                                      ? cs.primary
-                                      : cs.onSurfaceVariant
-                                          .withOpacity(0.6),
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }),
-
-                    /// Current time thumb
-                    Positioned(
-                      left: (width * progress)
-                              .clamp(6.0, width - 6) -
-                          6,
-                      top: 14,
-                      child: Container(
-                        width: 14,
-                        height: 14,
-                        decoration: BoxDecoration(
-                          color: cs.primary,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: cs.surface,
-                            width: 2,
                           ),
-                          boxShadow: [
-                            BoxShadow(
-                              color:
-                                  cs.primary.withOpacity(0.5),
-                              blurRadius: 8,
-                            ),
-                          ],
-                        ),
+                        ],
+                      ),
+                    );
+                  }),
+
+                  // Current time thumb
+                  Positioned(
+                    left: (width * progress).clamp(0.0, width - 12) - 6,
+                    top: 10,
+                    child: Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: cs.primary,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: cs.primary.withOpacity(0.5),
+                            blurRadius: 6,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                        border: Border.all(color: cs.surface, width: 2),
                       ),
                     ),
-                  ],
-                ),
-              );
-            },
-          ),
+                  ),
+                ],
+              ),
+            );
+          }),
 
           const SizedBox(height: 8),
 
-          /// Start & End labels
+          // ── Fajr / Isha labels ────────────────────────────
           Row(
-            mainAxisAlignment:
-                MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 _formatTime(times.fajr),
-                style: theme.textTheme.labelSmall,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: cs.onSurfaceVariant,
+                ),
               ),
               Text(
                 _formatTime(times.isha),
-                style: theme.textTheme.labelSmall,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: cs.onSurfaceVariant,
+                ),
               ),
             ],
           ),
@@ -237,48 +210,10 @@ class PrayerTimelineWidget extends StatelessWidget {
     );
   }
 
-  /// Short label logic (prevents overflow)
-  String _shortLabel(Prayer prayer, String lang) {
-    if (lang == 'bn') {
-      switch (prayer) {
-        case Prayer.fajr:
-          return 'ফজর';
-        case Prayer.sunrise:
-          return 'সূর্যোদয়';
-        case Prayer.dhuhr:
-          return 'যোহর';
-        case Prayer.asr:
-          return 'আসর';
-        case Prayer.maghrib:
-          return 'মাগরিব';
-        case Prayer.isha:
-          return 'ইশা';
-      }
-    } else {
-      switch (prayer) {
-        case Prayer.fajr:
-          return 'Fajr';
-        case Prayer.sunrise:
-          return 'Sunrise';
-        case Prayer.dhuhr:
-          return 'Dhuhr';
-        case Prayer.asr:
-          return 'Asr';
-        case Prayer.maghrib:
-          return 'Maghrib';
-        case Prayer.isha:
-          return 'Isha';
-      }
-    }
-  }
-
   String _formatTime(DateTime time) {
-    final hour =
-        time.hour % 12 == 0 ? 12 : time.hour % 12;
-    final minute =
-        time.minute.toString().padLeft(2, '0');
-    final period =
-        time.hour < 12 ? 'AM' : 'PM';
+    final hour = time.hour % 12 == 0 ? 12 : time.hour % 12;
+    final minute = time.minute.toString().padLeft(2, '0');
+    final period = time.hour < 12 ? 'AM' : 'PM';
     return '$hour:$minute $period';
   }
 }
