@@ -28,7 +28,7 @@ class HomeViewModel extends BaseViewModel {
   Future<void> loadHomeData() async {
   await executeAsync(
     operation: () async {
-      _userName = 'User';
+      // _userName = 'User';
 
       final now = DateTime.now();
       await _calendarRepository.syncHolidaysIfNeeded(now.year);
@@ -56,7 +56,7 @@ class HomeViewModel extends BaseViewModel {
 Future<bool> refresh() async {
   return await executeAsync(
     operation: () async {
-      _userName = 'User';
+      // _userName = 'User';
 
       final now = DateTime.now();
       await _calendarRepository.syncHolidaysIfNeeded(now.year);

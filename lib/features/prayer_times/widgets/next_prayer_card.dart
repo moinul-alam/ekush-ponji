@@ -23,7 +23,6 @@ class NextPrayerCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     if (nextPrayer == null) {
-      // Past Isha — all prayers done for today
       return Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         padding: const EdgeInsets.all(20),
@@ -33,8 +32,7 @@ class NextPrayerCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(Icons.nights_stay_rounded,
-                color: cs.onPrimaryContainer, size: 32),
+            Icon(Icons.nights_stay_rounded, color: cs.onPrimaryContainer, size: 32),
             const SizedBox(width: 16),
             Text(
               l10n.languageCode == 'bn'
@@ -50,13 +48,8 @@ class NextPrayerCard extends StatelessWidget {
       );
     }
 
-    final timeStr = nextPrayerTime != null
-        ? _formatTime(nextPrayerTime!)
-        : '--:--';
-
-    final countdownStr = countdown != null
-        ? _formatCountdown(countdown!)
-        : '--:--:--';
+    final timeStr = nextPrayerTime != null ? _formatTime(nextPrayerTime!, l10n) : '--:--';
+    final countdownStr = countdown != null ? _formatCountdown(countdown!, l10n) : '--:--:--';
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -79,7 +72,6 @@ class NextPrayerCard extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         child: Row(
           children: [
-            // Left: label + prayer name
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -112,8 +104,6 @@ class NextPrayerCard extends StatelessWidget {
                 ],
               ),
             ),
-
-            // Right: countdown
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
@@ -141,17 +131,26 @@ class NextPrayerCard extends StatelessWidget {
     );
   }
 
-  String _formatTime(DateTime time) {
+  String _formatTime(DateTime time, AppLocalizations l10n) {
     final hour = time.hour % 12 == 0 ? 12 : time.hour % 12;
     final minute = time.minute.toString().padLeft(2, '0');
     final period = time.hour < 12 ? 'AM' : 'PM';
-    return '$hour:$minute $period';
+    final hourStr = l10n.localizeNumber(hour);
+    final minuteStr = _localizePadded(minute, l10n);
+    return '$hourStr:$minuteStr $period';
   }
 
-  String _formatCountdown(Duration d) {
+  String _formatCountdown(Duration d, AppLocalizations l10n) {
     final h = d.inHours.toString().padLeft(2, '0');
     final m = (d.inMinutes % 60).toString().padLeft(2, '0');
     final s = (d.inSeconds % 60).toString().padLeft(2, '0');
-    return '$h:$m:$s';
+    return '${_localizePadded(h, l10n)}:${_localizePadded(m, l10n)}:${_localizePadded(s, l10n)}';
+  }
+
+  String _localizePadded(String padded, AppLocalizations l10n) {
+    return padded.split('').map((c) {
+      final digit = int.tryParse(c);
+      return digit != null ? l10n.localizeNumber(digit) : c;
+    }).join();
   }
 }

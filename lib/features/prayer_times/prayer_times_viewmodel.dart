@@ -4,9 +4,10 @@ import 'dart:async';
 import 'package:adhan/adhan.dart' hide Prayer;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:ekush_ponji/features/prayer_times/models/prayer_times_model.dart';
-import 'package:ekush_ponji/features/prayer_times/services/prayer_notification_service.dart';
+import 'package:ekush_ponji/core/services/prayer_notification_service.dart';
 import 'package:ekush_ponji/features/prayer_times/prayer_settings_viewmodel.dart';
 
 // ── State ──────────────────────────────────────────────────────
@@ -17,12 +18,12 @@ class PrayerTimesState {
   final PrayerLoadStatus status;
   final PrayerTimesModel? todayTimes;
   final String? errorMessage;
-  final Duration? countdown;        // time remaining to next prayer
-  final Prayer? highlightedPrayer; // current or next prayer
+  final Duration? countdown;
+  final Prayer? highlightedPrayer;
 
   const PrayerTimesState({
     this.status = PrayerLoadStatus.idle,
-    this.todayTimes,
+    this.todayTimes = null,
     this.errorMessage,
     this.countdown,
     this.highlightedPrayer,
@@ -56,62 +57,116 @@ class PrayerTimesState {
 class PrayerTimesViewModel extends Notifier<PrayerTimesState> {
   Timer? _countdownTimer;
 
+  // ── Cache keys ────────────────────────────────────────────────
+  static const String _cachedLatKey = 'prayer_cached_lat';
+  static const String _cachedLngKey = 'prayer_cached_lng';
+  static const String _cachedLocationDisplayKey = 'prayer_cached_location_display';
+
   @override
   PrayerTimesState build() {
-    // Clean up timer when provider is disposed
     ref.onDispose(() {
       _countdownTimer?.cancel();
     });
     return const PrayerTimesState();
   }
 
-  // ── Load ─────────────────────────────────────────────────────
+  // ── Public API ────────────────────────────────────────────────
 
+  /// Called on app launch — uses cache if available, GPS only on first launch
   Future<void> load() async {
+    final cache = await _loadLocationCache();
+
+    if (cache != null) {
+      // Cache hit — calculate immediately, no GPS
+      await _calculateAndUpdate(
+        lat: cache['lat'] as double,
+        lng: cache['lng'] as double,
+        locationDisplay: cache['display'] as String,
+      );
+    } else {
+      // First launch — full GPS fetch
+      await _fetchGpsAndUpdate();
+    }
+  }
+
+  /// Called on pull-to-refresh — recalculates using existing coordinates, no GPS
+  Future<void> refresh() async {
+    final existing = state.todayTimes;
+    if (existing == null) {
+      return load();
+    }
+
+    await _calculateAndUpdate(
+      lat: existing.latitude,
+      lng: existing.longitude,
+      locationDisplay: existing.locationDisplay,
+    );
+  }
+
+  /// Called when location icon is pressed — full GPS fetch + cache update
+  Future<void> updateLocation() => _fetchGpsAndUpdate();
+
+  /// Called when settings change — reschedules notifications with current coords
+  Future<void> rescheduleNotifications(String languageCode) async {
+    final times = state.todayTimes;
+    if (times == null) return;
+
+    final position = Position(
+      latitude: times.latitude,
+      longitude: times.longitude,
+      timestamp: DateTime.now(),
+      accuracy: 0,
+      altitude: 0,
+      altitudeAccuracy: 0,
+      heading: 0,
+      headingAccuracy: 0,
+      speed: 0,
+      speedAccuracy: 0,
+    );
+
+    final settings =
+        ref.read(prayerSettingsViewModelProvider).calculationSettings;
+
+    await _scheduleNotifications(
+      times,
+      position,
+      settings.adhanParams,
+      times.locationDisplay,
+    );
+  }
+
+  // ── Core private methods ──────────────────────────────────────
+
+  /// Full GPS fetch → geocode → cache → calculate
+  Future<void> _fetchGpsAndUpdate() async {
     state = state.copyWith(status: PrayerLoadStatus.locating);
 
     try {
-      // 1. Check + request location permission
       final position = await _getPosition();
 
-      // 2. Reverse geocode for display name
+      final prefs = await SharedPreferences.getInstance();
+      final languageCode = prefs.getString('languageCode') ?? 'bn';
+
       state = state.copyWith(status: PrayerLoadStatus.calculating);
+
       final locationDisplay = await _getLocationDisplay(
         position.latitude,
         position.longitude,
+        languageCode,
       );
 
-      // 3. Calculate prayer times via adhan
-      final settings = ref
-          .read(prayerSettingsViewModelProvider)
-          .calculationSettings;
+      // Save to cache
+      await _saveLocationCache(
+        position.latitude,
+        position.longitude,
+        locationDisplay,
+      );
 
-      final coords = Coordinates(position.latitude, position.longitude);
-      final params = settings.adhanParams;
-      final today = DateTime.now();
-      final dateComponents = DateComponents(today.year, today.month, today.day);
-
-      final adhanTimes = PrayerTimes(coords, dateComponents, params);
-
-      final todayModel = PrayerTimesModel.fromAdhan(
-        times: adhanTimes,
-        latitude: position.latitude,
-        longitude: position.longitude,
+      await _calculateAndUpdate(
+        lat: position.latitude,
+        lng: position.longitude,
         locationDisplay: locationDisplay,
       );
-
-      state = state.copyWith(
-        status: PrayerLoadStatus.loaded,
-        todayTimes: todayModel,
-        errorMessage: null,
-      );
-
-      // 4. Start countdown timer
-      _startCountdown();
-
-      // 5. Schedule notifications
-      await _scheduleNotifications(todayModel, position, params, locationDisplay);
-
     } on LocationPermissionDeniedException {
       state = state.copyWith(
         status: PrayerLoadStatus.error,
@@ -130,13 +185,93 @@ class PrayerTimesViewModel extends Notifier<PrayerTimesState> {
     }
   }
 
-  Future<void> refresh() => load();
+  /// Calculate prayer times from coordinates and update state
+  Future<void> _calculateAndUpdate({
+    required double lat,
+    required double lng,
+    required String locationDisplay,
+  }) async {
+    try {
+      state = state.copyWith(status: PrayerLoadStatus.calculating);
+
+      final settings =
+          ref.read(prayerSettingsViewModelProvider).calculationSettings;
+
+      final coords = Coordinates(lat, lng);
+      final params = settings.adhanParams;
+      final today = DateTime.now();
+      final dateComponents =
+          DateComponents(today.year, today.month, today.day);
+
+      final adhanTimes = PrayerTimes(coords, dateComponents, params);
+
+      final todayModel = PrayerTimesModel.fromAdhan(
+        times: adhanTimes,
+        latitude: lat,
+        longitude: lng,
+        locationDisplay: locationDisplay,
+      );
+
+      state = state.copyWith(
+        status: PrayerLoadStatus.loaded,
+        todayTimes: todayModel,
+        errorMessage: null,
+      );
+
+      _startCountdown();
+
+      await _scheduleNotifications(
+        todayModel,
+        Position(
+          latitude: lat,
+          longitude: lng,
+          timestamp: DateTime.now(),
+          accuracy: 0,
+          altitude: 0,
+          altitudeAccuracy: 0,
+          heading: 0,
+          headingAccuracy: 0,
+          speed: 0,
+          speedAccuracy: 0,
+        ),
+        params,
+        locationDisplay,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        status: PrayerLoadStatus.error,
+        errorMessage: e.toString(),
+      );
+    }
+  }
+
+  // ── Cache helpers ─────────────────────────────────────────────
+
+  Future<void> _saveLocationCache(
+    double lat,
+    double lng,
+    String locationDisplay,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble(_cachedLatKey, lat);
+    await prefs.setDouble(_cachedLngKey, lng);
+    await prefs.setString(_cachedLocationDisplayKey, locationDisplay);
+  }
+
+  Future<Map<String, dynamic>?> _loadLocationCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    final lat = prefs.getDouble(_cachedLatKey);
+    final lng = prefs.getDouble(_cachedLngKey);
+    final display = prefs.getString(_cachedLocationDisplayKey);
+    if (lat == null || lng == null || display == null) return null;
+    return {'lat': lat, 'lng': lng, 'display': display};
+  }
 
   // ── Countdown timer ───────────────────────────────────────────
 
   void _startCountdown() {
     _countdownTimer?.cancel();
-    _updateCountdown(); // immediate first tick
+    _updateCountdown();
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       _updateCountdown();
     });
@@ -171,32 +306,70 @@ class PrayerTimesViewModel extends Notifier<PrayerTimesState> {
       throw LocationPermissionDeniedException();
     }
 
-    // Try last known position first — instant, no GPS warm-up needed
     final lastKnown = await Geolocator.getLastKnownPosition();
 
     try {
-      // Attempt fresh fix with generous timeout
       return await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.medium,
         timeLimit: const Duration(seconds: 30),
       );
     } catch (_) {
-      // GPS timed out — use last known position if available
       if (lastKnown != null) return lastKnown;
       rethrow;
     }
   }
 
-  Future<String> _getLocationDisplay(double lat, double lng) async {
+  Future<String> _getLocationDisplay(
+    double lat,
+    double lng,
+    String languageCode,
+  ) async {
     try {
-      final placemarks = await placemarkFromCoordinates(lat, lng);
-      if (placemarks.isNotEmpty) {
-        final p = placemarks.first;
-        final parts = <String>[
-          if (p.locality?.isNotEmpty == true) p.locality!,
-          if (p.country?.isNotEmpty == true) p.country!,
-        ];
-        if (parts.isNotEmpty) return parts.join(', ');
+      if (languageCode == 'bn') {
+        // Try Bengali first
+        await setLocaleIdentifier('bn_BD');
+        final bnPlacemarks = await placemarkFromCoordinates(lat, lng);
+
+        if (bnPlacemarks.isNotEmpty) {
+          final p = bnPlacemarks.first;
+          final locality = p.locality ?? '';
+          final country = p.country ?? '';
+
+          // Both parts must be in Bengali script — no mixing allowed
+          final localityIsBengali = locality.runes.any((r) => r > 127);
+          final countryIsBengali = country.runes.any((r) => r > 127);
+
+          if (localityIsBengali &&
+              countryIsBengali &&
+              locality.isNotEmpty &&
+              country.isNotEmpty) {
+            return '$locality, $country'; // ঢাকা, বাংলাদেশ ✅
+          }
+        }
+
+        // Bengali translation incomplete — fall back to full English
+        await setLocaleIdentifier('en_US');
+        final enPlacemarks = await placemarkFromCoordinates(lat, lng);
+        if (enPlacemarks.isNotEmpty) {
+          final p = enPlacemarks.first;
+          final parts = <String>[
+            if (p.locality?.isNotEmpty == true) p.locality!,
+            if (p.country?.isNotEmpty == true) p.country!,
+          ];
+          if (parts.isNotEmpty) return parts.join(', '); // Dhaka, Bangladesh ✅
+        }
+      } else {
+        // English locale — single call
+        await setLocaleIdentifier('en_US');
+        final placemarks = await placemarkFromCoordinates(lat, lng);
+        if (placemarks.isNotEmpty) {
+          final p = placemarks.first;
+          final parts = <String>[
+            if (p.locality?.isNotEmpty == true) p.locality!,
+            if (p.country?.isNotEmpty == true) p.country!,
+          ];
+          if (parts.isNotEmpty) return parts.join(', ');
+        }
       }
     } catch (_) {
       // geocoding failed — fall back to coordinates
@@ -216,7 +389,6 @@ class PrayerTimesViewModel extends Notifier<PrayerTimesState> {
         ref.read(prayerSettingsViewModelProvider).notificationPrefs;
     if (!notifPrefs.masterEnabled) return;
 
-    // Calculate tomorrow for pre-scheduling Fajr
     final tomorrow = DateTime.now().add(const Duration(days: 1));
     final tomorrowComponents =
         DateComponents(tomorrow.year, tomorrow.month, tomorrow.day);
@@ -229,41 +401,11 @@ class PrayerTimesViewModel extends Notifier<PrayerTimesState> {
       locationDisplay: locationDisplay,
     );
 
-    // Read language from locale — default to 'en'
     await PrayerNotificationService.scheduleAll(
       today: todayModel,
       tomorrow: tomorrowModel,
       prefs: notifPrefs,
-      languageCode: 'en', // will be passed from screen
-    );
-  }
-
-  /// Call this when settings change (method, notifications)
-  Future<void> rescheduleNotifications(String languageCode) async {
-    final times = state.todayTimes;
-    if (times == null) return;
-
-    final position = Position(
-      latitude: times.latitude,
-      longitude: times.longitude,
-      timestamp: DateTime.now(),
-      accuracy: 0,
-      altitude: 0,
-      altitudeAccuracy: 0,
-      heading: 0,
-      headingAccuracy: 0,
-      speed: 0,
-      speedAccuracy: 0,
-    );
-
-    final settings =
-        ref.read(prayerSettingsViewModelProvider).calculationSettings;
-
-    await _scheduleNotifications(
-      times,
-      position,
-      settings.adhanParams,
-      times.locationDisplay,
+      languageCode: 'en',
     );
   }
 }
@@ -271,6 +413,7 @@ class PrayerTimesViewModel extends Notifier<PrayerTimesState> {
 // ── Custom exceptions ──────────────────────────────────────────
 
 class LocationPermissionDeniedException implements Exception {}
+
 class LocationServiceDisabledException implements Exception {}
 
 // ── Providers ─────────────────────────────────────────────────
@@ -284,8 +427,7 @@ final prayerTimesViewModelProvider =
 final prayerCountdownProvider = StreamProvider.autoDispose<Duration?>((ref) {
   final controller = StreamController<Duration?>();
   final timer = Timer.periodic(const Duration(seconds: 1), (_) {
-    final times =
-        ref.read(prayerTimesViewModelProvider).todayTimes;
+    final times = ref.read(prayerTimesViewModelProvider).todayTimes;
     controller.add(times?.timeUntilNextPrayer);
   });
   ref.onDispose(() {

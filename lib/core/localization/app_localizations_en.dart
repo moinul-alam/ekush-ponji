@@ -24,6 +24,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get appTitle => 'Ekush Ponji';
 
+  @override
+  String get welcomeToApp => 'Welcome to {appName}';
+
   // ========================================
   // NAVIGATION
   // ========================================
@@ -190,6 +193,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsTitle => 'Settings';
 
   @override
+  String get appearance => 'Appearance';
+
+  @override
   String get language => 'Language';
 
   @override
@@ -212,6 +218,55 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get themeChanged => 'Theme changed';
+
+  @override
+  String get notificationSubtitle => 'Enable notifications to receive updates about holidays and prayer times';
+
+  @override
+  String get dataAndStorage => 'Data & Storage';
+
+  @override
+  String get autoBackup => 'Auto Backup';
+
+  @override
+  String get autoBackupSubtitle => 'Automatically backup your data';
+
+  @override
+  String get deleteAllData => 'Clear All Data';
+
+  @override
+  String get deleteAllDataSubtitle => 'Reset app to default settings';
+
+  @override
+  String get privacyPolicy => 'Privacy Policy';
+
+  @override
+  String get privacyPolicySubtitle => 'Read our privacy policy';
+
+  @override
+  String get termsOfService => 'Terms of Service';
+
+  @override
+  String get termsOfServiceSubtitle => 'Read our terms of service';
+
+  @override
+  String get appVersionSubtitle => 'App version and information';
+
+  @override
+  String get deleteAllDataConfirmMessage =>
+    'This will reset all settings to their defaults and erase all stored data. '
+    'This action cannot be undone.';
+
+  @override
+  String get resetSettings => 'Reset Settings';
+
+  @override
+  String get resetSettingsConfirmMessage =>
+    'This will reset all settings to their defaults. '
+    'This action cannot be undone.';
+
+  @override
+  String get resetSettingsSubtitle => 'Reset all app settings to default values';
 
   // ========================================
   // MESSAGES

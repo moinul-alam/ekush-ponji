@@ -2,15 +2,18 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:ekush_ponji/features/prayer_times/models/prayer_times_model.dart';
 import 'package:ekush_ponji/features/prayer_times/prayer_times_viewmodel.dart';
 import 'package:ekush_ponji/features/prayer_times/prayer_settings_viewmodel.dart';
-import 'package:ekush_ponji/features/prayer_times/services/prayer_notification_service.dart';
+import 'package:ekush_ponji/core/services/prayer_notification_service.dart';
 import 'package:ekush_ponji/features/prayer_times/widgets/next_prayer_card.dart';
 import 'package:ekush_ponji/features/prayer_times/widgets/prayer_list_widget.dart';
 import 'package:ekush_ponji/features/prayer_times/widgets/prayer_timeline_widget.dart';
 import 'package:ekush_ponji/features/prayer_times/widgets/prayer_settings_sheet.dart';
+import 'package:ekush_ponji/app/router/route_names.dart';
+import 'package:go_router/go_router.dart';
 
 class PrayerTimesScreen extends ConsumerStatefulWidget {
   const PrayerTimesScreen({super.key});
@@ -44,6 +47,11 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
       appBar: AppBar(
         title: Text(l10n.navPrayerTimes),
         centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go(RouteNames.home),
+          tooltip: l10n.back,
+        ),
         actions: [
           // Refresh location
           if (state.hasData)
@@ -53,7 +61,7 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
                   ? 'অবস্থান আপডেট করুন'
                   : 'Update location',
               onPressed: () =>
-                  ref.read(prayerTimesViewModelProvider.notifier).refresh(),
+                  ref.read(prayerTimesViewModelProvider.notifier).updateLocation(),
             ),
           // Settings
           IconButton(

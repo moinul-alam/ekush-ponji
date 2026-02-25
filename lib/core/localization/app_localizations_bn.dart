@@ -24,6 +24,9 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get appTitle => 'একুশ পঞ্জি';
 
+  @override
+  String get welcomeToApp => '{appName}তে আপনাকে স্বাগতম';
+
   // ========================================
   // NAVIGATION
   // ========================================
@@ -170,7 +173,7 @@ class AppLocalizationsBn extends AppLocalizations {
   String get profile => 'প্রোফাইল';
 
   @override
-  String get about => 'সম্পর্কে';
+  String get about => 'আমাদের সম্পর্কে';
 
   @override
   String get helpSupport => 'সাহায্য এবং সহায়তা';
@@ -189,13 +192,16 @@ class AppLocalizationsBn extends AppLocalizations {
   String get settingsTitle => 'সেটিংস';
 
   @override
+  String get appearance => 'এপিয়ারেন্স';
+
+  @override
   String get language => 'ভাষা';
 
   @override
   String get theme => 'থিম';
 
   @override
-  String get notifications => 'বিজ্ঞপ্তি';
+  String get notifications => 'নোটিফিকেশন';
 
   @override
   String get darkMode => 'ডার্ক মোড';
@@ -211,6 +217,55 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get themeChanged => 'থিম পরিবর্তিত হয়েছে';
+
+  @override
+  String get notificationSubtitle => 'ছুটির দিন এবং নামাজের সময় সম্পর্কে নোটিফিকেশন পেতে এনাবল করুন';
+
+  @override
+  String get dataAndStorage => 'ডেটা এবং স্টোরেজ';
+
+  @override
+  String get autoBackup => 'অটো ব্যাকআপ';
+
+  @override
+  String get autoBackupSubtitle => 'আপনার ডেটা স্বয়ংক্রিয়ভাবে ব্যাকআপ করুন';
+
+  @override
+  String get deleteAllData => 'সব ডেটা মুছুন';
+
+  @override
+  String get deleteAllDataSubtitle => 'অ্যাপকে ডিফল্ট সেটিংসে রিসেট করুন';
+
+  @override
+  String get privacyPolicy => 'গোপনীয়তা নীতি';
+
+  @override
+  String get privacyPolicySubtitle => 'আমাদের গোপনীয়তা নীতি পড়ুন';
+
+  @override
+  String get termsOfService => 'সার্ভিসের শর্তাবলী';
+
+  @override
+  String get termsOfServiceSubtitle => 'আমাদের সার্ভিসের শর্তাবলী পড়ুন';
+
+  @override
+  String get appVersionSubtitle => 'অ্যাপ ভার্সন এবং তথ্য';
+
+  @override
+  String get deleteAllDataConfirmMessage =>
+    'এটি সমস্ত সেটিংস ডিফল্টে ফিরিয়ে দেবে এবং সংরক্ষিত সব ডেটা মুছে ফেলবে। '
+    'এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।';
+
+  @override
+  String get resetSettings => 'সেটিংস রিসেট করুন';
+
+  @override
+  String get resetSettingsConfirmMessage =>
+    'এটি সমস্ত সেটিংস ডিফল্টে ফিরিয়ে দেবে। '
+    'এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।';
+
+  @override
+  String get resetSettingsSubtitle => 'সমস্ত অ্যাপ সেটিংস ডিফল্টে রিসেট করুন';
 
   // ========================================
   // MESSAGES

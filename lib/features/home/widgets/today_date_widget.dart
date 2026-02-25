@@ -68,12 +68,12 @@ class _MergedDateCard extends StatelessWidget {
             textColor: cs.onTertiaryContainer,
           ),
 
-          _OrnateDivider(
-            topColor: cs.tertiaryContainer,
-            bottomColor: cs.primaryContainer,
-            diamondColor: cs.tertiary,
-            lineColor: cs.outline,
-          ),
+          // _OrnateDivider(
+          //   topColor: cs.tertiaryContainer,
+          //   bottomColor: cs.primaryContainer,
+          //   diamondColor: cs.tertiary,
+          //   lineColor: cs.outline,
+          // ),
 
           // ── Row 2: Bengali (primaryContainer) ──────────
           _DateRow(
@@ -86,12 +86,12 @@ class _MergedDateCard extends StatelessWidget {
             textColor: cs.onPrimaryContainer,
           ),
 
-          _OrnateDivider(
-            topColor: cs.primaryContainer,
-            bottomColor: cs.secondaryContainer,
-            diamondColor: cs.primary,
-            lineColor: cs.outline,
-          ),
+          // _OrnateDivider(
+          //   topColor: cs.primaryContainer,
+          //   bottomColor: cs.secondaryContainer,
+          //   diamondColor: cs.primary,
+          //   lineColor: cs.outline,
+          // ),
 
           // ── Row 3: Hijri (secondaryContainer) ──────────
           _DateRow(

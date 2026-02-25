@@ -121,6 +121,7 @@ abstract class AppLocalizations {
 
   String get appName;
   String get appTitle;
+  String get welcomeToApp;
 
   // Navigation
   String get navHome;
@@ -179,6 +180,7 @@ abstract class AppLocalizations {
 
   // Settings
   String get settingsTitle;
+  String get appearance;
   String get language;
   String get theme;
   String get notifications;
@@ -187,6 +189,22 @@ abstract class AppLocalizations {
   String get systemDefault;
   String get languageChanged;
   String get themeChanged;
+  String get notificationSubtitle;
+  String get dataAndStorage;
+  String get autoBackup;
+  String get autoBackupSubtitle;
+  String get deleteAllData;
+  String get deleteAllDataSubtitle;
+  String get appVersionSubtitle;
+  String get privacyPolicy;
+  String get privacyPolicySubtitle;
+  String get termsOfService;
+  String get termsOfServiceSubtitle;
+  String get deleteAllDataConfirmMessage;
+  String get resetSettings;
+  String get resetSettingsConfirmMessage;
+  String get resetSettingsSubtitle;
+
 
   // Messages
   String get comingSoon;
