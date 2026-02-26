@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:ekush_ponji/features/prayer_times/models/prayer_times_model.dart';
 import 'package:ekush_ponji/features/prayer_times/prayer_times_viewmodel.dart';
 import 'package:ekush_ponji/features/prayer_times/prayer_settings_viewmodel.dart';
 import 'package:ekush_ponji/core/services/prayer_notification_service.dart';
