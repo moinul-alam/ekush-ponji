@@ -53,6 +53,10 @@ class PrayerTimesModel {
   final double longitude;
   final String locationDisplay; // e.g. "Dhaka, Bangladesh"
 
+  /// Tomorrow's Fajr time — used for the post-Isha countdown.
+  /// Populated by the viewmodel after calculating tomorrow's times.
+  final DateTime? tomorrowFajr;
+
   const PrayerTimesModel({
     required this.date,
     required this.fajr,
@@ -64,6 +68,7 @@ class PrayerTimesModel {
     required this.latitude,
     required this.longitude,
     required this.locationDisplay,
+    this.tomorrowFajr,
   });
 
   /// Build from adhan PrayerTimes object
@@ -72,6 +77,7 @@ class PrayerTimesModel {
     required double latitude,
     required double longitude,
     required String locationDisplay,
+    DateTime? tomorrowFajr,
   }) {
     return PrayerTimesModel(
       date: times.fajr,
@@ -84,6 +90,24 @@ class PrayerTimesModel {
       latitude: latitude,
       longitude: longitude,
       locationDisplay: locationDisplay,
+      tomorrowFajr: tomorrowFajr,
+    );
+  }
+
+  /// Returns a copy with tomorrowFajr set (called after tomorrow is calculated)
+  PrayerTimesModel withTomorrowFajr(DateTime fajr) {
+    return PrayerTimesModel(
+      date: date,
+      fajr: this.fajr,
+      sunrise: sunrise,
+      dhuhr: dhuhr,
+      asr: asr,
+      maghrib: maghrib,
+      isha: isha,
+      latitude: latitude,
+      longitude: longitude,
+      locationDisplay: locationDisplay,
+      tomorrowFajr: fajr,
     );
   }
 
@@ -114,30 +138,42 @@ class PrayerTimesModel {
     return Prayer.isha;
   }
 
-  /// Determine which prayer is coming next
+  /// Determine which prayer is coming next.
+  /// After Isha, wraps around to Fajr (tomorrow's cycle).
   Prayer? get nextPrayer {
     final now = DateTime.now();
-    if (now.isBefore(fajr)) return Prayer.fajr;
+    if (now.isBefore(fajr))    return Prayer.fajr;
     if (now.isBefore(sunrise)) return Prayer.sunrise;
-    if (now.isBefore(dhuhr)) return Prayer.dhuhr;
-    if (now.isBefore(asr)) return Prayer.asr;
+    if (now.isBefore(dhuhr))   return Prayer.dhuhr;
+    if (now.isBefore(asr))     return Prayer.asr;
     if (now.isBefore(maghrib)) return Prayer.maghrib;
-    if (now.isBefore(isha)) return Prayer.isha;
-    return null; // Past Isha — no next prayer today
+    if (now.isBefore(isha))    return Prayer.isha;
+    // Past Isha — next prayer is Fajr tomorrow
+    return Prayer.fajr;
   }
 
-  /// Time remaining until next prayer
+  /// Time remaining until next prayer.
+  /// After Isha, counts down to tomorrow's Fajr if available.
   Duration? get timeUntilNextPrayer {
-    final next = nextPrayer;
-    if (next == null) return null;
-    return timeFor(next).difference(DateTime.now());
+    final now = DateTime.now();
+    if (now.isBefore(isha)) {
+      // Normal case — next prayer is still today
+      final next = nextPrayer;
+      if (next == null) return null;
+      return timeFor(next).difference(now);
+    }
+    // Past Isha — count down to tomorrow's Fajr
+    final tf = tomorrowFajr;
+    if (tf == null) return null;
+    return tf.difference(now);
   }
 
-  /// Progress through the day (0.0 = Fajr, 1.0 = Isha end)
+  /// Progress through the day (0.0 = Fajr, 1.0 = Isha)
+  /// After Isha resets to 0.0 so the timeline widget wraps cleanly.
   double get dayProgress {
     final now = DateTime.now();
     if (now.isBefore(fajr)) return 0.0;
-    if (now.isAfter(isha)) return 1.0;
+    if (!now.isBefore(isha)) return 0.0; // reset after Isha
     final total = isha.difference(fajr).inSeconds;
     final elapsed = now.difference(fajr).inSeconds;
     return (elapsed / total).clamp(0.0, 1.0);
@@ -148,12 +184,12 @@ class PrayerTimesModel {
 class PrayerNotificationPrefs {
   final bool masterEnabled;
   final bool fajrEnabled;
-  final bool sunriseEnabled; // not used but kept for completeness
+  final bool sunriseEnabled;
   final bool dhuhrEnabled;
   final bool asrEnabled;
   final bool maghribEnabled;
   final bool ishaEnabled;
-  final int offsetMinutes; // 0 = at time, 5 = 5 min before, 10 = 10 min before
+  final int offsetMinutes;
 
   const PrayerNotificationPrefs({
     this.masterEnabled = true,
@@ -170,7 +206,7 @@ class PrayerNotificationPrefs {
     if (!masterEnabled) return false;
     switch (prayer) {
       case Prayer.fajr:    return fajrEnabled;
-      case Prayer.sunrise: return false; // sunrise never notified
+      case Prayer.sunrise: return false;
       case Prayer.dhuhr:   return dhuhrEnabled;
       case Prayer.asr:     return asrEnabled;
       case Prayer.maghrib: return maghribEnabled;
@@ -223,8 +259,8 @@ class PrayerNotificationPrefs {
 
 /// Calculation method + madhab settings
 class PrayerCalculationSettings {
-  final String methodKey; // key into _methods map
-  final bool isHanafi;   // true = Hanafi Asr, false = Shafi
+  final String methodKey;
+  final bool isHanafi;
 
   const PrayerCalculationSettings({
     this.methodKey = 'karachi',
@@ -232,16 +268,16 @@ class PrayerCalculationSettings {
   });
 
   static const Map<String, String> methodNames = {
-    'karachi':     'University of Islamic Sciences, Karachi',
+    'karachi':           'University of Islamic Sciences, Karachi',
     'muslimWorldLeague': 'Muslim World League',
-    'egyptian':    'Egyptian General Authority of Survey',
-    'ummAlQura':   'Umm al-Qura University, Makkah',
-    'dubai':       'Dubai',
-    'kuwait':      'Kuwait',
-    'qatar':       'Qatar',
-    'singapore':   'Majlis Ugama Islam Singapura',
-    'northAmerica':'Islamic Society of North America',
-    'moon':        'Moonsighting Committee Worldwide',
+    'egyptian':          'Egyptian General Authority of Survey',
+    'ummAlQura':         'Umm al-Qura University, Makkah',
+    'dubai':             'Dubai',
+    'kuwait':            'Kuwait',
+    'qatar':             'Qatar',
+    'singapore':         'Majlis Ugama Islam Singapura',
+    'northAmerica':      'Islamic Society of North America',
+    'moon':              'Moonsighting Committee Worldwide',
   };
 
   CalculationParameters get adhanParams {

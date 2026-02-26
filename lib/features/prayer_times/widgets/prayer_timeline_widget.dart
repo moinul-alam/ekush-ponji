@@ -86,24 +86,27 @@ class PrayerTimelineWidget extends StatelessWidget {
               const labelH  = 18.0;
               const gap1    = 8.0;
               const barH    = 6.0;
-              const dotD    = 10.0;   // normal dot diameter
-              const nextD   = 16.0;   // next prayer dot diameter
+              const dotD    = 10.0;
+              const nextD   = 16.0;
               const gap2    = 10.0;
               const timeH   = 32.0;
-              const thumbD  = 18.0;   // thumb diameter
-              const glowD   = thumbD + 6; // glow ring diameter
+              const thumbD  = 18.0;
+              const glowD   = thumbD + 6;
 
               final barTop   = labelH + gap1;
               final timeTop  = barTop + barH + gap2;
               final totalH   = labelH + gap1 + barH + gap2 + timeH;
 
-              // ── Dots: evenly spaced ───────────────────────
               final xs = List.generate(5, (i) => inset + trackWidth * (i / 4.0));
 
-              // ── Thumb: piecewise interpolated ─────────────
               final thumbFraction = _interpolateThumbFraction(now, points);
               final progressX     = inset + trackWidth * thumbFraction;
               final progressFill  = (trackWidth * thumbFraction).clamp(0.0, trackWidth);
+
+              // After Isha: all prayers are "past" visually, but we treat it
+              // as a reset — show no fill and highlight Fajr as next.
+              final afterIsha = now.isAfter(points.last.time) ||
+                  now.isAtSameMomentAs(points.last.time);
 
               return SizedBox(
                 height: totalH,
@@ -125,37 +128,46 @@ class PrayerTimelineWidget extends StatelessWidget {
                     ),
 
                     // ── Filled progress track ──────────────
-                    Positioned(
-                      left: inset,
-                      top: barTop,
-                      child: Container(
-                        width: progressFill,
-                        height: barH,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [cs.primary, cs.tertiary],
-                          ),
-                          borderRadius: BorderRadius.circular(4),
-                          boxShadow: [
-                            BoxShadow(
-                              color: cs.primary.withOpacity(0.35),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
+                    // Hidden after Isha so it resets visually to empty.
+                    if (!afterIsha)
+                      Positioned(
+                        left: inset,
+                        top: barTop,
+                        child: Container(
+                          width: progressFill,
+                          height: barH,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [cs.primary, cs.tertiary],
                             ),
-                          ],
+                            borderRadius: BorderRadius.circular(4),
+                            boxShadow: [
+                              BoxShadow(
+                                color: cs.primary.withOpacity(0.35),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
 
                     // ── Prayer dots ────────────────────────
                     ...List.generate(points.length, (i) {
-                      final point    = points[i];
-                      final cx       = xs[i];
-                      final isPast   = point.time.isBefore(now);
-                      final isNext   = nextPrayer != null &&
+                      final point  = points[i];
+                      final cx     = xs[i];
+
+                      // After Isha, treat all prayers as "past" except Fajr,
+                      // which becomes the next prayer (tomorrow).
+                      final isPast = afterIsha
+                          ? (point.prayer != Prayer.fajr)
+                          : point.time.isBefore(now);
+
+                      // nextPrayer from the model drives the highlight.
+                      // After Isha the model should return Prayer.fajr.
+                      final isNext = nextPrayer != null &&
                           point.prayer == nextPrayer;
 
-                      // Next prayer gets a larger dot
                       final thisDotD = isNext ? nextD : dotD;
                       final dotTop   = barTop + barH / 2 - thisDotD / 2;
 
@@ -194,7 +206,7 @@ class PrayerTimelineWidget extends StatelessWidget {
                           ),
                         ),
 
-                        // Dot on bar — larger if next prayer
+                        // Dot on bar
                         Positioned(
                           left: cx - thisDotD / 2,
                           top: dotTop,
@@ -249,14 +261,14 @@ class PrayerTimelineWidget extends StatelessWidget {
                     }),
 
                     // ── Current time thumb ─────────────────
-                    if (thumbFraction > 0.0 && thumbFraction < 1.0)
+                    // Only shown between Fajr and Isha (thumbFraction > 0.0).
+                    if (thumbFraction > 0.0)
                       Positioned(
                         left: progressX - glowD / 2,
-                        top: barTop + barH / 2 - glowD / 2, // centered on bar
+                        top: barTop + barH / 2 - glowD / 2,
                         child: Stack(
                           alignment: Alignment.center,
                           children: [
-                            // Outer glow ring
                             Container(
                               width: glowD,
                               height: glowD,
@@ -265,7 +277,6 @@ class PrayerTimelineWidget extends StatelessWidget {
                                 color: cs.primary.withOpacity(0.2),
                               ),
                             ),
-                            // Inner filled dot
                             Container(
                               width: thumbD,
                               height: thumbD,
@@ -297,11 +308,18 @@ class PrayerTimelineWidget extends StatelessWidget {
   }
 
   // ── Piecewise linear interpolation ───────────────────────────
+  //
+  // Returns a fraction [0.0, 1.0) representing thumb position on the track.
+  // After Isha: returns 0.0 to reset the timeline — the day cycle is complete
+  // and Fajr (tomorrow) becomes the next prayer via PrayerTimesModel.nextPrayer.
   double _interpolateThumbFraction(DateTime now, List<_Point> points) {
     const segmentSize = 1.0 / 4.0;
 
+    // Before Fajr → not yet started
     if (now.isBefore(points.first.time)) return 0.0;
-    if (!now.isBefore(points.last.time)) return 1.0;
+
+    // After Isha → day complete, reset to 0.0 (Fajr tomorrow is next)
+    if (!now.isBefore(points.last.time)) return 0.0;
 
     for (int i = 0; i < points.length - 1; i++) {
       final segStart = points[i].time;
@@ -317,7 +335,7 @@ class PrayerTimelineWidget extends StatelessWidget {
       }
     }
 
-    return 1.0;
+    return 0.0;
   }
 
   String _formatTime(DateTime time, AppLocalizations l10n) {

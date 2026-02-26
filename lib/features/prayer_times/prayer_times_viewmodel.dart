@@ -23,7 +23,7 @@ class PrayerTimesState {
 
   const PrayerTimesState({
     this.status = PrayerLoadStatus.idle,
-    this.todayTimes = null,
+    this.todayTimes,
     this.errorMessage,
     this.countdown,
     this.highlightedPrayer,
@@ -72,29 +72,23 @@ class PrayerTimesViewModel extends Notifier<PrayerTimesState> {
 
   // ── Public API ────────────────────────────────────────────────
 
-  /// Called on app launch — uses cache if available, GPS only on first launch
   Future<void> load() async {
     final cache = await _loadLocationCache();
 
     if (cache != null) {
-      // Cache hit — calculate immediately, no GPS
       await _calculateAndUpdate(
         lat: cache['lat'] as double,
         lng: cache['lng'] as double,
         locationDisplay: cache['display'] as String,
       );
     } else {
-      // First launch — full GPS fetch
       await _fetchGpsAndUpdate();
     }
   }
 
-  /// Called on pull-to-refresh — recalculates using existing coordinates, no GPS
   Future<void> refresh() async {
     final existing = state.todayTimes;
-    if (existing == null) {
-      return load();
-    }
+    if (existing == null) return load();
 
     await _calculateAndUpdate(
       lat: existing.latitude,
@@ -103,10 +97,8 @@ class PrayerTimesViewModel extends Notifier<PrayerTimesState> {
     );
   }
 
-  /// Called when location icon is pressed — full GPS fetch + cache update
   Future<void> updateLocation() => _fetchGpsAndUpdate();
 
-  /// Called when settings change — reschedules notifications with current coords
   Future<void> rescheduleNotifications(String languageCode) async {
     final times = state.todayTimes;
     if (times == null) return;
@@ -137,7 +129,6 @@ class PrayerTimesViewModel extends Notifier<PrayerTimesState> {
 
   // ── Core private methods ──────────────────────────────────────
 
-  /// Full GPS fetch → geocode → cache → calculate
   Future<void> _fetchGpsAndUpdate() async {
     state = state.copyWith(status: PrayerLoadStatus.locating);
 
@@ -155,7 +146,6 @@ class PrayerTimesViewModel extends Notifier<PrayerTimesState> {
         languageCode,
       );
 
-      // Save to cache
       await _saveLocationCache(
         position.latitude,
         position.longitude,
@@ -185,7 +175,6 @@ class PrayerTimesViewModel extends Notifier<PrayerTimesState> {
     }
   }
 
-  /// Calculate prayer times from coordinates and update state
   Future<void> _calculateAndUpdate({
     required double lat,
     required double lng,
@@ -199,14 +188,32 @@ class PrayerTimesViewModel extends Notifier<PrayerTimesState> {
 
       final coords = Coordinates(lat, lng);
       final params = settings.adhanParams;
+
+      // ── Today ─────────────────────────────────────────────────
       final today = DateTime.now();
-      final dateComponents =
+      final todayComponents =
           DateComponents(today.year, today.month, today.day);
+      final adhanToday = PrayerTimes(coords, todayComponents, params);
 
-      final adhanTimes = PrayerTimes(coords, dateComponents, params);
+      // ── Tomorrow (needed for post-Isha countdown) ─────────────
+      final tomorrow = today.add(const Duration(days: 1));
+      final tomorrowComponents =
+          DateComponents(tomorrow.year, tomorrow.month, tomorrow.day);
+      final adhanTomorrow = PrayerTimes(coords, tomorrowComponents, params);
 
+      // Build today's model and attach tomorrow's Fajr so that
+      // timeUntilNextPrayer can count down past Isha correctly.
       final todayModel = PrayerTimesModel.fromAdhan(
-        times: adhanTimes,
+        times: adhanToday,
+        latitude: lat,
+        longitude: lng,
+        locationDisplay: locationDisplay,
+        tomorrowFajr: adhanTomorrow.fajr,
+      );
+
+      // Build tomorrow's model for notification scheduling.
+      final tomorrowModel = PrayerTimesModel.fromAdhan(
+        times: adhanTomorrow,
         latitude: lat,
         longitude: lng,
         locationDisplay: locationDisplay,
@@ -220,22 +227,25 @@ class PrayerTimesViewModel extends Notifier<PrayerTimesState> {
 
       _startCountdown();
 
+      final position = Position(
+        latitude: lat,
+        longitude: lng,
+        timestamp: DateTime.now(),
+        accuracy: 0,
+        altitude: 0,
+        altitudeAccuracy: 0,
+        heading: 0,
+        headingAccuracy: 0,
+        speed: 0,
+        speedAccuracy: 0,
+      );
+
       await _scheduleNotifications(
         todayModel,
-        Position(
-          latitude: lat,
-          longitude: lng,
-          timestamp: DateTime.now(),
-          accuracy: 0,
-          altitude: 0,
-          altitudeAccuracy: 0,
-          heading: 0,
-          headingAccuracy: 0,
-          speed: 0,
-          speedAccuracy: 0,
-        ),
+        position,
         params,
         locationDisplay,
+        tomorrowModel: tomorrowModel,
       );
     } catch (e) {
       state = state.copyWith(
@@ -281,13 +291,27 @@ class PrayerTimesViewModel extends Notifier<PrayerTimesState> {
     final times = state.todayTimes;
     if (times == null) return;
 
-    final next = times.nextPrayer;
-    final current = times.currentPrayer;
+    final now = DateTime.now();
+    final next = times.nextPrayer; // never null now — wraps to Fajr after Isha
     final countdown = times.timeUntilNextPrayer;
+
+    // After midnight the date has changed — recalculate for the new day.
+    // tomorrowFajr being in the past is a reliable signal for this.
+    final tomorrowFajr = times.tomorrowFajr;
+    if (tomorrowFajr != null && now.isAfter(tomorrowFajr)) {
+      // Silently reload for the new day (no loading indicator)
+      _calculateAndUpdate(
+        lat: times.latitude,
+        lng: times.longitude,
+        locationDisplay: times.locationDisplay,
+      );
+      return;
+    }
 
     state = state.copyWith(
       countdown: countdown,
-      highlightedPrayer: next ?? current,
+      // After Isha, next == Prayer.fajr, so the UI highlights Fajr correctly.
+      highlightedPrayer: next,
     );
   }
 
@@ -326,7 +350,6 @@ class PrayerTimesViewModel extends Notifier<PrayerTimesState> {
   ) async {
     try {
       if (languageCode == 'bn') {
-        // Try Bengali first
         await setLocaleIdentifier('bn_BD');
         final bnPlacemarks = await placemarkFromCoordinates(lat, lng);
 
@@ -334,8 +357,6 @@ class PrayerTimesViewModel extends Notifier<PrayerTimesState> {
           final p = bnPlacemarks.first;
           final locality = p.locality ?? '';
           final country = p.country ?? '';
-
-          // Both parts must be in Bengali script — no mixing allowed
           final localityIsBengali = locality.runes.any((r) => r > 127);
           final countryIsBengali = country.runes.any((r) => r > 127);
 
@@ -343,11 +364,10 @@ class PrayerTimesViewModel extends Notifier<PrayerTimesState> {
               countryIsBengali &&
               locality.isNotEmpty &&
               country.isNotEmpty) {
-            return '$locality, $country'; // ঢাকা, বাংলাদেশ ✅
+            return '$locality, $country';
           }
         }
 
-        // Bengali translation incomplete — fall back to full English
         await setLocaleIdentifier('en_US');
         final enPlacemarks = await placemarkFromCoordinates(lat, lng);
         if (enPlacemarks.isNotEmpty) {
@@ -356,10 +376,9 @@ class PrayerTimesViewModel extends Notifier<PrayerTimesState> {
             if (p.locality?.isNotEmpty == true) p.locality!,
             if (p.country?.isNotEmpty == true) p.country!,
           ];
-          if (parts.isNotEmpty) return parts.join(', '); // Dhaka, Bangladesh ✅
+          if (parts.isNotEmpty) return parts.join(', ');
         }
       } else {
-        // English locale — single call
         await setLocaleIdentifier('en_US');
         final placemarks = await placemarkFromCoordinates(lat, lng);
         if (placemarks.isNotEmpty) {
@@ -383,27 +402,30 @@ class PrayerTimesViewModel extends Notifier<PrayerTimesState> {
     PrayerTimesModel todayModel,
     Position position,
     CalculationParameters params,
-    String locationDisplay,
-  ) async {
+    String locationDisplay, {
+    PrayerTimesModel? tomorrowModel,
+  }) async {
     final notifPrefs =
         ref.read(prayerSettingsViewModelProvider).notificationPrefs;
     if (!notifPrefs.masterEnabled) return;
 
-    final tomorrow = DateTime.now().add(const Duration(days: 1));
-    final tomorrowComponents =
-        DateComponents(tomorrow.year, tomorrow.month, tomorrow.day);
-    final coords = Coordinates(position.latitude, position.longitude);
-    final tomorrowAdhan = PrayerTimes(coords, tomorrowComponents, params);
-    final tomorrowModel = PrayerTimesModel.fromAdhan(
-      times: tomorrowAdhan,
-      latitude: position.latitude,
-      longitude: position.longitude,
-      locationDisplay: locationDisplay,
-    );
+    // Use the pre-calculated tomorrow model if provided, otherwise calculate.
+    final tomorrow = tomorrowModel ?? () {
+      final t = DateTime.now().add(const Duration(days: 1));
+      final tomorrowComponents = DateComponents(t.year, t.month, t.day);
+      final coords = Coordinates(position.latitude, position.longitude);
+      final adhan = PrayerTimes(coords, tomorrowComponents, params);
+      return PrayerTimesModel.fromAdhan(
+        times: adhan,
+        latitude: position.latitude,
+        longitude: position.longitude,
+        locationDisplay: locationDisplay,
+      );
+    }();
 
     await PrayerNotificationService.scheduleAll(
       today: todayModel,
-      tomorrow: tomorrowModel,
+      tomorrow: tomorrow,
       prefs: notifPrefs,
       languageCode: 'en',
     );
