@@ -328,6 +328,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addReminder => 'Add Reminder';
 
   @override
+  String get editEvent => 'Edit Event';
+
+  @override
+  String get editReminder => 'Edit Reminder';
+
+  @override
   String get allDay => 'All day';
 
   @override

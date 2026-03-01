@@ -10,6 +10,7 @@ import 'package:ekush_ponji/features/calendar/calendar_viewmodel.dart';
 import 'package:ekush_ponji/features/calendar/widgets/calendar_header.dart';
 import 'package:ekush_ponji/features/calendar/widgets/week_days_row.dart';
 import 'package:ekush_ponji/features/calendar/widgets/calendar_grid.dart';
+import 'package:ekush_ponji/features/calendar/widgets/calendar_legend.dart';
 import 'package:ekush_ponji/features/calendar/widgets/day_details_panel.dart';
 import 'package:ekush_ponji/features/calendar/widgets/calendar_holidays_widget.dart';
 import 'package:ekush_ponji/features/calendar/widgets/custom_month_year_picker.dart';
@@ -24,21 +25,8 @@ class CalendarScreen extends BaseScreen {
 }
 
 class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
-  late PageController _pageController;
-
-  static const int _initialPage = 1000;
-
-  @override
-  void initState() {
-    super.initState();
-    _pageController = PageController(initialPage: _initialPage);
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
+  // Track horizontal drag to detect left/right swipes for month navigation
+  double _dragStartX = 0;
 
   @override
   NotifierProvider<CalendarViewModel, ViewState> get viewModelProvider =>
@@ -70,11 +58,6 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
           icon: const Icon(Icons.today),
           tooltip: l10n.today,
           onPressed: () {
-            _pageController.animateToPage(
-              _initialPage,
-              duration: const Duration(milliseconds: 400),
-              curve: Curves.easeInOut,
-            );
             ref.read(calendarViewModelProvider.notifier).loadCurrentMonth();
           },
         ),
@@ -84,12 +67,17 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
 
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
+    // Watch state — any change (selectDate, jumpToMonth) triggers rebuild.
+    // Read notifier for calling actions (stable reference, no rebuild loop).
     final viewState = ref.watch(calendarViewModelProvider);
     final viewModel = ref.read(calendarViewModelProvider.notifier);
     final l10n = AppLocalizations.of(context);
     final hijriService = ref.watch(hijriCalendarServiceProvider);
 
-    if (viewState is ViewStateLoading) {
+    final monthData = viewModel.currentMonthData;
+
+    // Full-screen loading only on very first load when there is no data yet
+    if (viewState is ViewStateLoading && monthData == null) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -109,12 +97,10 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
       return buildErrorWidget(viewState);
     }
 
-    final monthData = viewModel.currentMonthData;
     if (monthData == null) {
       return Center(child: Text(l10n.loadingData));
     }
 
-    // Compute Hijri months display string for the header
     final hijriMonthsDisplay = hijriService.getHijriMonthsDisplay(
       gregorianYear: monthData.gregorianYear,
       gregorianMonth: monthData.gregorianMonth,
@@ -122,10 +108,28 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
     );
 
     return GestureDetector(
+      // Swipe left/right to change month — only triggers on fast horizontal
+      // swipes, does not interfere with cell taps
+      onHorizontalDragStart: (details) {
+        _dragStartX = details.globalPosition.dx;
+      },
       onHorizontalDragEnd: (details) {
-        if (details.primaryVelocity != null &&
-            details.primaryVelocity! > 300) {
+        final dx = details.globalPosition.dx - _dragStartX;
+        final velocity = details.primaryVelocity ?? 0;
+
+        // Swipe right → go home (original behaviour, fast swipe only)
+        if (velocity > 600 && dx > 60) {
           context.go(RouteNames.home);
+          return;
+        }
+        // Swipe right (slower) → previous month
+        if (dx > 60) {
+          viewModel.goToPreviousMonth();
+          return;
+        }
+        // Swipe left → next month
+        if (dx < -60) {
+          viewModel.goToNextMonth();
         }
       },
       child: SingleChildScrollView(
@@ -165,40 +169,20 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
                       useBangla: l10n.languageCode == 'bn',
                     ),
                     hijriMonthsDisplay: hijriMonthsDisplay,
-                    onPreviousMonth: () {
-                      _pageController.previousPage(
-                        duration: const Duration(milliseconds: 350),
-                        curve: Curves.easeInOut,
-                      );
-                    },
-                    onNextMonth: () {
-                      _pageController.nextPage(
-                        duration: const Duration(milliseconds: 350),
-                        curve: Curves.easeInOut,
-                      );
-                    },
+                    onPreviousMonth: () => viewModel.goToPreviousMonth(),
+                    onNextMonth: () => viewModel.goToNextMonth(),
                     onMonthTap: () => _showMonthPicker(context, ref),
                     onYearTap: () => _showYearPicker(context, ref),
                   ),
 
                   const WeekDaysRow(),
 
-                  SizedBox(
-                    height: _gridHeight(viewModel.calendarDays.length),
-                    child: PageView.builder(
-                      controller: _pageController,
-                      onPageChanged: (page) {
-                        final offset = page - _initialPage;
-                        _onPageChanged(offset, viewModel);
-                      },
-                      itemBuilder: (context, page) {
-                        return CalendarGrid(
-                          days: viewModel.calendarDays,
-                          onDayTap: (day) =>
-                              viewModel.selectDate(day.gregorianDate),
-                        );
-                      },
-                    ),
+                  // Direct CalendarGrid — no PageView wrapper so taps
+                  // reach CalendarDayCell's GestureDetector unobstructed
+                  CalendarGrid(
+                    days: viewModel.calendarDays,
+                    onDayTap: (day) =>
+                        viewModel.selectDate(day.gregorianDate),
                   ),
 
                   const SizedBox(height: 8),
@@ -206,9 +190,12 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
               ),
             ),
 
-            const SizedBox(height: 12),
+            // ─── Date Visibility Controls ────────────────────
+            const CalendarLegend(),
 
             // ─── Day Details Panel ───────────────────────────
+            // Shown when viewState changes trigger a rebuild and
+            // hasDateBeenSelected becomes true
             if (viewModel.hasDateBeenSelected)
               DayDetailsPanel(
                 selectedDay: viewModel.selectedDay,
@@ -229,53 +216,31 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
     );
   }
 
-  double _gridHeight(int cellCount) {
-    final rows = (cellCount / 7).ceil();
-    return rows * 68.0 + 8;
-  }
-
-  void _onPageChanged(int offset, CalendarViewModel viewModel) {
-    final now = DateTime.now();
-    int targetMonth = now.month + offset;
-    int targetYear = now.year;
-
-    while (targetMonth > 12) {
-      targetMonth -= 12;
-      targetYear++;
-    }
-    while (targetMonth < 1) {
-      targetMonth += 12;
-      targetYear--;
-    }
-
-    viewModel.jumpToMonth(targetYear, targetMonth);
-  }
-
   @override
   void onRetry() {
     ref.read(calendarViewModelProvider.notifier).loadCurrentMonth();
   }
 
   Future<void> _showMonthPicker(BuildContext context, WidgetRef ref) async {
-  final viewModel = ref.read(calendarViewModelProvider.notifier);
-  final monthData = viewModel.currentMonthData;
-  if (monthData == null) return;
-  final l10n = AppLocalizations.of(context);
+    final viewModel = ref.read(calendarViewModelProvider.notifier);
+    final monthData = viewModel.currentMonthData;
+    if (monthData == null) return;
+    final l10n = AppLocalizations.of(context);
 
-  await showDialog(
-    context: context,
-    builder: (context) => MonthYearPickerDialog(
-      initialYear: monthData.gregorianYear,
-      initialMonth: monthData.gregorianMonth,
-      l10n: l10n,
-      onSelected: (year, month) {
-        viewModel.jumpToMonth(year, month);
-      },
-    ),
-  );
-}
+    await showDialog(
+      context: context,
+      builder: (context) => MonthYearPickerDialog(
+        initialYear: monthData.gregorianYear,
+        initialMonth: monthData.gregorianMonth,
+        l10n: l10n,
+        onSelected: (year, month) {
+          viewModel.jumpToMonth(year, month);
+        },
+      ),
+    );
+  }
 
-Future<void> _showYearPicker(BuildContext context, WidgetRef ref) async {
-  await _showMonthPicker(context, ref);
-}
+  Future<void> _showYearPicker(BuildContext context, WidgetRef ref) async {
+    await _showMonthPicker(context, ref);
+  }
 }

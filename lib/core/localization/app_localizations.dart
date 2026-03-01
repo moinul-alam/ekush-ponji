@@ -226,6 +226,8 @@ abstract class AppLocalizations {
   String get showDetails;
   String get addEvent;
   String get addReminder;
+  String get editEvent;
+  String get editReminder;
   String get allDay;
   String get passed;
   String formatUpcomingEventsInMonth(String monthName);

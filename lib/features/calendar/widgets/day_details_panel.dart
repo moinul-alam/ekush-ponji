@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/core/utils/number_converter.dart';
 import 'package:ekush_ponji/features/calendar/models/calendar_day.dart';
+import 'package:ekush_ponji/app/router/route_names.dart';
 import 'package:go_router/go_router.dart';
 
 /// Day details panel widget
@@ -64,7 +65,6 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Gregorian date (localized: day month year e.g. ১৬ ফেব্রুয়ারি ২০২৬)
                         Text(
                           localizations.formatDate(
                               widget.selectedDay!.gregorianDate),
@@ -74,7 +74,6 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        // Bengali calendar date (English script when locale is English)
                         Text(
                           localizations.languageCode == 'bn'
                               ? widget.selectedDay!.bengaliDate.formatBn()
@@ -108,7 +107,7 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
                     _buildSectionTitle(
                         context, localizations.sectionHolidays, Icons.celebration),
                     const SizedBox(height: 8),
-                    ...widget.selectedDay!.holidays.map((holiday) => 
+                    ...widget.selectedDay!.holidays.map((holiday) =>
                       _buildHolidayItem(context, holiday, localizations),
                     ),
                     const SizedBox(height: 16),
@@ -119,7 +118,7 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
                     _buildSectionTitle(
                         context, localizations.sectionEvents, Icons.event),
                     const SizedBox(height: 8),
-                    ...widget.selectedDay!.events.map((event) => 
+                    ...widget.selectedDay!.events.map((event) =>
                       _buildEventItem(context, event, localizations),
                     ),
                     const SizedBox(height: 16),
@@ -130,7 +129,7 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
                     _buildSectionTitle(context,
                         localizations.sectionReminders, Icons.notifications),
                     const SizedBox(height: 8),
-                    ...widget.selectedDay!.reminders.map((reminder) => 
+                    ...widget.selectedDay!.reminders.map((reminder) =>
                       _buildReminderItem(context, reminder, localizations),
                     ),
                     const SizedBox(height: 16),
@@ -158,8 +157,7 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: () {
-                            // TODO: Navigate to day details screen
-                            context.push('/calendar/day-details');
+                            context.push(RouteNames.calendarDayDetails);
                           },
                           icon: const Icon(Icons.info_outline, size: 18),
                           label: Text(localizations.showDetails),
@@ -172,8 +170,10 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: () {
-                            // TODO: Navigate to add event screen
-                            context.push('/calendar/add-event');
+                            context.push(
+                              RouteNames.calendarAddEvent,
+                              extra: widget.selectedDay!.gregorianDate,
+                            );
                           },
                           icon: const Icon(Icons.add, size: 18),
                           label: Text(localizations.addEvent),
@@ -189,8 +189,10 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
                     width: double.infinity,
                     child: OutlinedButton.icon(
                       onPressed: () {
-                        // TODO: Navigate to add reminder screen
-                        context.push('/calendar/add-reminder');
+                        context.push(
+                          RouteNames.calendarAddReminder,
+                          extra: widget.selectedDay!.gregorianDate,
+                        );
                       },
                       icon: const Icon(Icons.alarm_add, size: 18),
                       label: Text(localizations.addReminder),
@@ -208,7 +210,6 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
     );
   }
 
-  /// Build section title
   Widget _buildSectionTitle(BuildContext context, String title, IconData icon) {
     final theme = Theme.of(context);
     return Row(
@@ -225,7 +226,6 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
     );
   }
 
-  /// Build holiday item
   Widget _buildHolidayItem(
     BuildContext context,
     dynamic holiday,
@@ -233,7 +233,7 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
   ) {
     final theme = Theme.of(context);
     final isBangla = localizations.locale.languageCode == 'bn';
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
@@ -269,7 +269,7 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
                 if (holiday.description != null) ...[
                   const SizedBox(height: 4),
                   Text(
-                    isBangla 
+                    isBangla
                         ? (holiday.descriptionbn ?? holiday.description!)
                         : holiday.description!,
                     style: theme.textTheme.bodySmall?.copyWith(
@@ -285,7 +285,6 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
     );
   }
 
-  /// Build event item
   Widget _buildEventItem(
       BuildContext context, dynamic event, AppLocalizations l10n) {
     final theme = Theme.of(context);
@@ -361,7 +360,6 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
     );
   }
 
-  /// Build reminder item
   Widget _buildReminderItem(
       BuildContext context, dynamic reminder, AppLocalizations l10n) {
     final theme = Theme.of(context);
@@ -411,7 +409,6 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
               ],
             ),
           ),
-          // Priority badge
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
@@ -431,7 +428,6 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
     );
   }
 
-  /// Get priority color
   Color _getPriorityColor(dynamic priority) {
     final priorityName = priority.toString().split('.').last;
     switch (priorityName) {
@@ -448,7 +444,6 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
     }
   }
 
-  /// Get localized priority label
   String _getPriorityLabel(dynamic priority, AppLocalizations l10n) {
     final priorityName = priority.toString().split('.').last;
     switch (priorityName) {

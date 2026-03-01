@@ -30,12 +30,9 @@ class CalendarViewModel extends BaseViewModel {
   String get bengaliMonthsDisplay =>
       _currentMonthData?.getBengaliMonthsDisplay() ?? '';
 
-  /// All holidays for the current month — includes past and future
   List<Holiday> get monthHolidays => _currentMonthData?.holidays ?? [];
-
   List<Event> get upcomingEvents => _currentMonthData?.upcomingEvents ?? [];
 
-  /// Selected day getter for the screen
   CalendarDay? get selectedDay {
     if (_selectedDate == null || _currentMonthData == null) return null;
     return _currentMonthData!.days.firstWhere(
@@ -60,49 +57,48 @@ class CalendarViewModel extends BaseViewModel {
   }
 
   Future<void> jumpToMonth(int year, int month) async {
-    await executeAsync(
-      operation: () async {
-        final cacheKey = '$year-$month';
-        if (_monthCache.containsKey(cacheKey)) {
-          _currentMonthData = _monthCache[cacheKey];
-        } else {
-          final monthData = await _generateMonthData(year, month);
-          _monthCache[cacheKey] = monthData;
-          _currentMonthData = monthData;
-          _prefetchAdjacentMonths(year, month);
-        }
-      },
-      loadingMessage: 'Loading calendar...',
-      errorMessage: 'Failed to load calendar',
-      successMessage: null,
-    );
+    final cacheKey = '$year-$month';
+
+    if (_monthCache.containsKey(cacheKey)) {
+      _currentMonthData = _monthCache[cacheKey];
+      state = ViewStateSuccess();
+      return;
+    }
+
+    if (_currentMonthData == null) {
+      state = ViewStateLoading();
+    }
+
+    try {
+      final monthData = await _generateMonthData(year, month);
+      _monthCache[cacheKey] = monthData;
+      _currentMonthData = monthData;
+      _prefetchAdjacentMonths(year, month);
+      state = ViewStateSuccess();
+    } catch (e) {
+      state = ViewStateError(e.toString());
+    }
   }
 
   Future<void> goToPreviousMonth() async {
     if (_currentMonthData == null) return;
-
     int prevMonth = _currentMonthData!.gregorianMonth - 1;
     int prevYear = _currentMonthData!.gregorianYear;
-
     if (prevMonth < 1) {
       prevMonth = 12;
       prevYear--;
     }
-
     await jumpToMonth(prevYear, prevMonth);
   }
 
   Future<void> goToNextMonth() async {
     if (_currentMonthData == null) return;
-
     int nextMonth = _currentMonthData!.gregorianMonth + 1;
     int nextYear = _currentMonthData!.gregorianYear;
-
     if (nextMonth > 12) {
       nextMonth = 1;
       nextYear++;
     }
-
     await jumpToMonth(nextYear, nextMonth);
   }
 
@@ -126,6 +122,25 @@ class CalendarViewModel extends BaseViewModel {
   void toggleDayDetailsPanel() {
     _isDayDetailsPanelExpanded = !_isDayDetailsPanelExpanded;
     state = ViewStateSuccess();
+  }
+
+  /// Invalidate cache for a specific month and reload if it's currently displayed
+  Future<void> invalidateCacheForDate(DateTime date) async {
+    final key = '${date.year}-${date.month}';
+    _monthCache.remove(key);
+
+    // If the invalidated month is currently displayed, reload it
+    if (_currentMonthData != null &&
+        _currentMonthData!.gregorianYear == date.year &&
+        _currentMonthData!.gregorianMonth == date.month) {
+      // Preserve selected date across reload
+      final preserved = _selectedDate;
+      await jumpToMonth(date.year, date.month);
+      // Re-select the date so DayDetailsPanel updates too
+      if (preserved != null) {
+        selectDate(preserved);
+      }
+    }
   }
 
   Future<MonthData> _generateMonthData(int year, int month) async {
@@ -165,7 +180,8 @@ class CalendarViewModel extends BaseViewModel {
         _bengaliService.getBengaliMonthsForGregorianMonth(year, month);
     final monthHolidays = await _repository.getHolidaysForMonth(year, month);
     final monthEvents = await _repository.getEventsForMonth(year, month);
-    final monthReminders = await _repository.getRemindersForMonth(year, month);
+    final monthReminders =
+        await _repository.getRemindersForMonth(year, month);
 
     return MonthData(
       gregorianYear: year,

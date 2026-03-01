@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ekush_ponji/core/services/hijri_calendar_service.dart';
 import 'package:ekush_ponji/features/calendar/models/calendar_day.dart';
+import 'package:ekush_ponji/features/calendar/providers/calendar_visibility_provider.dart';
 import 'package:ekush_ponji/features/calendar/widgets/calendar_day_cell.dart';
 
 class CalendarGrid extends ConsumerWidget {
@@ -19,6 +20,7 @@ class CalendarGrid extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final hijriService = ref.watch(hijriCalendarServiceProvider);
+    final visibility = ref.watch(calendarVisibilityProvider);
 
     return GridView.builder(
       shrinkWrap: true,
@@ -37,6 +39,8 @@ class CalendarGrid extends ConsumerWidget {
         return CalendarDayCell(
           day: day,
           hijriDate: hijriDate,
+          showBengaliDate: visibility.showBengaliDate,
+          showHijriDate: visibility.showHijriDate,
           onTap: () => onDayTap(day),
         );
       },

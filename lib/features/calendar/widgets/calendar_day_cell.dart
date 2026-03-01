@@ -9,12 +9,16 @@ import 'package:ekush_ponji/features/home/models/holiday.dart';
 class CalendarDayCell extends StatelessWidget {
   final CalendarDay day;
   final HijriDate hijriDate;
+  final bool showBengaliDate;
+  final bool showHijriDate;
   final VoidCallback onTap;
 
   const CalendarDayCell({
     super.key,
     required this.day,
     required this.hijriDate,
+    required this.showBengaliDate,
+    required this.showHijriDate,
     required this.onTap,
   });
 
@@ -39,9 +43,11 @@ class CalendarDayCell extends StatelessWidget {
 
   // ─── Color Slots ───────────────────────────────────────
   static const _BengaliColorSlot bengaliColorSlot = _BengaliColorSlot.primary;
-
-  // Hijri uses tertiary — distinct from Bengali (primary) and Gregorian (onSurface)
   static const _HijriColorSlot hijriColorSlot = _HijriColorSlot.tertiary;
+
+  // Holiday background: fixed clean colors — no opacity mixing with surface
+  static const Color _holidayBgLight = Color(0xFFFFF5F5); // barely-there blush
+  static const Color _holidayBgDark  = Color(0xFF251A1A); // very dark warm
 
   static const Color gregorianSpecialColor = Color(0xFFCC0000);
   static const double cellBorderRadius = 4;
@@ -61,7 +67,8 @@ class CalendarDayCell extends StatelessWidget {
     final isBn = l10n.languageCode == 'bn';
 
     final gregorianText = l10n.localizeNumber(day.gregorianDay);
-    final bengaliText = isBn ? day.bengaliDate.dayBn : day.bengaliDay.toString();
+    final bengaliText =
+        isBn ? day.bengaliDate.dayBn : day.bengaliDay.toString();
     final hijriText = hijriDate.dayForLocale(l10n.languageCode);
 
     return GestureDetector(
@@ -75,7 +82,7 @@ class CalendarDayCell extends StatelessWidget {
           decoration: _buildDecoration(theme),
           child: Stack(
             children: [
-              // Holiday left accent bar
+              // ── Holiday left accent bar ─────────────────
               if (day.hasHoliday && !day.isToday && !day.isSelected)
                 Positioned(
                   left: 0,
@@ -91,56 +98,96 @@ class CalendarDayCell extends StatelessWidget {
                   ),
                 ),
 
-              // Main content
-              Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // ── Gregorian date (center) ─────────────
-                  Expanded(
-                    child: Align(
-                      alignment: Alignment.center,
-                      child: _buildGregorianDate(theme, gregorianText),
-                    ),
-                  ),
-
-                  // ── Sub-dates row: Bengali left, Hijri right ──
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(3, 0, 3, 3),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // Bengali date — left, primary color
-                        Text(
-                          bengaliText,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            fontSize: subDateFontSize,
-                            color: _bengaliTextColor(theme),
-                            fontWeight: FontWeight.w700,
-                            height: 1,
-                          ),
-                        ),
-                        // Hijri date — right, tertiary color
-                        Text(
-                          hijriText,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            fontSize: subDateFontSize,
-                            color: _hijriTextColor(theme),
-                            fontWeight: FontWeight.w700,
-                            height: 1,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // ── Indicator dots ──────────────────────
-                  _buildIndicators(theme),
-                ],
-              ),
+              // ── Main content ────────────────────────────
+              _buildContent(theme, gregorianText, bengaliText, hijriText),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildContent(
+    ThemeData theme,
+    String gregorianText,
+    String bengaliText,
+    String hijriText,
+  ) {
+    Widget? subDatesWidget;
+
+    if (showBengaliDate && showHijriDate) {
+      subDatesWidget = Padding(
+        padding: const EdgeInsets.fromLTRB(3, 0, 3, 3),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              bengaliText,
+              style: theme.textTheme.labelSmall?.copyWith(
+                fontSize: subDateFontSize,
+                color: _bengaliTextColor(theme),
+                fontWeight: FontWeight.w700,
+                height: 1,
+              ),
+            ),
+            Text(
+              hijriText,
+              style: theme.textTheme.labelSmall?.copyWith(
+                fontSize: subDateFontSize,
+                color: _hijriTextColor(theme),
+                fontWeight: FontWeight.w700,
+                height: 1,
+              ),
+            ),
+          ],
+        ),
+      );
+    } else if (showBengaliDate) {
+      subDatesWidget = Padding(
+        padding: const EdgeInsets.fromLTRB(3, 0, 3, 3),
+        child: Center(
+          child: Text(
+            bengaliText,
+            style: theme.textTheme.labelSmall?.copyWith(
+              fontSize: subDateFontSize,
+              color: _bengaliTextColor(theme),
+              fontWeight: FontWeight.w700,
+              height: 1,
+            ),
+          ),
+        ),
+      );
+    } else if (showHijriDate) {
+      subDatesWidget = Padding(
+        padding: const EdgeInsets.fromLTRB(3, 0, 3, 3),
+        child: Center(
+          child: Text(
+            hijriText,
+            style: theme.textTheme.labelSmall?.copyWith(
+              fontSize: subDateFontSize,
+              color: _hijriTextColor(theme),
+              fontWeight: FontWeight.w700,
+              height: 1,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: Align(
+            alignment: Alignment.center,
+            child: _buildGregorianDate(theme, gregorianText),
+          ),
+        ),
+        if (subDatesWidget != null) subDatesWidget,
+        // Holiday dot removed — accent bar + background is sufficient.
+        // Only event and reminder dots remain.
+        _buildIndicators(theme),
+      ],
     );
   }
 
@@ -203,11 +250,12 @@ class CalendarDayCell extends StatelessWidget {
   }
 
   // ------------------- Indicators -------------------
+  // Holiday dot removed — accent bar + tinted background signals holidays.
+  // Only event (blue) and reminder (orange) dots remain.
   Widget _buildIndicators(ThemeData theme) {
-    if (!day.hasAnyItem) return const SizedBox(height: 5);
+    if (!day.hasEvent && !day.hasReminder) return const SizedBox(height: 5);
 
     final dots = <Widget>[];
-    if (day.hasHoliday) dots.add(_dot(Colors.red.shade400));
     if (day.hasEvent) dots.add(_dot(Colors.blue.shade400));
     if (day.hasReminder) dots.add(_dot(Colors.orange.shade400));
 
@@ -216,7 +264,6 @@ class CalendarDayCell extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: dots
-            .take(3)
             .map((d) => Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 1),
                   child: d,
@@ -283,10 +330,11 @@ class CalendarDayCell extends StatelessWidget {
 
     if (day.hasHoliday) {
       return BoxDecoration(
-        color: gregorianSpecialColor.withOpacity(0.06),
+        // Fixed solid color — no opacity blending with surface, always clean
+        color: isDark ? _holidayBgDark : _holidayBgLight,
         borderRadius: BorderRadius.circular(cellBorderRadius),
         border: Border.all(
-          color: theme.colorScheme.outlineVariant.withOpacity(0.3),
+          color: theme.colorScheme.outlineVariant.withOpacity(0.25),
           width: 0.5,
         ),
         boxShadow: tileShadows,
@@ -295,10 +343,10 @@ class CalendarDayCell extends StatelessWidget {
 
     if (_isWeekend) {
       return BoxDecoration(
-        color: gregorianSpecialColor.withOpacity(0.04),
+        color: isDark ? _holidayBgDark : _holidayBgLight,
         borderRadius: BorderRadius.circular(cellBorderRadius),
         border: Border.all(
-          color: theme.colorScheme.outlineVariant.withOpacity(0.3),
+          color: theme.colorScheme.outlineVariant.withOpacity(0.25),
           width: 0.5,
         ),
         boxShadow: tileShadows,
@@ -323,7 +371,10 @@ class CalendarDayCell extends StatelessWidget {
           ? gregorianSpecialColor.withOpacity(0.4)
           : theme.colorScheme.onSurface.withOpacity(0.3);
     }
-    if (_isSpecial) return gregorianSpecialColor;
+    // Actual holidays: deep red to signal significance
+    if (day.hasHoliday) return gregorianSpecialColor;
+    // Weekends only: softer red — background tint is enough, text stays readable
+    if (_isWeekend) return gregorianSpecialColor.withOpacity(0.65);
     return theme.colorScheme.onSurface;
   }
 
@@ -372,4 +423,5 @@ class CalendarDayCell extends StatelessWidget {
 
 // ─── Color Slot Enums ─────────────────────────────────────────
 enum _BengaliColorSlot { primary, secondary, tertiary, onSurface }
+
 enum _HijriColorSlot { tertiary, secondary, onSurfaceVariant }

@@ -5,12 +5,16 @@ import 'package:go_router/go_router.dart';
 import 'package:ekush_ponji/features/splash/splash_screen.dart';
 import 'package:ekush_ponji/features/home/home_screen.dart';
 import 'package:ekush_ponji/features/calendar/calendar_screen.dart';
+import 'package:ekush_ponji/features/calendar/day_details_screen.dart';
+import 'package:ekush_ponji/features/events/add_event_screen.dart';
+import 'package:ekush_ponji/features/reminders/add_reminder_screen.dart';
 import 'package:ekush_ponji/features/prayer_times/prayer_times_screen.dart';
 import 'package:ekush_ponji/features/calculator/calculator_screen.dart';
 import 'package:ekush_ponji/features/settings/settings_screen.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
 import 'package:ekush_ponji/core/widgets/navigation/app_bottom_nav.dart';
-
+import 'package:ekush_ponji/features/home/models/event.dart';       // ← new
+import 'package:ekush_ponji/features/home/models/reminder.dart';    // ← new
 
 class AppRouter {
   AppRouter._();
@@ -19,7 +23,7 @@ class AppRouter {
     initialLocation: RouteNames.splash,
     debugLogDiagnostics: false,
     routes: [
-      // Splash (outside main navigation)
+      // Splash
       GoRoute(
         path: RouteNames.splash,
         name: 'splash',
@@ -54,27 +58,44 @@ class AppRouter {
                   GoRoute(
                     path: 'day-details',
                     name: 'calendarDayDetails',
-                    builder: (context, state) =>
-                        const _PlaceholderScreen(title: 'Day Details'),
+                    builder: (context, state) => const DayDetailsScreen(),
                   ),
                   GoRoute(
                     path: 'add-event',
                     name: 'calendarAddEvent',
-                    builder: (context, state) =>
-                        const _PlaceholderScreen(title: 'Add Event'),
+                    builder: (context, state) => AddEventScreen(
+                      prefilledDate: state.extra as DateTime?,
+                    ),
                   ),
                   GoRoute(
                     path: 'add-reminder',
                     name: 'calendarAddReminder',
-                    builder: (context, state) =>
-                        const _PlaceholderScreen(title: 'Add Reminder'),
+                    builder: (context, state) => AddReminderScreen(
+                      prefilledDate: state.extra as DateTime?,
+                    ),
                   ),
+                  // ── new ──────────────────────────────────
+                  GoRoute(
+                    path: 'edit-event',
+                    name: 'calendarEditEvent',
+                    builder: (context, state) => AddEventScreen(
+                      eventToEdit: state.extra as Event,
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'edit-reminder',
+                    name: 'calendarEditReminder',
+                    builder: (context, state) => AddReminderScreen(
+                      reminderToEdit: state.extra as Reminder,
+                    ),
+                  ),
+                  // ─────────────────────────────────────────
                 ],
               ),
             ],
           ),
 
-          // 2 — Prayer Times (new, between Calendar and Calculator)
+          // 2 — Prayer Times
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -98,7 +119,7 @@ class AppRouter {
         ],
       ),
 
-      // Standalone routes (outside bottom nav)
+      // Standalone routes
       GoRoute(
         path: RouteNames.eventsList,
         name: 'eventsList',
@@ -241,7 +262,8 @@ class _PlaceholderScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.construction, size: 64, color: theme.colorScheme.primary),
+            Icon(Icons.construction,
+                size: 64, color: theme.colorScheme.primary),
             const SizedBox(height: 16),
             Text(title, style: theme.textTheme.headlineSmall),
             const SizedBox(height: 8),

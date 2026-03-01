@@ -306,7 +306,7 @@ class AppLocalizationsBn extends AppLocalizations {
   String get calendarEvent => 'ইভেন্ট';
 
   @override
-  String get calendarReminder => 'অনুস্মারক';
+  String get calendarReminder => 'রিমাইন্ডার';
 
   @override
   String get sectionHolidays => 'ছুটির দিন';
@@ -315,7 +315,7 @@ class AppLocalizationsBn extends AppLocalizations {
   String get sectionEvents => 'ইভেন্ট';
 
   @override
-  String get sectionReminders => 'অনুস্মারক';
+  String get sectionReminders => 'রিমাইন্ডার';
 
   @override
   String get showDetails => 'বিস্তারিত দেখুন';
@@ -324,7 +324,13 @@ class AppLocalizationsBn extends AppLocalizations {
   String get addEvent => 'ইভেন্ট যোগ করুন';
 
   @override
-  String get addReminder => 'অনুস্মারক যোগ করুন';
+  String get addReminder => 'রিমাইন্ডার যোগ করুন';
+
+  @override
+  String get editEvent => 'ইভেন্ট সম্পাদনা করুন';
+
+  @override
+  String get editReminder => 'রিমাইন্ডার সম্পাদনা করুন';
 
   @override
   String get allDay => 'সারাদিন';
