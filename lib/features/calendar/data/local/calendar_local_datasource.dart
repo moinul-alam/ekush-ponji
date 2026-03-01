@@ -12,7 +12,7 @@ class CalendarLocalDatasource {
   static const String _customHolidaysKey = 'custom_holidays';
   static const String _modifiedHolidaysKey = 'modified_holidays';
   static const String _hiddenHolidayIdsKey = 'hidden_holiday_ids';
-  static const String _lastUpdatedPrefix = 'last_updated_'; // ← new
+  static const String _lastUpdatedPrefix = 'last_updated_';
 
   /// Get Hive box
   Box get _box => Hive.box(_holidaysBoxName);

@@ -19,6 +19,9 @@ class DayDetailsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
+
+    // ── ref.watch so screen rebuilds when calendar state changes ──
+    ref.watch(calendarViewModelProvider);
     final viewModel = ref.read(calendarViewModelProvider.notifier);
     final selectedDay = viewModel.selectedDay;
 
@@ -38,114 +41,120 @@ class DayDetailsScreen extends ConsumerWidget {
         ),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ─── Date Header Card ─────────────────────────────
-            _DateHeaderCard(selectedDay: selectedDay, l10n: l10n),
-            const SizedBox(height: 20),
-
-            // ─── Holidays ────────────────────────────────────
-            if (selectedDay.hasHoliday) ...[
-              _SectionHeader(
-                title: l10n.sectionHolidays,
-                icon: Icons.celebration,
-              ),
-              const SizedBox(height: 8),
-              ...selectedDay.holidays.map(
-                (h) => _HolidayCard(holiday: h, l10n: l10n),
-              ),
+      // ── RefreshIndicator for pull-to-refresh ──
+      body: RefreshIndicator(
+        onRefresh: () => viewModel.refreshSelectedDay(),
+        child: SingleChildScrollView(
+          // physics required so RefreshIndicator works even when content is short
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ─── Date Header Card ─────────────────────────────
+              _DateHeaderCard(selectedDay: selectedDay, l10n: l10n),
               const SizedBox(height: 20),
-            ],
 
-            // ─── Events ──────────────────────────────────────
-            if (selectedDay.hasEvent) ...[
-              _SectionHeader(
-                title: l10n.sectionEvents,
-                icon: Icons.event,
-              ),
-              const SizedBox(height: 8),
-              ...selectedDay.events.map(
-                (e) => _EventCard(event: e, l10n: l10n),
-              ),
-              const SizedBox(height: 20),
-            ],
-
-            // ─── Reminders ───────────────────────────────────
-            if (selectedDay.hasReminder) ...[
-              _SectionHeader(
-                title: l10n.sectionReminders,
-                icon: Icons.notifications,
-              ),
-              const SizedBox(height: 8),
-              ...selectedDay.reminders.map(
-                (r) => _ReminderCard(reminder: r, l10n: l10n),
-              ),
-              const SizedBox(height: 20),
-            ],
-
-            // ─── No data ─────────────────────────────────────
-            if (!selectedDay.hasAnyItem)
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 32),
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.event_available,
-                        size: 48,
-                        color: theme.colorScheme.onSurfaceVariant
-                            .withOpacity(0.4),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        l10n.noDataAvailable,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
+              // ─── Holidays ────────────────────────────────────
+              if (selectedDay.hasHoliday) ...[
+                _SectionHeader(
+                  title: l10n.sectionHolidays,
+                  icon: Icons.celebration,
                 ),
-              ),
-
-            // ─── Action Buttons ───────────────────────────────
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => context.push(
-                      RouteNames.calendarAddEvent,
-                      extra: selectedDay.gregorianDate,
-                    ),
-                    icon: const Icon(Icons.add, size: 18),
-                    label: Text(l10n.addEvent),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                  ),
+                const SizedBox(height: 8),
+                ...selectedDay.holidays.map(
+                  (h) => _HolidayCard(holiday: h, l10n: l10n),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => context.push(
-                      RouteNames.calendarAddReminder,
-                      extra: selectedDay.gregorianDate,
-                    ),
-                    icon: const Icon(Icons.alarm_add, size: 18),
-                    label: Text(l10n.addReminder),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                  ),
-                ),
+                const SizedBox(height: 20),
               ],
-            ),
-            const SizedBox(height: 24),
-          ],
+
+              // ─── Events ──────────────────────────────────────
+              if (selectedDay.hasEvent) ...[
+                _SectionHeader(
+                  title: l10n.sectionEvents,
+                  icon: Icons.event,
+                ),
+                const SizedBox(height: 8),
+                ...selectedDay.events.map(
+                  (e) => _EventCard(event: e, l10n: l10n),
+                ),
+                const SizedBox(height: 20),
+              ],
+
+              // ─── Reminders ───────────────────────────────────
+              if (selectedDay.hasReminder) ...[
+                _SectionHeader(
+                  title: l10n.sectionReminders,
+                  icon: Icons.notifications,
+                ),
+                const SizedBox(height: 8),
+                ...selectedDay.reminders.map(
+                  (r) => _ReminderCard(reminder: r, l10n: l10n),
+                ),
+                const SizedBox(height: 20),
+              ],
+
+              // ─── No data ─────────────────────────────────────
+              if (!selectedDay.hasAnyItem)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 32),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.event_available,
+                          size: 48,
+                          color: theme.colorScheme.onSurfaceVariant
+                              .withOpacity(0.4),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          l10n.noDataAvailable,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+              // ─── Action Buttons ───────────────────────────────
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => context.push(
+                        RouteNames.calendarAddEvent,
+                        extra: selectedDay.gregorianDate,
+                      ),
+                      icon: const Icon(Icons.add, size: 18),
+                      label: Text(l10n.addEvent),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => context.push(
+                        RouteNames.calendarAddReminder,
+                        extra: selectedDay.gregorianDate,
+                      ),
+                      icon: const Icon(Icons.alarm_add, size: 18),
+                      label: Text(l10n.addReminder),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
         ),
       ),
     );

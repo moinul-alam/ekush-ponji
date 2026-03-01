@@ -101,6 +101,15 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get retry => 'পুনরায় চেষ্টা করুন';
 
+  @override
+  String get calendarShortGregorian => 'খ্রিস্টাব্দ';
+
+  @override
+  String get calendarShortBangla => 'বঙ্গাব্দ';
+
+  @override
+  String get calendarShortHijri => 'হিজরি';
+
   // ========================================
   // HOME SCREEN
   // ========================================
@@ -165,6 +174,35 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get yesterday => 'গতকাল';
 
+  @override
+  String get eventTitle => 'ইভেন্টের বিষয়';
+
+  @override
+  String get eventSubtitle => 'ইভেন্টের বিবরণ যোগ করুন';
+
+  @override
+  String get reminderTitle => 'রিমাইন্ডারের বিষয়';
+
+  @override
+  String get reminderSubtitle => 'রিমাইন্ডারের বিবরণ যোগ করুন';
+
+  @override
+  String get location => 'লোকেশন';
+
+  @override
+  String get locationSubtitle => 'ইভেন্টের লোকেশন যোগ করুন';
+
+  @override
+  String get description => 'বিবরণ';
+
+  @override
+  String get descriptionSubtitle => 'ইভেন্টের বিস্তারিত বিবরণ যোগ করুন';
+
+  @override
+  String get notes => 'নোট';
+
+  @override
+  String get notesSubtitle => 'ইভেন্টের জন্য অতিরিক্ত নোট যোগ করুন';
   // ========================================
   // DRAWER
   // ========================================
@@ -284,7 +322,7 @@ class AppLocalizationsBn extends AppLocalizations {
   String get failedToLoadData => 'ডেটা লোড করতে ব্যর্থ';
 
   @override
-  String get noDataAvailable => 'কোন ডেটা উপলব্ধ নেই';
+  String get noDataAvailable => 'কোন ইভেন্ট বা রিমাইন্ডার যোগ করা হয়নি';
 
   // ========================================
   // CALENDAR

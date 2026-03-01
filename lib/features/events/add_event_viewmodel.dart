@@ -21,6 +21,7 @@ class AddEventViewModel extends BaseViewModel {
   EventCategory category = EventCategory.personal;
   bool isAllDay = false;
   String? notes;
+  bool notifyAtStartTime = true;
   String? validationError;
 
   @override
@@ -39,6 +40,7 @@ class AddEventViewModel extends BaseViewModel {
     category = EventCategory.personal;
     isAllDay = false;
     notes = null;
+    notifyAtStartTime = true;
     validationError = null;
     state = const ViewStateInitial();
   }
@@ -54,6 +56,7 @@ class AddEventViewModel extends BaseViewModel {
     category = event.category;
     isAllDay = event.isAllDay;
     notes = event.notes;
+    notifyAtStartTime = event.notifyAtStartTime;
     validationError = null;
     state = ViewStateSuccess();
   }
@@ -68,6 +71,11 @@ class AddEventViewModel extends BaseViewModel {
   void setDescription(String? value) => description = value;
   void setLocation(String? value) => location = value;
   void setNotes(String? value) => notes = value;
+
+  void setNotifyAtStartTime(bool value) {
+    notifyAtStartTime = value;
+    state = ViewStateSuccess();
+  }
 
   void setCategory(EventCategory value) {
     category = value;
@@ -133,6 +141,7 @@ class AddEventViewModel extends BaseViewModel {
           category: category,
           isAllDay: isAllDay,
           notes: notes?.trim(),
+          notifyAtStartTime: notifyAtStartTime,
         );
 
         if (isEditMode) {

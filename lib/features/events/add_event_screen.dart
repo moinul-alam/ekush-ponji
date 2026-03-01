@@ -27,6 +27,7 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
   final _descriptionController = TextEditingController();
   final _locationController = TextEditingController();
   final _notesController = TextEditingController();
+  final _titleFocusNode = FocusNode();
 
   @override
   void initState() {
@@ -51,6 +52,8 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
         if (widget.prefilledDate != null) {
           viewModel.prefillDate(widget.prefilledDate!);
         }
+        // Request focus on title field in add mode
+        _titleFocusNode.requestFocus();
       }
     });
   }
@@ -61,6 +64,7 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
     _descriptionController.dispose();
     _locationController.dispose();
     _notesController.dispose();
+    _titleFocusNode.dispose();
     super.dispose();
   }
 
@@ -78,7 +82,8 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Event'),
-        content: const Text('Are you sure you want to delete this event? This action cannot be undone.'),
+        content: const Text(
+            'Are you sure you want to delete this event? This action cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -126,7 +131,7 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
     ref.listen(addEventViewModelProvider, (prev, next) {
       if (next is ViewStateSuccess && next.message != null) {
         _showSnackbar(next.message!);
-        context.pop(); // pops back to DayDetailsScreen
+        context.pop();
       }
       if (next is ViewStateError) {
         _showSnackbar(next.message, isError: true);
@@ -138,7 +143,7 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
         title: Text(isEditMode ? l10n.editEvent : l10n.addEvent),
         centerTitle: true,
         actions: [
-          // ── Delete button (edit mode only) ──
+          // ── Delete button ──
           if (isEditMode)
             IconButton(
               onPressed: isLoading ? null : _onDelete,
@@ -173,54 +178,37 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
             // ─── Title ─────────────────────────────────────
             TextField(
               controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Title',
-                hintText: 'Add event title',
-                prefixIcon: Icon(Icons.title),
+              focusNode: _titleFocusNode,
+              decoration: InputDecoration(
+                labelText: l10n.eventTitle,
+                hintText: l10n.eventSubtitle,
+                prefixIcon: const Icon(Icons.title),
               ),
               textCapitalization: TextCapitalization.sentences,
             ),
             const SizedBox(height: 16),
 
-            // ─── All Day Toggle ─────────────────────────────
-            _AllDayToggle(viewModel: viewModel, l10n: l10n),
-            const SizedBox(height: 16),
-
-            // ─── Start Date / Time ──────────────────────────
+            // ─── Date + Time Picker ─────────────────────────
             _DateTimePicker(
-              label: l10n.fromDate,
+              label: l10n.selectDate,
               icon: Icons.calendar_today,
               dateTime: viewModel.startTime,
-              showTime: !viewModel.isAllDay,
               onPick: (dt) => viewModel.setStartTime(dt),
               l10n: l10n,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
 
-            // ─── End Date / Time ────────────────────────────
-            if (!viewModel.isAllDay) ...[
-              _DateTimePicker(
-                label: l10n.toDate,
-                icon: Icons.calendar_today_outlined,
-                dateTime: viewModel.endTime,
-                showTime: true,
-                onPick: (dt) => viewModel.setEndTime(dt),
-                l10n: l10n,
-              ),
-              const SizedBox(height: 12),
-            ],
-
-            // ─── Category ───────────────────────────────────
-            _CategorySelector(viewModel: viewModel, l10n: l10n),
+            // ─── Notification Toggle ────────────────────────
+            _NotificationToggle(viewModel: viewModel, l10n: l10n),
             const SizedBox(height: 16),
 
             // ─── Location ───────────────────────────────────
             TextField(
               controller: _locationController,
-              decoration: const InputDecoration(
-                labelText: 'Location',
-                hintText: 'Add location',
-                prefixIcon: Icon(Icons.location_on_outlined),
+              decoration: InputDecoration(
+                labelText: l10n.location,
+                hintText: l10n.locationSubtitle,
+                prefixIcon: const Icon(Icons.location_on_outlined),
               ),
             ),
             const SizedBox(height: 16),
@@ -229,10 +217,10 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
             TextField(
               controller: _descriptionController,
               maxLines: 3,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                hintText: 'Add description',
-                prefixIcon: Icon(Icons.notes),
+              decoration: InputDecoration(
+                labelText: l10n.description,
+                hintText: l10n.descriptionSubtitle,
+                prefixIcon: const Icon(Icons.notes),
                 alignLabelWithHint: true,
               ),
             ),
@@ -242,10 +230,10 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
             TextField(
               controller: _notesController,
               maxLines: 2,
-              decoration: const InputDecoration(
-                labelText: 'Notes',
-                hintText: 'Add notes',
-                prefixIcon: Icon(Icons.note_outlined),
+              decoration: InputDecoration(
+                labelText: l10n.notes,
+                hintText: l10n.notesSubtitle,
+                prefixIcon: const Icon(Icons.note_outlined),
                 alignLabelWithHint: true,
               ),
             ),
@@ -276,12 +264,12 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
   }
 }
 
-// ─── All Day Toggle ────────────────────────────────────────────
-class _AllDayToggle extends ConsumerWidget {
+// ─── Notification Toggle ───────────────────────────────────────
+class _NotificationToggle extends ConsumerWidget {
   final AddEventViewModel viewModel;
   final AppLocalizations l10n;
 
-  const _AllDayToggle({required this.viewModel, required this.l10n});
+  const _NotificationToggle({required this.viewModel, required this.l10n});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -289,25 +277,40 @@ class _AllDayToggle extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.4),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              Icon(Icons.wb_sunny_outlined,
-                  size: 20, color: theme.colorScheme.primary),
-              const SizedBox(width: 12),
-              Text(l10n.allDay, style: theme.textTheme.bodyMedium),
-            ],
+          Icon(
+            viewModel.notifyAtStartTime
+                ? Icons.notifications_active_outlined
+                : Icons.notifications_off_outlined,
+            size: 20,
+            color: viewModel.notifyAtStartTime
+                ? theme.colorScheme.primary
+                : theme.colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(l10n.notifications, style: theme.textTheme.bodyMedium),
+                Text(
+                  'Remind me at event start time',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
           ),
           Switch(
-            value: viewModel.isAllDay,
-            onChanged: viewModel.setIsAllDay,
+            value: viewModel.notifyAtStartTime,
+            onChanged: viewModel.setNotifyAtStartTime,
           ),
         ],
       ),
@@ -320,7 +323,6 @@ class _DateTimePicker extends ConsumerWidget {
   final String label;
   final IconData icon;
   final DateTime? dateTime;
-  final bool showTime;
   final void Function(DateTime) onPick;
   final AppLocalizations l10n;
 
@@ -328,7 +330,6 @@ class _DateTimePicker extends ConsumerWidget {
     required this.label,
     required this.icon,
     required this.dateTime,
-    required this.showTime,
     required this.onPick,
     required this.l10n,
   });
@@ -364,7 +365,7 @@ class _DateTimePicker extends ConsumerWidget {
                   const SizedBox(height: 2),
                   Text(
                     dateTime != null
-                        ? _formatDateTime(dateTime!, showTime)
+                        ? _formatDateTime(dateTime!)
                         : l10n.selectDate,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: dateTime != null
@@ -383,13 +384,13 @@ class _DateTimePicker extends ConsumerWidget {
     );
   }
 
-  String _formatDateTime(DateTime dt, bool withTime) {
-    final date =
-        '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
-    if (!withTime) return date;
-    final time =
-        '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
-    return '$date  $time';
+  String _formatDateTime(DateTime dt) {
+    final day = l10n.localizeNumber(dt.day);
+    final monthName = l10n.getMonthName(dt.month);
+    final year = l10n.localizeNumber(dt.year);
+    final hour = l10n.localizeNumber(dt.hour.toString().padLeft(2, '0'));
+    final minute = l10n.localizeNumber(dt.minute.toString().padLeft(2, '0'));
+    return '$day $monthName $year  $hour:$minute';
   }
 
   Future<void> _pick(BuildContext context) async {
@@ -402,11 +403,6 @@ class _DateTimePicker extends ConsumerWidget {
       lastDate: DateTime(2100),
     );
     if (pickedDate == null) return;
-
-    if (!showTime) {
-      onPick(pickedDate);
-      return;
-    }
 
     if (!context.mounted) return;
     final pickedTime = await showTimePicker(
@@ -424,72 +420,3 @@ class _DateTimePicker extends ConsumerWidget {
     ));
   }
 }
-
-// ─── Category Selector ─────────────────────────────────────────
-class _CategorySelector extends ConsumerWidget {
-  final AddEventViewModel viewModel;
-  final AppLocalizations l10n;
-
-  const _CategorySelector({required this.viewModel, required this.l10n});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    ref.watch(addEventViewModelProvider);
-    final theme = Theme.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Category',
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: EventCategory.values.map((category) {
-            final isSelected = viewModel.category == category;
-            return ChoiceChip(
-              label: Text(_categoryLabel(category, l10n)),
-              selected: isSelected,
-              onSelected: (_) => viewModel.setCategory(category),
-              selectedColor: theme.colorScheme.primaryContainer,
-              labelStyle: theme.textTheme.labelMedium?.copyWith(
-                color: isSelected
-                    ? theme.colorScheme.onPrimaryContainer
-                    : theme.colorScheme.onSurfaceVariant,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              ),
-            );
-          }).toList(),
-        ),
-      ],
-    );
-  }
-
-  String _categoryLabel(EventCategory category, AppLocalizations l10n) {
-    switch (category) {
-      case EventCategory.work:
-        return l10n.categoryWork;
-      case EventCategory.personal:
-        return l10n.categoryPersonal;
-      case EventCategory.family:
-        return l10n.categoryFamily;
-      case EventCategory.health:
-        return l10n.categoryHealth;
-      case EventCategory.education:
-        return l10n.categoryEducation;
-      case EventCategory.social:
-        return l10n.categorySocial;
-      case EventCategory.other:
-        return l10n.categoryOther;
-    }
-  }
-}
-
-// **Note:** You'll need to add `editEvent` to your `AppLocalizations` (arb files):
-// ```
-// "editEvent": "Edit Event"

@@ -41,6 +41,7 @@ class Event {
   final bool isAllDay;
   final String? notes;
   final List<String>? attendees;
+  final bool notifyAtStartTime;
 
   Event({
     String? id,
@@ -53,6 +54,7 @@ class Event {
     this.isAllDay = false,
     this.notes,
     this.attendees,
+    this.notifyAtStartTime = true,
   }) : id = id ?? DateTime.now().millisecondsSinceEpoch.toString();
 
   /// Get the date of this event (ignoring time)
@@ -101,7 +103,7 @@ class Event {
     final startHour = startTime.hour.toString().padLeft(2, '0');
     final startMinute = startTime.minute.toString().padLeft(2, '0');
     if (endTime == null) return '$startHour:$startMinute';
-    
+
     final endHour = endTime!.hour.toString().padLeft(2, '0');
     final endMinute = endTime!.minute.toString().padLeft(2, '0');
     return '$startHour:$startMinute - $endHour:$endMinute';
@@ -119,6 +121,7 @@ class Event {
     bool? isAllDay,
     String? notes,
     List<String>? attendees,
+    bool? notifyAtStartTime,
   }) {
     return Event(
       id: id ?? this.id,
@@ -131,6 +134,7 @@ class Event {
       isAllDay: isAllDay ?? this.isAllDay,
       notes: notes ?? this.notes,
       attendees: attendees ?? this.attendees,
+      notifyAtStartTime: notifyAtStartTime ?? this.notifyAtStartTime,
     );
   }
 
@@ -147,6 +151,7 @@ class Event {
       'isAllDay': isAllDay,
       'notes': notes,
       'attendees': attendees,
+      'notifyAtStartTime': notifyAtStartTime,
     };
   }
 
@@ -170,6 +175,7 @@ class Event {
       attendees: (json['attendees'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
+      notifyAtStartTime: json['notifyAtStartTime'] as bool? ?? true,
     );
   }
 

@@ -1,3 +1,5 @@
+// lib/features/calendar/calendar_viewmodel.dart
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ekush_ponji/core/base/base_viewmodel.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
@@ -124,6 +126,12 @@ class CalendarViewModel extends BaseViewModel {
     state = ViewStateSuccess();
   }
 
+  /// Force refresh the currently selected day by invalidating its cache
+  Future<void> refreshSelectedDay() async {
+    if (_selectedDate == null) return;
+    await invalidateCacheForDate(_selectedDate!);
+  }
+
   /// Invalidate cache for a specific month and reload if it's currently displayed
   Future<void> invalidateCacheForDate(DateTime date) async {
     final key = '${date.year}-${date.month}';
@@ -136,7 +144,7 @@ class CalendarViewModel extends BaseViewModel {
       // Preserve selected date across reload
       final preserved = _selectedDate;
       await jumpToMonth(date.year, date.month);
-      // Re-select the date so DayDetailsPanel updates too
+      // Re-select the date so DayDetailsScreen updates too
       if (preserved != null) {
         selectDate(preserved);
       }

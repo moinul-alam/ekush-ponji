@@ -102,6 +102,15 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get retry => 'Retry';
 
+  @override
+  String get calendarShortGregorian => 'AD';
+
+  @override
+  String get calendarShortBangla => 'BS';
+
+  @override
+  String get calendarShortHijri => 'AH';
+
   // ========================================
   // HOME SCREEN
   // ========================================
@@ -166,6 +175,36 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get yesterday => 'Yesterday';
 
+  @override
+  String get eventTitle => 'Event Title';
+
+  @override
+  String get eventSubtitle => 'Add an event for this day';
+
+  @override
+  String get reminderTitle => 'Reminder Title';
+
+  @override
+  String get reminderSubtitle => 'Set a reminder for this event';
+
+  @override
+  String get location => 'Location';
+
+  @override
+  String get locationSubtitle => 'Where is the event taking place?';
+
+  @override
+  String get description => 'Description';
+
+  @override
+  String get descriptionSubtitle => 'Add more details about the event';
+
+  @override
+  String get notes => 'Notes';
+
+  @override
+  String get notesSubtitle => 'Additional notes or comments about the event';
+  
   // ========================================
   // DRAWER
   // ========================================
@@ -285,7 +324,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get failedToLoadData => 'Failed to load data';
 
   @override
-  String get noDataAvailable => 'No data available';
+  String get noDataAvailable => 'No events or reminders added yet';
 
   // ========================================
   // CALENDAR

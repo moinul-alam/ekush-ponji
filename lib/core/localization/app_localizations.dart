@@ -170,7 +170,16 @@ abstract class AppLocalizations {
   String get today;
   String get tomorrow;
   String get yesterday;
-
+  String get eventTitle;
+  String get eventSubtitle;
+  String get reminderTitle;
+  String get reminderSubtitle;
+  String get location;
+  String get locationSubtitle;
+  String get description;
+  String get descriptionSubtitle;
+  String get notes;
+  String get notesSubtitle;
   // Drawer
   String get profile;
   String get about;
@@ -205,6 +214,10 @@ abstract class AppLocalizations {
   String get resetSettingsConfirmMessage;
   String get resetSettingsSubtitle;
 
+  // Calendar Types
+  String get calendarShortGregorian;
+  String get calendarShortBangla;
+  String get calendarShortHijri;
 
   // Messages
   String get comingSoon;
