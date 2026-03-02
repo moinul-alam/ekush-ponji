@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 
-/// A consistent wrapper for all home screen widgets
 /// Provides uniform styling, spacing, and optional decorations
 class HomeSectionWidget extends StatelessWidget {
   final String? title;

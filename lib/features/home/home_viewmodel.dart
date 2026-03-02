@@ -1,15 +1,22 @@
+// features/home/home_viewmodel.dart
+
 import 'package:ekush_ponji/core/base/base_viewmodel.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ekush_ponji/features/home/models/holiday.dart';
 import 'package:ekush_ponji/features/home/models/event.dart';
 import 'package:ekush_ponji/features/calendar/data/calendar_repository.dart';
+import 'package:ekush_ponji/features/events/data/event_repository.dart';
 
 class HomeViewModel extends BaseViewModel {
   final CalendarRepository _calendarRepository;
+  final EventRepository _eventRepository;
 
-  HomeViewModel({CalendarRepository? calendarRepository})
-      : _calendarRepository = calendarRepository ?? CalendarRepository();
+  HomeViewModel({
+    CalendarRepository? calendarRepository,
+    EventRepository? eventRepository,
+  })  : _calendarRepository = calendarRepository ?? CalendarRepository(),
+        _eventRepository = eventRepository ?? EventRepository();
 
   List<Holiday> _holidays = [];
   List<Event> _events = [];
@@ -26,110 +33,46 @@ class HomeViewModel extends BaseViewModel {
   }
 
   Future<void> loadHomeData() async {
-  await executeAsync(
-    operation: () async {
-      // _userName = 'User';
+    await executeAsync(
+      operation: () async {
+        final now = DateTime.now();
 
-      final now = DateTime.now();
-      await _calendarRepository.syncHolidaysIfNeeded(now.year);
+        await _calendarRepository.syncHolidaysIfNeeded(now.year);
 
-      // Fetch current month holidays then filter to upcoming only
-      final monthHolidays = await _calendarRepository.getHolidaysForMonth(
-        now.year,
-        now.month,
-      );
+        final monthHolidays = await _calendarRepository.getHolidaysForMonth(
+          now.year,
+          now.month,
+        );
+        _holidays = monthHolidays.where((h) => h.daysUntil >= 0).toList();
 
-      _holidays = monthHolidays
-          .where((h) => h.daysUntil >= 0)
-          .toList();
-
-      _events = [];
-    },
-    loadingMessage: 'Loading home data...',
-    successMessage: null,
-    showLoading: true,
-    setSuccessState: true,
-  );
-}
-
-@override
-Future<bool> refresh() async {
-  return await executeAsync(
-    operation: () async {
-      // _userName = 'User';
-
-      final now = DateTime.now();
-      await _calendarRepository.syncHolidaysIfNeeded(now.year);
-
-      final monthHolidays = await _calendarRepository.getHolidaysForMonth(
-        now.year,
-        now.month,
-      );
-
-      _holidays = monthHolidays
-          .where((h) => h.daysUntil >= 0)
-          .toList();
-
-      _events = [];
-    },
-    showLoading: false,
-    setSuccessState: false,
-  );
-}
-
-  // ------------------- Sample Data (quote & word — kept until models ready) -------------------
-
-  Map<String, String> get dailyQuote {
-    final quotes = [
-      {
-        'text': 'The only way to do great work is to love what you do.',
-        'author': 'Steve Jobs',
-        'category': 'Motivation',
+        _events = await _eventRepository.getEventsForDate(now);
       },
-      {
-        'text':
-            'Success is not final, failure is not fatal: it is the courage to continue that counts.',
-        'author': 'Winston Churchill',
-        'category': 'Success',
-      },
-      {
-        'text': 'Believe you can and you\'re halfway there.',
-        'author': 'Theodore Roosevelt',
-        'category': 'Inspiration',
-      },
-    ];
-
-    final dayOfYear =
-        DateTime.now().difference(DateTime(DateTime.now().year, 1, 1)).inDays;
-    return quotes[dayOfYear % quotes.length];
+      loadingMessage: 'Loading home data...',
+      successMessage: null,
+      showLoading: true,
+      setSuccessState: true,
+    );
   }
 
-  Map<String, String> get dailyWord {
-    final words = [
-      {
-        'word': 'Serendipity',
-        'pronunciation': '/ˌserənˈdipədē/',
-        'partOfSpeech': 'noun',
-        'meaning':
-            'The occurrence of events by chance in a happy or beneficial way.',
-        'synonym': 'Luck, fortune, chance',
-        'example':
-            'A fortunate stroke of serendipity brought the two old friends together after many years.',
-      },
-      {
-        'word': 'Eloquent',
-        'pronunciation': '/ˈeləkwənt/',
-        'partOfSpeech': 'adjective',
-        'meaning': 'Fluent or persuasive in speaking or writing.',
-        'synonym': 'Articulate, expressive, fluent',
-        'example':
-            'The lawyer made an eloquent plea for his client\'s innocence.',
-      },
-    ];
+  @override
+  Future<bool> refresh() async {
+    return await executeAsync(
+      operation: () async {
+        final now = DateTime.now();
 
-    final dayOfYear =
-        DateTime.now().difference(DateTime(DateTime.now().year, 1, 1)).inDays;
-    return words[dayOfYear % words.length];
+        await _calendarRepository.syncHolidaysIfNeeded(now.year);
+
+        final monthHolidays = await _calendarRepository.getHolidaysForMonth(
+          now.year,
+          now.month,
+        );
+        _holidays = monthHolidays.where((h) => h.daysUntil >= 0).toList();
+
+        _events = await _eventRepository.getEventsForDate(now);
+      },
+      showLoading: false,
+      setSuccessState: false,
+    );
   }
 }
 

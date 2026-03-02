@@ -9,7 +9,7 @@ import 'package:ekush_ponji/features/home/home_viewmodel.dart';
 import 'package:ekush_ponji/features/home/widgets/app_greeter.dart';
 import 'package:ekush_ponji/features/home/widgets/today_date_widget.dart';
 import 'package:ekush_ponji/features/home/widgets/home_holidays_widget.dart';
-// import 'package:ekush_ponji/features/home/widgets/home_events_widget.dart';
+import 'package:ekush_ponji/features/home/widgets/home_events_widget.dart';
 import 'package:ekush_ponji/features/home/widgets/daily_quote_widget.dart';
 import 'package:ekush_ponji/features/home/widgets/daily_word_widget.dart';
 
@@ -70,7 +70,7 @@ class _HomeScreenState extends BaseScreenState<HomeScreen> {
       return buildErrorWidget(viewState);
     }
 
-    final viewModel = ref.read(homeViewModelProvider.notifier);
+    final viewModel = ref.watch(homeViewModelProvider.notifier);
 
     return Stack(
       children: [
@@ -87,10 +87,10 @@ class _HomeScreenState extends BaseScreenState<HomeScreen> {
                 holidays: viewModel.holidays,
               ),
               const SizedBox(height: 8),
-              // UpcomingEventsWidget(
-              //   events: viewModel.events,
-              // ),
-              // const SizedBox(height: 8),
+              UpcomingEventsWidget(
+                events: viewModel.events,
+              ),
+              const SizedBox(height: 8),
               const DailyQuoteWidget(),
               const SizedBox(height: 8),
               const DailyWordWidget(),
