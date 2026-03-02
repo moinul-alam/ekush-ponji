@@ -10,8 +10,6 @@ import 'package:ekush_ponji/app/providers/app_providers.dart';
 class SettingsViewModel extends BaseViewModel {
   static const String _notificationsKey = 'notifications_enabled';
   static const String _autoBackupKey = 'auto_backup_enabled';
-  // Sound and vibration keys kept in storage for forward-compatibility,
-  // but are no longer exposed in the UI (OS handles those settings).
 
   bool _notificationsEnabled = true;
   bool _autoBackupEnabled = false;
