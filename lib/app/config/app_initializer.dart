@@ -1,10 +1,16 @@
+// lib/app/config/app_initializer.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ekush_ponji/core/themes/app_theme.dart';
 import 'package:ekush_ponji/features/home/models/holiday.dart';
-import 'package:ekush_ponji/core/services/sync_service.dart'; 
+import 'package:ekush_ponji/core/services/sync_service.dart';
+import 'package:ekush_ponji/features/quotes/models/quote.dart';
+import 'package:ekush_ponji/features/words/models/word.dart';
+import 'package:ekush_ponji/features/quotes/data/datasources/local/quotes_local_datasource.dart';
+import 'package:ekush_ponji/features/words/data/datasources/local/words_local_datasource.dart';
 
 class AppInitializer {
   /// Initialize app services
@@ -15,8 +21,8 @@ class AppInitializer {
       await _registerHiveAdapters();
       await _openHiveBoxes();
       await _initializeSharedPreferences();
-      await _performInitialSync(); 
-      
+      await _performInitialSync();
+
       debugPrint('✅ App initialization completed successfully');
     } catch (e, stackTrace) {
       debugPrint('❌ App initialization failed: $e');
@@ -45,6 +51,8 @@ class AppInitializer {
     try {
       Hive.registerAdapter(HolidayAdapter());
       Hive.registerAdapter(HolidayTypeAdapter());
+      Hive.registerAdapter(QuoteModelAdapter());
+      Hive.registerAdapter(WordModelAdapter());
       debugPrint('✅ Hive adapters registered successfully');
     } catch (e) {
       debugPrint('❌ Failed to register Hive adapters: $e');
@@ -57,7 +65,9 @@ class AppInitializer {
     try {
       await Hive.openBox('settings');
       await Hive.openBox('holidays');
-      debugPrint('✅ Settings and holidays boxes opened successfully');
+      await Hive.openBox<QuoteModel>(savedQuotesBoxName);
+      await Hive.openBox<WordModel>(savedWordsBoxName);
+      debugPrint('✅ All Hive boxes opened successfully');
     } catch (e) {
       debugPrint('❌ Failed to open Hive boxes: $e');
       rethrow;
@@ -78,10 +88,10 @@ class AppInitializer {
   static Future<void> _performInitialSync() async {
     try {
       debugPrint('🔄 Starting initial holiday sync...');
-      
+
       final syncService = SyncService();
       final success = await syncService.syncHolidays();
-      
+
       if (success) {
         debugPrint('✅ Initial holiday sync completed successfully');
       } else {

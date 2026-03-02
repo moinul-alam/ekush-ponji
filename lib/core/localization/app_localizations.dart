@@ -180,6 +180,9 @@ abstract class AppLocalizations {
   String get descriptionSubtitle;
   String get notes;
   String get notesSubtitle;
+  String get savedQuotes; 
+  String get savedWords;
+
   // Drawer
   String get profile;
   String get about;

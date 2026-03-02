@@ -204,6 +204,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notesSubtitle => 'Additional notes or comments about the event';
+
+  @override
+  String get savedQuotes => 'Saved Quotes';
+
+  @override
+  String get savedWords => 'Saved Words';
   
   // ========================================
   // DRAWER

@@ -11,10 +11,14 @@ import 'package:ekush_ponji/features/reminders/add_reminder_screen.dart';
 import 'package:ekush_ponji/features/prayer_times/prayer_times_screen.dart';
 import 'package:ekush_ponji/features/calculator/calculator_screen.dart';
 import 'package:ekush_ponji/features/settings/settings_screen.dart';
+import 'package:ekush_ponji/features/quotes/quotes_screen.dart';
+import 'package:ekush_ponji/features/quotes/saved_quotes_screen.dart';
+import 'package:ekush_ponji/features/words/words_screen.dart';
+import 'package:ekush_ponji/features/words/saved_words_screen.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
 import 'package:ekush_ponji/core/widgets/navigation/app_bottom_nav.dart';
-import 'package:ekush_ponji/features/home/models/event.dart';       // ← new
-import 'package:ekush_ponji/features/home/models/reminder.dart';    // ← new
+import 'package:ekush_ponji/features/home/models/event.dart';
+import 'package:ekush_ponji/features/home/models/reminder.dart';
 
 class AppRouter {
   AppRouter._();
@@ -74,7 +78,6 @@ class AppRouter {
                       prefilledDate: state.extra as DateTime?,
                     ),
                   ),
-                  // ── new ──────────────────────────────────
                   GoRoute(
                     path: 'edit-event',
                     name: 'calendarEditEvent',
@@ -89,7 +92,6 @@ class AppRouter {
                       reminderToEdit: state.extra as Reminder,
                     ),
                   ),
-                  // ─────────────────────────────────────────
                 ],
               ),
             ],
@@ -152,30 +154,32 @@ class AppRouter {
         builder: (context, state) =>
             const _PlaceholderScreen(title: 'Add Reminder'),
       ),
+
+      // Quotes
       GoRoute(
         path: RouteNames.quotes,
         name: 'quotes',
-        builder: (context, state) =>
-            const _PlaceholderScreen(title: 'Quotes'),
+        builder: (context, state) => const QuotesScreen(),
       ),
       GoRoute(
         path: RouteNames.savedQuotes,
         name: 'savedQuotes',
-        builder: (context, state) =>
-            const _PlaceholderScreen(title: 'Saved Quotes'),
+        builder: (context, state) => const SavedQuotesScreen(),
       ),
+
+      // Words
       GoRoute(
         path: RouteNames.words,
         name: 'words',
-        builder: (context, state) =>
-            const _PlaceholderScreen(title: 'Words'),
+        builder: (context, state) => const WordsScreen(),
       ),
       GoRoute(
         path: RouteNames.savedWords,
         name: 'savedWords',
-        builder: (context, state) =>
-            const _PlaceholderScreen(title: 'Saved Words'),
+        builder: (context, state) => const SavedWordsScreen(),
       ),
+
+      // Settings
       GoRoute(
         path: RouteNames.settings,
         name: 'settings',

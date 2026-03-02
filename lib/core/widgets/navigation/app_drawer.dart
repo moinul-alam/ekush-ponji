@@ -1,3 +1,5 @@
+// lib/core/widgets/navigation/app_drawer.dart
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
@@ -37,7 +39,6 @@ class AppDrawer extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                // Logo instead of avatar
                 Image.asset(
                   'assets/images/app_title.png',
                   height: 40,
@@ -53,7 +54,6 @@ class AppDrawer extends StatelessWidget {
                   },
                 ),
                 const SizedBox(height: 12),
-                // Username (only if available)
                 if (userName != null && userName!.isNotEmpty)
                   Text(
                     userName!,
@@ -62,9 +62,9 @@ class AppDrawer extends StatelessWidget {
                       color: colorScheme.onPrimaryContainer,
                     ),
                   ),
-                // Welcome to [appName]
                 Text(
-                  l10n.formatNamed(l10n.welcomeToApp, {'appName': l10n.appName}),
+                  l10n.formatNamed(
+                      l10n.welcomeToApp, {'appName': l10n.appName}),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSecondaryContainer,
                   ),
@@ -73,17 +73,7 @@ class AppDrawer extends StatelessWidget {
             ),
           ),
 
-          // Profile
-          // ListTile(
-          //   leading: const Icon(Icons.person_outline),
-          //   title: Text(l10n.profile),
-          //   onTap: () {
-          //     Navigator.pop(context);
-          //     _showComingSoon(context, l10n.profile);
-          //   },
-          // ),
-
-          // Calendar
+          // ── Main Navigation ───────────────────────────────
           ListTile(
             leading: const Icon(Icons.calendar_month_outlined),
             title: Text(l10n.navCalendar),
@@ -92,8 +82,6 @@ class AppDrawer extends StatelessWidget {
               context.push(RouteNames.calendar);
             },
           ),
-
-          // Prayer Times
           ListTile(
             leading: const Icon(Icons.mosque_outlined),
             title: Text(l10n.navPrayerTimes),
@@ -102,8 +90,6 @@ class AppDrawer extends StatelessWidget {
               context.push(RouteNames.prayerTimes);
             },
           ),
-
-          // Calculator
           ListTile(
             leading: const Icon(Icons.calculate_outlined),
             title: Text(l10n.navCalculator),
@@ -115,19 +101,49 @@ class AppDrawer extends StatelessWidget {
 
           const Divider(),
 
-          
+          // ── Quotes ────────────────────────────────────────
+          _SectionLabel(label: l10n.quoteOfTheDay),
+          ListTile(
+            leading: const Icon(Icons.format_quote_rounded),
+            title: Text(l10n.quoteOfTheDay),
+            onTap: () {
+              Navigator.pop(context);
+              context.push(RouteNames.quotes);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.bookmark_outline_rounded),
+            title: Text(l10n.savedQuotes),
+            onTap: () {
+              Navigator.pop(context);
+              context.push(RouteNames.savedQuotes);
+            },
+          ),
 
-          // // Help & Support
-          // ListTile(
-          //   leading: const Icon(Icons.help_outline),
-          //   title: Text(l10n.helpSupport),
-          //   onTap: () {
-          //     Navigator.pop(context);
-          //     _showComingSoon(context, l10n.helpSupport);
-          //   },
-          // ),
+          const Divider(),
 
-          // Settings
+          // ── Words ─────────────────────────────────────────
+          _SectionLabel(label: l10n.wordOfTheDay),
+          ListTile(
+            leading: const Icon(Icons.book_rounded),
+            title: Text(l10n.wordOfTheDay),
+            onTap: () {
+              Navigator.pop(context);
+              context.push(RouteNames.words);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.bookmark_outline_rounded),
+            title: Text(l10n.savedWords),
+            onTap: () {
+              Navigator.pop(context);
+              context.push(RouteNames.savedWords);
+            },
+          ),
+
+          const Divider(),
+
+          // ── App ───────────────────────────────────────────
           ListTile(
             leading: const Icon(Icons.settings_outlined),
             title: Text(l10n.settings),
@@ -136,8 +152,6 @@ class AppDrawer extends StatelessWidget {
               context.push(RouteNames.settings);
             },
           ),
-
-          // About
           ListTile(
             leading: const Icon(Icons.info_outline),
             title: Text(l10n.about),
@@ -154,8 +168,31 @@ class AppDrawer extends StatelessWidget {
   void _showComingSoon(BuildContext context, String feature) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('$feature - ${AppLocalizations.of(context).comingSoon}'),
+        content:
+            Text('$feature - ${AppLocalizations.of(context).comingSoon}'),
         duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+}
+
+// ─── Section Label ────────────────────────────────────────────
+class _SectionLabel extends StatelessWidget {
+  final String label;
+  const _SectionLabel({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      child: Text(
+        label.toUpperCase(),
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: theme.colorScheme.primary,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 1.2,
+        ),
       ),
     );
   }

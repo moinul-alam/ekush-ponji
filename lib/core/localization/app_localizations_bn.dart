@@ -203,6 +203,13 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get notesSubtitle => 'ইভেন্টের জন্য অতিরিক্ত নোট যোগ করুন';
+
+  @override
+  String get savedQuotes => 'সংরক্ষিত উক্তি';
+
+  @override
+  String get savedWords => 'সংরক্ষিত শব্দ';
+  
   // ========================================
   // DRAWER
   // ========================================
