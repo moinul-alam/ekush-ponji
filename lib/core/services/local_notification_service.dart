@@ -31,8 +31,7 @@ class LocalNotificationService {
       tz.setLocalLocation(tz.getLocation(deviceTimezone));
       debugPrint('✅ Timezone set to: $deviceTimezone');
     } catch (e) {
-      // Fallback: try to use a sensible default rather than silently using UTC
-      debugPrint('❌ Failed to get device timezone, falling back to UTC+6: $e');
+      debugPrint('❌ Failed to get device timezone, falling back to Asia/Dhaka: $e');
       tz.setLocalLocation(tz.getLocation('Asia/Dhaka'));
     }
 
@@ -144,6 +143,7 @@ class LocalNotificationService {
   // ── Tap Handler ───────────────────────────────────────────────────────────
 
   static void _onNotificationTapped(NotificationResponse response) {
+    // TODO: handle navigation on notification tap using go_router
     debugPrint('🔔 Notification tapped: id=${response.id}, payload=${response.payload}');
   }
 
