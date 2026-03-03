@@ -64,7 +64,8 @@ dependencies:
   path_provider: ^2.1.5
   auto_size_text: ^3.0.0
 
-  flutter_timezone: ^1.0.4
+  timezone_plus: ^1.0.0
+
 
 dev_dependencies:
   flutter_test:
