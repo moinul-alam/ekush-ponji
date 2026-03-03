@@ -51,15 +51,6 @@ class DailyQuoteWidget extends ConsumerWidget {
                   ),
                 ),
               ),
-              // Navigate to full quotes screen
-              IconButton(
-                onPressed: () => context.push(RouteNames.quotes),
-                icon: Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: 16,
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
             ],
           ),
 
@@ -80,6 +71,7 @@ class DailyQuoteWidget extends ConsumerWidget {
           else
             _QuoteContent(
               quote: vm.dailyQuote,
+              onOpen: () => context.push(RouteNames.quotes),
               onToggleSave: vm.dailyQuote != null
                   ? () => vm.toggleSave(vm.dailyQuote!)
                   : null,
@@ -92,9 +84,10 @@ class DailyQuoteWidget extends ConsumerWidget {
 
 class _QuoteContent extends StatelessWidget {
   final QuoteModel? quote;
+  final VoidCallback onOpen;
   final VoidCallback? onToggleSave;
 
-  const _QuoteContent({this.quote, this.onToggleSave});
+  const _QuoteContent({this.quote, required this.onOpen, this.onToggleSave});
 
   @override
   Widget build(BuildContext context) {
@@ -130,12 +123,19 @@ class _QuoteContent extends StatelessWidget {
           const SizedBox(height: 8),
 
           // Quote text
-          Text(
-            quote!.text,
-            style: theme.textTheme.bodyLarge?.copyWith(
-              color: colorScheme.onSurface,
-              fontStyle: FontStyle.italic,
-              height: 1.5,
+          InkWell(
+            onTap: onOpen,
+            borderRadius: BorderRadius.circular(10),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Text(
+                quote!.text,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.onSurface,
+                  fontStyle: FontStyle.italic,
+                  height: 1.5,
+                ),
+              ),
             ),
           ),
 

@@ -7,6 +7,8 @@ import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/features/reminders/add_reminder_viewmodel.dart';
 import 'package:ekush_ponji/features/home/models/reminder.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ekush_ponji/core/services/local_notification_service.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class AddReminderScreen extends ConsumerStatefulWidget {
   final DateTime? prefilledDate;
@@ -64,23 +66,25 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
   }
 
   Future<void> _onDelete() async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Reminder'),
-        content: const Text(
-            'Are you sure you want to delete this reminder? This action cannot be undone.'),
+        title: Text(l10n.deleteReminder),
+        content: Text(
+          l10n.deleteAllDataConfirmMessage,
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: TextButton.styleFrom(
               foregroundColor: Theme.of(context).colorScheme.error,
             ),
-            child: const Text('Delete'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -139,7 +143,7 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
                     ? theme.colorScheme.onSurfaceVariant
                     : theme.colorScheme.error,
               ),
-              tooltip: 'Delete reminder',
+              tooltip: l10n.deleteReminder,
             ),
           // ── Save button ──
           TextButton(
@@ -164,10 +168,10 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
             // ─── Title ─────────────────────────────────────
             TextField(
               controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Title',
-                hintText: 'Add reminder title',
-                prefixIcon: Icon(Icons.title),
+              decoration: InputDecoration(
+                labelText: l10n.reminderTitle,
+                hintText: l10n.reminderSubtitle,
+                prefixIcon: const Icon(Icons.title),
               ),
               textCapitalization: TextCapitalization.sentences,
             ),
@@ -193,10 +197,10 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
             TextField(
               controller: _descriptionController,
               maxLines: 3,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                hintText: 'Add description (optional)',
-                prefixIcon: Icon(Icons.notes),
+              decoration: InputDecoration(
+                labelText: l10n.description,
+                hintText: l10n.descriptionSubtitle,
+                prefixIcon: const Icon(Icons.notes),
                 alignLabelWithHint: true,
               ),
             ),
@@ -262,7 +266,7 @@ class _ReminderDateTimePicker extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Date & Time',
+                    l10n.selectDate,
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -339,7 +343,7 @@ class _PrioritySelector extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Priority',
+          l10n.priority,
           style: theme.textTheme.labelSmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
@@ -429,7 +433,38 @@ class _NotificationToggle extends ConsumerWidget {
           ),
           Switch(
             value: viewModel.notificationEnabled,
-            onChanged: viewModel.setNotificationEnabled,
+            onChanged: (val) async {
+              if (val) {
+                final ok = await LocalNotificationService.ensurePermission();
+                if (!ok) {
+                  viewModel.setNotificationEnabled(false);
+                  if (context.mounted) {
+                    await showDialog<void>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Text(l10n.notifications),
+                        content: Text(l10n.notificationsPermissionRequired),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: Text(l10n.cancel),
+                          ),
+                          TextButton(
+                            onPressed: () async {
+                              Navigator.of(context).pop();
+                              await openAppSettings();
+                            },
+                            child: Text(l10n.openSettings),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  return;
+                }
+              }
+              viewModel.setNotificationEnabled(val);
+            },
           ),
         ],
       ),

@@ -51,15 +51,6 @@ class DailyWordWidget extends ConsumerWidget {
                   ),
                 ),
               ),
-              // Navigate to full words screen
-              IconButton(
-                onPressed: () => context.push(RouteNames.words),
-                icon: Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: 16,
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
             ],
           ),
 
@@ -80,6 +71,7 @@ class DailyWordWidget extends ConsumerWidget {
           else
             _WordContent(
               word: vm.dailyWord,
+              onOpen: () => context.push(RouteNames.words),
               onToggleSave: vm.dailyWord != null
                   ? () => vm.toggleSave(vm.dailyWord!)
                   : null,
@@ -92,9 +84,10 @@ class DailyWordWidget extends ConsumerWidget {
 
 class _WordContent extends StatelessWidget {
   final WordModel? word;
+  final VoidCallback onOpen;
   final VoidCallback? onToggleSave;
 
-  const _WordContent({this.word, this.onToggleSave});
+  const _WordContent({this.word, required this.onOpen, this.onToggleSave});
 
   @override
   Widget build(BuildContext context) {
@@ -132,12 +125,19 @@ class _WordContent extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      word!.word,
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.tertiary,
-                        letterSpacing: 0.5,
+                    InkWell(
+                      onTap: onOpen,
+                      borderRadius: BorderRadius.circular(8),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Text(
+                          word!.word,
+                          style: theme.textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.tertiary,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 4),

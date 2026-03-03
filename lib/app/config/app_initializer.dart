@@ -11,6 +11,7 @@ import 'package:ekush_ponji/features/quotes/models/quote.dart';
 import 'package:ekush_ponji/features/words/models/word.dart';
 import 'package:ekush_ponji/features/quotes/data/datasources/local/quotes_local_datasource.dart';
 import 'package:ekush_ponji/features/words/data/datasources/local/words_local_datasource.dart';
+import 'package:ekush_ponji/core/services/local_notification_service.dart';
 
 class AppInitializer {
   /// Initialize app services
@@ -21,6 +22,7 @@ class AppInitializer {
       await _registerHiveAdapters();
       await _openHiveBoxes();
       await _initializeSharedPreferences();
+      await LocalNotificationService.initialize();
       await _performInitialSync();
 
       debugPrint('✅ App initialization completed successfully');

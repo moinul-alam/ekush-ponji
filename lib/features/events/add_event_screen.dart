@@ -7,6 +7,8 @@ import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/features/events/add_event_viewmodel.dart';
 import 'package:ekush_ponji/features/home/models/event.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ekush_ponji/core/services/local_notification_service.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class AddEventScreen extends ConsumerStatefulWidget {
   final DateTime? prefilledDate;
@@ -78,23 +80,25 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
   }
 
   Future<void> _onDelete() async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Event'),
-        content: const Text(
-            'Are you sure you want to delete this event? This action cannot be undone.'),
+        title: Text(l10n.deleteEvent),
+        content: Text(
+          l10n.deleteAllDataConfirmMessage,
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: TextButton.styleFrom(
               foregroundColor: Theme.of(context).colorScheme.error,
             ),
-            child: const Text('Delete'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -153,7 +157,7 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
                     ? theme.colorScheme.onSurfaceVariant
                     : theme.colorScheme.error,
               ),
-              tooltip: 'Delete event',
+              tooltip: l10n.deleteEvent,
             ),
           // ── Save button ──
           TextButton(
@@ -300,7 +304,7 @@ class _NotificationToggle extends ConsumerWidget {
               children: [
                 Text(l10n.notifications, style: theme.textTheme.bodyMedium),
                 Text(
-                  'Remind me at event start time',
+                  l10n.notifications,
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -310,7 +314,38 @@ class _NotificationToggle extends ConsumerWidget {
           ),
           Switch(
             value: viewModel.notifyAtStartTime,
-            onChanged: viewModel.setNotifyAtStartTime,
+            onChanged: (val) async {
+              if (val) {
+                final ok = await LocalNotificationService.ensurePermission();
+                if (!ok) {
+                  viewModel.setNotifyAtStartTime(false);
+                  if (context.mounted) {
+                    await showDialog<void>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Text(l10n.notifications),
+                        content: Text(l10n.notificationsPermissionRequired),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: Text(l10n.cancel),
+                          ),
+                          TextButton(
+                            onPressed: () async {
+                              Navigator.of(context).pop();
+                              await openAppSettings();
+                            },
+                            child: Text(l10n.openSettings),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  return;
+                }
+              }
+              viewModel.setNotifyAtStartTime(val);
+            },
           ),
         ],
       ),

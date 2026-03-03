@@ -6,6 +6,7 @@ import 'package:ekush_ponji/core/base/view_state.dart';
 import 'package:ekush_ponji/features/home/models/reminder.dart';
 import 'package:ekush_ponji/features/reminders/data/reminder_repository.dart';
 import 'package:ekush_ponji/features/calendar/calendar_viewmodel.dart';
+import 'package:ekush_ponji/core/services/calendar_notification_service.dart';
 
 class AddReminderViewModel extends BaseViewModel {
   late final ReminderRepository _repository;
@@ -109,6 +110,12 @@ class AddReminderViewModel extends BaseViewModel {
         ref
             .read(calendarViewModelProvider.notifier)
             .invalidateCacheForDate(dateTime!);
+
+        // Notifications (best-effort)
+        await CalendarNotificationService.cancelReminder(reminder);
+        if (reminder.notificationEnabled) {
+          await CalendarNotificationService.scheduleReminder(reminder);
+        }
       },
       loadingMessage: isEditMode ? 'Updating reminder...' : 'Saving reminder...',
       successMessage: isEditMode
@@ -127,6 +134,13 @@ class AddReminderViewModel extends BaseViewModel {
 
     return await executeAsync(
       operation: () async {
+        final reminder = Reminder(
+          id: _editingReminderId,
+          title: title,
+          dateTime: dateTime ?? DateTime.now(),
+          notificationEnabled: false,
+        );
+        await CalendarNotificationService.cancelReminder(reminder);
         await _repository.deleteReminder(_editingReminderId!);
 
         if (dateToInvalidate != null) {

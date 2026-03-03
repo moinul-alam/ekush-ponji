@@ -161,10 +161,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get example => 'Example';
 
   @override
-  String get inDays => 'In %d days';
+  String get inDays => 'In {count} days';
 
   @override
-  String get daysAgo => '%d days ago';
+  String get daysAgo => '{count} days ago';
 
   @override
   String get today => 'Today';
@@ -210,6 +210,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get savedWords => 'Saved Words';
+
+  @override
+  String get share => 'Share';
+
+  @override
+  String get adjustFontSize => 'Adjust font size';
+
+  @override
+  String get notificationsPermissionRequired =>
+      'Please allow notification permission to enable reminders.';
   
   // ========================================
   // DRAWER
@@ -312,6 +322,145 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get resetSettingsSubtitle => 'Reset all app settings to default values';
+
+  @override
+  String get languageBangla => 'Bangla';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get pageNotFound => 'Page not found';
+
+  @override
+  String get goToHome => 'Go to Home';
+
+  @override
+  String get backToHome => 'Back to Home';
+
+  @override
+  String get deleteEvent => 'Delete Event';
+
+  @override
+  String get deleteReminder => 'Delete Reminder';
+
+  @override
+  String get confirm => 'Confirm';
+  
+  // GPS
+  @override
+  String get updateLocation => 'Update location';
+
+  @override
+  String get detectingLocation => 'Detecting location...';
+
+  @override
+  String get updatingLocation => 'Updating location...';
+
+  @override
+  String get calculatingPrayerTimes => 'Calculating prayer times...';
+
+  @override
+  String get localtionServicesDisabled => 'Location services are disabled';
+
+  @override
+  String get locationPermissionRequired => 'Location permission is required';
+
+  @override
+  String get locationPermissionDenied => 'Location permission denied';
+
+  @override
+  String get enableLocationServicesForPrayerTimes => 'Please enable location services to get accurate prayer times';
+
+  @override
+  String get localtionServiceRequiredForPrayerTimes => 'Location services are required to calculate prayer times';
+
+  @override
+  String get locationServiceUsageForPrayerTimes => "Your location will be used to calculate accurate prayer times for your area";
+
+  @override
+  String get openSettings => 'Open Settings';
+
+  @override
+  String get getPrayerTimes => 'Get Prayer Times';
+
+  @override
+  String get prayerSettingsTitle => 'Prayer Settings';
+
+  @override
+  String get prayerCalculationMethod => 'Calculation Method';
+
+  @override
+  String get prayerMadhab => 'Madhab';
+
+  @override
+  String get prayerMadhabHanafi => 'Hanafi';
+
+  @override
+  String get prayerMadhabShafii => "Shafi'i";
+
+  @override
+  String get prayerNotificationsTitle => 'Prayer Notifications';
+
+  @override
+  String get prayerEnableNotifications => 'Enable Notifications';
+
+  @override
+  String get prayerNotificationsSubtitle => 'Get reminders for all prayers';
+
+  @override
+  String get prayerPerPrayerTitle => 'Per Prayer';
+
+  @override
+  String get prayerNotifyBeforeTitle => 'Notify Before Prayer';
+
+  @override
+  String get prayerNotifyOnTime => 'At time';
+
+  @override
+  String get prayerNotifyMinutesBefore => '{minutes} min before';
+
+  @override
+  String get prayerSectionSun => 'Sun';
+
+  @override
+  String get prayerSectionPrayers => 'Prayers';
+
+  @override
+  String get sunrise => 'Sunrise';
+
+  @override
+  String get sunset => 'Sunset';
+
+  @override
+  String get currentPrayer => 'Current Prayer';
+
+  @override
+  String get nextPrayer => 'Next Prayer';
+
+  @override
+  String get remainingTime => 'Remaining';
+
+  @override
+  String get prayerSectionForbiddenTimes => 'Forbidden Times';
+
+  @override
+  String get forbiddenTimeSunrise => 'Sunrise';
+
+  @override
+  String get forbiddenTimeZenith => 'Zenith (Noon)';
+
+  @override
+  String get forbiddenTimeSunset => 'Sunset';
+
+  @override
+  String get allPrayersCompletedToday =>
+      'All prayers completed for today';
+
+  @override
+  String get dayProgressTitle => "Today's Progress";
+
+  
 
   // ========================================
   // MESSAGES
@@ -424,6 +573,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get priorityUrgent => 'Urgent';
+
+  @override
+  String get priority => 'Priority';
 
   @override
   String getMonthAbbreviation(int month) {

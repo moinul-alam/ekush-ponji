@@ -19,6 +19,7 @@ import 'package:ekush_ponji/app/router/route_names.dart';
 import 'package:ekush_ponji/core/widgets/navigation/app_bottom_nav.dart';
 import 'package:ekush_ponji/features/home/models/event.dart';
 import 'package:ekush_ponji/features/home/models/reminder.dart';
+import 'package:ekush_ponji/core/localization/app_localizations.dart';
 
 class AppRouter {
   AppRouter._();
@@ -221,16 +222,17 @@ class _ErrorScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Error')),
+      appBar: AppBar(title: Text(l10n.error)),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.error_outline, size: 64, color: theme.colorScheme.error),
             const SizedBox(height: 16),
-            Text('Page not found', style: theme.textTheme.headlineSmall),
+            Text(l10n.pageNotFound, style: theme.textTheme.headlineSmall),
             const SizedBox(height: 8),
             Text(
               state.uri.toString(),
@@ -243,7 +245,7 @@ class _ErrorScreen extends StatelessWidget {
             ElevatedButton.icon(
               onPressed: () => context.go(RouteNames.home),
               icon: const Icon(Icons.home),
-              label: const Text('Go to Home'),
+              label: Text(l10n.goToHome),
             ),
           ],
         ),
@@ -259,6 +261,7 @@ class _PlaceholderScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(title: Text(title)),
@@ -272,7 +275,7 @@ class _PlaceholderScreen extends StatelessWidget {
             Text(title, style: theme.textTheme.headlineSmall),
             const SizedBox(height: 8),
             Text(
-              'Coming Soon...',
+              l10n.comingSoon,
               style: theme.textTheme.bodyLarge?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -281,7 +284,7 @@ class _PlaceholderScreen extends StatelessWidget {
             ElevatedButton.icon(
               onPressed: () => context.go(RouteNames.home),
               icon: const Icon(Icons.home),
-              label: const Text('Back to Home'),
+              label: Text(l10n.backToHome),
             ),
           ],
         ),

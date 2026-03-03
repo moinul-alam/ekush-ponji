@@ -25,8 +25,9 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
   @override
   void initState() {
     super.initState();
-    // Initialize notifications then load prayer times
-    PrayerNotificationService.initialize().then((_) {
+    // Initialize notifications, request permission once, then load prayer times
+    PrayerNotificationService.initialize().then((_) async {
+      await PrayerNotificationService.requestPermission();
       if (mounted) {
         ref.read(prayerTimesViewModelProvider.notifier).load();
       }
@@ -56,9 +57,7 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
           if (state.hasData)
             IconButton(
               icon: const Icon(Icons.my_location_rounded),
-              tooltip: l10n.languageCode == 'bn'
-                  ? 'অবস্থান আপডেট করুন'
-                  : 'Update location',
+              tooltip: l10n.updateLocation,
               onPressed: () =>
                   ref.read(prayerTimesViewModelProvider.notifier).updateLocation(),
             ),
@@ -92,12 +91,8 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
             const SizedBox(height: 20),
             Text(
               state.status == PrayerLoadStatus.locating
-                  ? (l10n.languageCode == 'bn'
-                      ? 'অবস্থান খুঁজছে...'
-                      : 'Detecting location...')
-                  : (l10n.languageCode == 'bn'
-                      ? 'নামাজের সময় হিসাব করছে...'
-                      : 'Calculating prayer times...'),
+                  ? l10n.detectingLocation
+                  : l10n.calculatingPrayerTimes,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: cs.onSurfaceVariant,
               ),
@@ -138,11 +133,9 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
 
             // ── Next prayer card ──────────────────────────
             NextPrayerCard(
+              times: times,
               nextPrayer: state.highlightedPrayer ?? times.nextPrayer,
-              nextPrayerTime: times.nextPrayer != null
-                  ? times.timeFor(times.nextPrayer!)
-                  : null,
-              countdown: state.countdown,
+              countdownToNextPrayer: state.countdown,
             ),
 
             // ── Timeline ──────────────────────────────────
@@ -190,23 +183,15 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
         : Icons.error_outline_rounded;
 
     final title = isDisabled
-        ? (l10n.languageCode == 'bn'
-            ? 'লোকেশন সার্ভিস বন্ধ'
-            : 'Location Service Disabled')
+        ? l10n.localtionServicesDisabled
         : isPermission
-            ? (l10n.languageCode == 'bn'
-                ? 'লোকেশন অনুমতি প্রয়োজন'
-                : 'Location Permission Required')
-            : (l10n.languageCode == 'bn' ? 'একটি সমস্যা হয়েছে' : 'Something went wrong');
+            ? l10n.locationPermissionRequired
+            : l10n.error;
 
     final subtitle = isDisabled
-        ? (l10n.languageCode == 'bn'
-            ? 'সঠিক নামাজের সময় পেতে ডিভাইসের লোকেশন চালু করুন।'
-            : 'Please enable location services on your device to get accurate prayer times.')
+        ? l10n.enableLocationServicesForPrayerTimes
         : isPermission
-            ? (l10n.languageCode == 'bn'
-                ? 'নামাজের সময় হিসাব করতে আপনার অবস্থান জানা প্রয়োজন।'
-                : 'Prayer times are calculated based on your location.')
+            ? l10n.locationServiceUsageForPrayerTimes
             : state.errorMessage ?? '';
 
     return Center(
@@ -237,9 +222,7 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
               OutlinedButton.icon(
                 onPressed: () => Geolocator.openAppSettings(),
                 icon: const Icon(Icons.settings_rounded),
-                label: Text(l10n.languageCode == 'bn'
-                    ? 'সেটিংস খুলুন'
-                    : 'Open Settings'),
+                label: Text(l10n.openSettings),
               ),
             const SizedBox(height: 12),
             ElevatedButton.icon(
@@ -279,9 +262,7 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              l10n.languageCode == 'bn'
-                  ? 'সঠিক নামাজের সময় পেতে আপনার অবস্থান ব্যবহার করা হবে।'
-                  : 'Your location will be used to calculate accurate prayer times for your area.',
+              l10n.locationServiceUsageForPrayerTimes,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: cs.onSurfaceVariant,
               ),
@@ -292,11 +273,7 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
               onPressed: () =>
                   ref.read(prayerTimesViewModelProvider.notifier).load(),
               icon: const Icon(Icons.my_location_rounded),
-              label: Text(
-                l10n.languageCode == 'bn'
-                    ? 'নামাজের সময় দেখুন'
-                    : 'Get Prayer Times',
-              ),
+              label: Text(l10n.getPrayerTimes),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
                     horizontal: 28, vertical: 14),

@@ -31,6 +31,7 @@ class _InlineDatePickerState extends State<InlineDatePicker> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       decoration: BoxDecoration(
@@ -60,7 +61,7 @@ class _InlineDatePickerState extends State<InlineDatePicker> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  AppLocalizations.of(context).selectDate,
+                  l10n.selectDate,
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -98,7 +99,7 @@ class _InlineDatePickerState extends State<InlineDatePicker> {
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-                child: const Text('Confirm'),
+                child: Text(l10n.confirm),
               ),
             ),
           ),

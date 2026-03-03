@@ -2,16 +2,10 @@
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:timezone/timezone.dart' as tz;
-import 'package:timezone/data/latest.dart' as tz;
+import 'package:ekush_ponji/core/services/local_notification_service.dart';
 import 'package:ekush_ponji/features/prayer_times/models/prayer_times_model.dart';
 
 class PrayerNotificationService {
-  static final FlutterLocalNotificationsPlugin _plugin =
-      FlutterLocalNotificationsPlugin();
-
-  static bool _initialized = false;
-
   // Notification ID offsets per prayer (spread across 100s to avoid collisions)
   static const Map<Prayer, int> _notificationIds = {
     Prayer.fajr:    100,
@@ -24,51 +18,13 @@ class PrayerNotificationService {
   // ── Initialization ─────────────────────────────────────
 
   static Future<void> initialize() async {
-    if (_initialized) return;
-
-    tz.initializeTimeZones();
-
-    const androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
-    const iosSettings = DarwinInitializationSettings(
-      requestAlertPermission: false,
-      requestBadgePermission: false,
-      requestSoundPermission: false,
-    );
-
-    await _plugin.initialize(
-      const InitializationSettings(
-        android: androidSettings,
-        iOS: iosSettings,
-      ),
-    );
-
-    _initialized = true;
+    await LocalNotificationService.initialize();
   }
 
   // ── Permission ─────────────────────────────────────────
 
   static Future<bool> requestPermission() async {
-    final android = _plugin
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
-    final ios = _plugin
-        .resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin>();
-
-    if (android != null) {
-      final granted = await android.requestNotificationsPermission();
-      return granted ?? false;
-    }
-    if (ios != null) {
-      final granted = await ios.requestPermissions(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
-      return granted ?? false;
-    }
-    return false;
+    return LocalNotificationService.ensurePermission();
   }
 
   // ── Schedule ───────────────────────────────────────────
@@ -82,9 +38,12 @@ class PrayerNotificationService {
     required String languageCode,
   }) async {
     await initialize();
-    await cancelAll();
-
     if (!prefs.masterEnabled) return;
+
+    final ok = await LocalNotificationService.ensurePermission();
+    if (!ok) return;
+
+    await cancelAll();
 
     final now = DateTime.now();
 
@@ -133,15 +92,15 @@ class PrayerNotificationService {
 
   static Future<void> cancelAll() async {
     await initialize();
-    await _plugin.cancelAll();
+    await LocalNotificationService.cancelAll();
   }
 
   static Future<void> cancelForPrayer(Prayer prayer) async {
     await initialize();
     final id = _notificationIds[prayer];
     if (id != null) {
-      await _plugin.cancel(id);
-      await _plugin.cancel(id + 10); // tomorrow's slot
+      await LocalNotificationService.cancel(id);
+      await LocalNotificationService.cancel(id + 10); // tomorrow's slot
     }
   }
 
@@ -165,14 +124,12 @@ class PrayerNotificationService {
         ? '$locationDisplay — $name'
         : '$name • $locationDisplay';
 
-    final tzTime = tz.TZDateTime.from(scheduledTime, tz.local);
-
-    await _plugin.zonedSchedule(
-      id,
-      title,
-      body,
-      tzTime,
-      NotificationDetails(
+    await LocalNotificationService.scheduleZoned(
+      id: id,
+      scheduledTime: scheduledTime,
+      title: title,
+      body: body,
+      details: NotificationDetails(
         android: AndroidNotificationDetails(
           'prayer_times_channel',
           'Prayer Times',
@@ -188,7 +145,6 @@ class PrayerNotificationService {
           presentSound: true,
         ),
       ),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
     );
   }
 }

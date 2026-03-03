@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
+import 'package:ekush_ponji/core/localization/app_localizations.dart';
 
 abstract class BaseScreen extends ConsumerStatefulWidget {
   const BaseScreen({super.key});
@@ -62,6 +63,7 @@ abstract class BaseScreenState<T extends BaseScreen> extends ConsumerState<T> {
 
   /// Build empty state widget
   Widget buildEmptyWidget(ViewStateEmpty state) {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -73,7 +75,7 @@ abstract class BaseScreenState<T extends BaseScreen> extends ConsumerState<T> {
           ),
           const SizedBox(height: 16),
           Text(
-            state.message ?? 'No data available',
+            state.message ?? l10n.noDataAvailable,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: Colors.grey[600],
                 ),
@@ -92,6 +94,7 @@ abstract class BaseScreenState<T extends BaseScreen> extends ConsumerState<T> {
 
   /// Build error widget with retry option
   Widget buildErrorWidget(ViewStateError state) {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -114,7 +117,7 @@ abstract class BaseScreenState<T extends BaseScreen> extends ConsumerState<T> {
               ElevatedButton.icon(
                 onPressed: onRetry,
                 icon: const Icon(Icons.refresh),
-                label: const Text('Retry'),
+                label: Text(l10n.retry),
               ),
             ],
           ],

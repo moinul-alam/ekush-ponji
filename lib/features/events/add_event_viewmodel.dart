@@ -6,6 +6,7 @@ import 'package:ekush_ponji/core/base/view_state.dart';
 import 'package:ekush_ponji/features/home/models/event.dart';
 import 'package:ekush_ponji/features/events/data/event_repository.dart';
 import 'package:ekush_ponji/features/calendar/calendar_viewmodel.dart';
+import 'package:ekush_ponji/core/services/calendar_notification_service.dart';
 
 class AddEventViewModel extends BaseViewModel {
   late final EventRepository _repository;
@@ -153,6 +154,12 @@ class AddEventViewModel extends BaseViewModel {
         ref
             .read(calendarViewModelProvider.notifier)
             .invalidateCacheForDate(startTime!);
+
+        // Notifications (best-effort; event still saves even if permission denied)
+        await CalendarNotificationService.cancelEvent(event);
+        if (event.notifyAtStartTime) {
+          await CalendarNotificationService.scheduleEvent(event);
+        }
       },
       loadingMessage: isEditMode ? 'Updating event...' : 'Saving event...',
       successMessage:
@@ -169,6 +176,13 @@ class AddEventViewModel extends BaseViewModel {
 
     return await executeAsync(
       operation: () async {
+        final event = Event(
+          id: _editingEventId,
+          title: title,
+          startTime: startTime ?? DateTime.now(),
+          notifyAtStartTime: false,
+        );
+        await CalendarNotificationService.cancelEvent(event);
         await _repository.deleteEvent(_editingEventId!);
 
         if (dateToInvalidate != null) {

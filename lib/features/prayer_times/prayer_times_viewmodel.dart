@@ -73,6 +73,8 @@ class PrayerTimesViewModel extends Notifier<PrayerTimesState> {
   // ── Public API ────────────────────────────────────────────────
 
   Future<void> load() async {
+    final prefs = await SharedPreferences.getInstance();
+    final languageCode = prefs.getString('languageCode') ?? 'bn';
     final cache = await _loadLocationCache();
 
     if (cache != null) {
@@ -80,6 +82,7 @@ class PrayerTimesViewModel extends Notifier<PrayerTimesState> {
         lat: cache['lat'] as double,
         lng: cache['lng'] as double,
         locationDisplay: cache['display'] as String,
+        languageCode: languageCode,
       );
     } else {
       await _fetchGpsAndUpdate();
@@ -90,10 +93,14 @@ class PrayerTimesViewModel extends Notifier<PrayerTimesState> {
     final existing = state.todayTimes;
     if (existing == null) return load();
 
+    final prefs = await SharedPreferences.getInstance();
+    final languageCode = prefs.getString('languageCode') ?? 'bn';
+
     await _calculateAndUpdate(
       lat: existing.latitude,
       lng: existing.longitude,
       locationDisplay: existing.locationDisplay,
+      languageCode: languageCode,
     );
   }
 
@@ -124,6 +131,7 @@ class PrayerTimesViewModel extends Notifier<PrayerTimesState> {
       position,
       settings.adhanParams,
       times.locationDisplay,
+      languageCode: languageCode,
     );
   }
 
@@ -156,6 +164,7 @@ class PrayerTimesViewModel extends Notifier<PrayerTimesState> {
         lat: position.latitude,
         lng: position.longitude,
         locationDisplay: locationDisplay,
+        languageCode: languageCode,
       );
     } on LocationPermissionDeniedException {
       state = state.copyWith(
@@ -179,6 +188,7 @@ class PrayerTimesViewModel extends Notifier<PrayerTimesState> {
     required double lat,
     required double lng,
     required String locationDisplay,
+    required String languageCode,
   }) async {
     try {
       state = state.copyWith(status: PrayerLoadStatus.calculating);
@@ -245,6 +255,7 @@ class PrayerTimesViewModel extends Notifier<PrayerTimesState> {
         position,
         params,
         locationDisplay,
+        languageCode: languageCode,
         tomorrowModel: tomorrowModel,
       );
     } catch (e) {
@@ -300,11 +311,15 @@ class PrayerTimesViewModel extends Notifier<PrayerTimesState> {
     final tomorrowFajr = times.tomorrowFajr;
     if (tomorrowFajr != null && now.isAfter(tomorrowFajr)) {
       // Silently reload for the new day (no loading indicator)
-      _calculateAndUpdate(
-        lat: times.latitude,
-        lng: times.longitude,
-        locationDisplay: times.locationDisplay,
-      );
+      SharedPreferences.getInstance().then((prefs) {
+        final languageCode = prefs.getString('languageCode') ?? 'bn';
+        _calculateAndUpdate(
+          lat: times.latitude,
+          lng: times.longitude,
+          locationDisplay: times.locationDisplay,
+          languageCode: languageCode,
+        );
+      });
       return;
     }
 
@@ -403,6 +418,7 @@ class PrayerTimesViewModel extends Notifier<PrayerTimesState> {
     Position position,
     CalculationParameters params,
     String locationDisplay, {
+    required String languageCode,
     PrayerTimesModel? tomorrowModel,
   }) async {
     final notifPrefs =
@@ -427,7 +443,7 @@ class PrayerTimesViewModel extends Notifier<PrayerTimesState> {
       today: todayModel,
       tomorrow: tomorrow,
       prefs: notifPrefs,
-      languageCode: 'en',
+      languageCode: languageCode,
     );
   }
 }

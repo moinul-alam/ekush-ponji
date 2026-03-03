@@ -62,9 +62,7 @@ class PrayerTimelineWidget extends StatelessWidget {
                     size: 14, color: cs.primary.withOpacity(0.7)),
                 const SizedBox(width: 6),
                 Text(
-                  l10n.languageCode == 'bn'
-                      ? 'দিনের অগ্রগতি'
-                      : "Today's Progress",
+                  l10n.dayProgressTitle,
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: cs.primary.withOpacity(0.8),
                     fontWeight: FontWeight.w700,

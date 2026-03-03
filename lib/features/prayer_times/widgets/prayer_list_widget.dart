@@ -29,7 +29,7 @@ class PrayerListWidget extends StatelessWidget {
       children: [
         // ── Section 1: Sunrise & Sunset ─────────────────────
         _SectionLabel(
-          label: l10n.languageCode == 'bn' ? 'সূর্য' : 'Sun',
+          label: l10n.prayerSectionSun,
           theme: theme,
           cs: cs,
         ),
@@ -43,7 +43,7 @@ class PrayerListWidget extends StatelessWidget {
           child: Column(
             children: [
               _SunRow(
-                label: l10n.languageCode == 'bn' ? 'সূর্যোদয়' : 'Sunrise',
+                label: l10n.sunrise,
                 time: times.sunrise,
                 icon: Icons.wb_sunny_outlined,
                 l10n: l10n,
@@ -52,7 +52,7 @@ class PrayerListWidget extends StatelessWidget {
                 showDivider: true,
               ),
               _SunRow(
-                label: l10n.languageCode == 'bn' ? 'সূর্যাস্ত' : 'Sunset',
+                label: l10n.sunset,
                 time: times.maghrib,
                 icon: Icons.nights_stay_outlined,
                 l10n: l10n,
@@ -66,7 +66,7 @@ class PrayerListWidget extends StatelessWidget {
 
         // ── Section 2: 5 Prayers ─────────────────────────────
         _SectionLabel(
-          label: l10n.languageCode == 'bn' ? 'নামাজ' : 'Prayers',
+          label: l10n.prayerSectionPrayers,
           theme: theme,
           cs: cs,
         ),
@@ -90,7 +90,8 @@ class PrayerListWidget extends StatelessWidget {
               final isLast = index == 4;
               return _PrayerRow(
                 prayer: prayer,
-                time: times.timeFor(prayer),
+                startTime: times.startTimeForPrayer(prayer),
+                endTime: times.endTimeForPrayer(prayer),
                 isHighlighted: prayer == highlightedPrayer,
                 notifPrefs: notifPrefs,
                 onToggle: (val) => onToggleNotification(prayer, val),
@@ -98,6 +99,37 @@ class PrayerListWidget extends StatelessWidget {
                 l10n: l10n,
                 theme: theme,
                 cs: cs,
+              );
+            }).toList(),
+          ),
+        ),
+
+        // ── Section 3: Forbidden times ───────────────────────
+        _SectionLabel(
+          label: l10n.prayerSectionForbiddenTimes,
+          theme: theme,
+          cs: cs,
+        ),
+        Container(
+          margin: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+          decoration: BoxDecoration(
+            color: cs.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: cs.outlineVariant.withOpacity(0.4)),
+          ),
+          child: Column(
+            children: times.forbiddenTimes.asMap().entries.map((entry) {
+              final index = entry.key;
+              final item = entry.value;
+              final isLast = index == times.forbiddenTimes.length - 1;
+              return _ForbiddenRow(
+                type: item.type,
+                start: item.start,
+                end: item.end,
+                l10n: l10n,
+                theme: theme,
+                cs: cs,
+                showDivider: !isLast,
               );
             }).toList(),
           ),
@@ -202,7 +234,8 @@ class _SunRow extends StatelessWidget {
 
 class _PrayerRow extends StatelessWidget {
   final Prayer prayer;
-  final DateTime time;
+  final DateTime startTime;
+  final DateTime endTime;
   final bool isHighlighted;
   final PrayerNotificationPrefs notifPrefs;
   final void Function(bool) onToggle;
@@ -213,7 +246,8 @@ class _PrayerRow extends StatelessWidget {
 
   const _PrayerRow({
     required this.prayer,
-    required this.time,
+    required this.startTime,
+    required this.endTime,
     required this.isHighlighted,
     required this.notifPrefs,
     required this.onToggle,
@@ -225,7 +259,7 @@ class _PrayerRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isPast = time.isBefore(DateTime.now());
+    final isPast = endTime.isBefore(DateTime.now());
     final notifEnabled = notifPrefs.isEnabledFor(prayer);
 
     return Column(
@@ -280,9 +314,7 @@ class _PrayerRow extends StatelessWidget {
                       ),
                       if (isHighlighted)
                         Text(
-                          l10n.languageCode == 'bn'
-                              ? 'পরবর্তী নামাজ'
-                              : 'Next prayer',
+                          l10n.nextPrayer,
                           style: theme.textTheme.labelSmall?.copyWith(
                             color: cs.primary,
                             fontWeight: FontWeight.w600,
@@ -294,7 +326,7 @@ class _PrayerRow extends StatelessWidget {
 
                 // Time
                 Text(
-                  _formatTime(time, l10n),
+                  '${_formatTime(startTime, l10n)} - ${_formatTime(endTime, l10n)}',
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight:
                         isHighlighted ? FontWeight.w800 : FontWeight.w600,
@@ -371,6 +403,103 @@ class _PrayerRow extends StatelessWidget {
       case Prayer.isha:    return Icons.nights_stay_rounded;
       default:             return Icons.circle_outlined;
     }
+  }
+}
+
+class _ForbiddenRow extends StatelessWidget {
+  final ForbiddenPrayerTime type;
+  final DateTime start;
+  final DateTime end;
+  final AppLocalizations l10n;
+  final ThemeData theme;
+  final ColorScheme cs;
+  final bool showDivider;
+
+  const _ForbiddenRow({
+    required this.type,
+    required this.start,
+    required this.end,
+    required this.l10n,
+    required this.theme,
+    required this.cs,
+    required this.showDivider,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final label = switch (type) {
+      ForbiddenPrayerTime.sunrise => l10n.forbiddenTimeSunrise,
+      ForbiddenPrayerTime.zenith => l10n.forbiddenTimeZenith,
+      ForbiddenPrayerTime.sunset => l10n.forbiddenTimeSunset,
+    };
+
+    final icon = switch (type) {
+      ForbiddenPrayerTime.sunrise => Icons.wb_sunny_outlined,
+      ForbiddenPrayerTime.zenith => Icons.wb_sunny_rounded,
+      ForbiddenPrayerTime.sunset => Icons.nights_stay_outlined,
+    };
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: cs.errorContainer.withOpacity(0.35),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, size: 18, color: cs.error),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  label,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: cs.onSurface,
+                  ),
+                ),
+              ),
+              Text(
+                '${_formatTime(start, l10n)} - ${_formatTime(end, l10n)}',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: cs.error,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (showDivider)
+          Divider(
+            height: 1,
+            indent: 16,
+            endIndent: 16,
+            color: cs.outlineVariant.withOpacity(0.3),
+          ),
+      ],
+    );
+  }
+
+  String _formatTime(DateTime time, AppLocalizations l10n) {
+    final hour = time.hour % 12 == 0 ? 12 : time.hour % 12;
+    final minute = time.minute.toString().padLeft(2, '0');
+    final period = time.hour < 12 ? 'AM' : 'PM';
+    final hourStr = l10n.localizeNumber(hour);
+    final minuteStr = _localizePadded(minute, l10n);
+    return '$hourStr:$minuteStr $period';
+  }
+
+  String _localizePadded(String padded, AppLocalizations l10n) {
+    return padded.split('').map((c) {
+      final digit = int.tryParse(c);
+      return digit != null ? l10n.localizeNumber(digit) : c;
+    }).join();
   }
 }
 

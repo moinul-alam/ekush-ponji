@@ -5,15 +5,15 @@ import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/features/prayer_times/models/prayer_times_model.dart';
 
 class NextPrayerCard extends StatelessWidget {
+  final PrayerTimesModel times;
   final Prayer? nextPrayer;
-  final DateTime? nextPrayerTime;
-  final Duration? countdown;
+  final Duration? countdownToNextPrayer;
 
   const NextPrayerCard({
     super.key,
+    required this.times,
     required this.nextPrayer,
-    required this.nextPrayerTime,
-    required this.countdown,
+    required this.countdownToNextPrayer,
   });
 
   @override
@@ -35,9 +35,7 @@ class NextPrayerCard extends StatelessWidget {
             Icon(Icons.nights_stay_rounded, color: cs.onPrimaryContainer, size: 32),
             const SizedBox(width: 16),
             Text(
-              l10n.languageCode == 'bn'
-                  ? 'আজকের সকল নামাজ সম্পন্ন'
-                  : 'All prayers completed for today',
+              l10n.allPrayersCompletedToday,
               style: theme.textTheme.titleMedium?.copyWith(
                 color: cs.onPrimaryContainer,
                 fontWeight: FontWeight.w600,
@@ -48,8 +46,24 @@ class NextPrayerCard extends StatelessWidget {
       );
     }
 
-    final timeStr = nextPrayerTime != null ? _formatTime(nextPrayerTime!, l10n) : '--:--';
-    final countdownStr = countdown != null ? _formatCountdown(countdown!, l10n) : '--:--:--';
+    final currentPrayer = times.currentPrayer;
+    final currentRemaining = times.timeUntilCurrentPrayerEnds;
+
+    final currentName = currentPrayer != null
+        ? currentPrayer.nameForLocale(l10n.languageCode)
+        : '--';
+
+    final currentRemainingStr = currentRemaining != null
+        ? _formatCountdown(currentRemaining, l10n)
+        : '--:--:--';
+
+    final nextName = nextPrayer != null
+        ? nextPrayer!.nameForLocale(l10n.languageCode)
+        : '--';
+
+    final nextRemainingStr = countdownToNextPrayer != null
+        ? _formatCountdown(countdownToNextPrayer!, l10n)
+        : '--:--:--';
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -77,7 +91,7 @@ class NextPrayerCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    l10n.languageCode == 'bn' ? 'পরবর্তী নামাজ' : 'Next Prayer',
+                    l10n.currentPrayer,
                     style: theme.textTheme.labelMedium?.copyWith(
                       color: cs.onPrimary.withOpacity(0.8),
                       fontWeight: FontWeight.w500,
@@ -86,7 +100,7 @@ class NextPrayerCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    nextPrayer!.nameForLocale(l10n.languageCode),
+                    currentName,
                     style: theme.textTheme.headlineMedium?.copyWith(
                       color: cs.onPrimary,
                       fontWeight: FontWeight.w800,
@@ -95,7 +109,7 @@ class NextPrayerCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    timeStr,
+                    currentRemainingStr,
                     style: theme.textTheme.titleMedium?.copyWith(
                       color: cs.onPrimary.withOpacity(0.9),
                       fontWeight: FontWeight.w600,
@@ -108,14 +122,23 @@ class NextPrayerCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  l10n.languageCode == 'bn' ? 'বাকি সময়' : 'Remaining',
+                  l10n.nextPrayer,
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: cs.onPrimary.withOpacity(0.7),
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  countdownStr,
+                  nextName,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    color: cs.onPrimary,
+                    fontWeight: FontWeight.w800,
+                    height: 1.1,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  nextRemainingStr,
                   style: theme.textTheme.headlineSmall?.copyWith(
                     color: cs.onPrimary,
                     fontWeight: FontWeight.w800,
@@ -129,15 +152,6 @@ class NextPrayerCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  String _formatTime(DateTime time, AppLocalizations l10n) {
-    final hour = time.hour % 12 == 0 ? 12 : time.hour % 12;
-    final minute = time.minute.toString().padLeft(2, '0');
-    final period = time.hour < 12 ? 'AM' : 'PM';
-    final hourStr = l10n.localizeNumber(hour);
-    final minuteStr = _localizePadded(minute, l10n);
-    return '$hourStr:$minuteStr $period';
   }
 
   String _formatCountdown(Duration d, AppLocalizations l10n) {

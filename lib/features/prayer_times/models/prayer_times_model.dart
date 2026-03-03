@@ -40,6 +40,24 @@ enum Prayer {
   bool get isNotifiable => this != Prayer.sunrise;
 }
 
+enum ForbiddenPrayerTime {
+  sunrise,
+  zenith,
+  sunset,
+}
+
+class ForbiddenPrayerTimeRange {
+  final ForbiddenPrayerTime type;
+  final DateTime start;
+  final DateTime end;
+
+  const ForbiddenPrayerTimeRange({
+    required this.type,
+    required this.start,
+    required this.end,
+  });
+}
+
 /// Holds all calculated prayer times for a single day
 class PrayerTimesModel {
   final DateTime date;
@@ -126,46 +144,99 @@ class PrayerTimesModel {
   /// All prayers in order
   List<Prayer> get allPrayers => Prayer.values;
 
-  /// Determine which prayer is currently active (time has passed but next hasn't)
+  /// Determine which prayer is currently active (waqt).
+  /// Sunrise is not treated as a prayer here (gap between Sunrise → Dhuhr).
   Prayer? get currentPrayer {
     final now = DateTime.now();
     if (now.isBefore(fajr)) return null;
     if (now.isBefore(sunrise)) return Prayer.fajr;
-    if (now.isBefore(dhuhr)) return Prayer.sunrise;
+    if (now.isBefore(dhuhr)) return null;
     if (now.isBefore(asr)) return Prayer.dhuhr;
     if (now.isBefore(maghrib)) return Prayer.asr;
     if (now.isBefore(isha)) return Prayer.maghrib;
     return Prayer.isha;
   }
 
-  /// Determine which prayer is coming next.
+  /// Determine which prayer is coming next (always one of the 5 prayers).
   /// After Isha, wraps around to Fajr (tomorrow's cycle).
   Prayer? get nextPrayer {
     final now = DateTime.now();
-    if (now.isBefore(fajr))    return Prayer.fajr;
-    if (now.isBefore(sunrise)) return Prayer.sunrise;
-    if (now.isBefore(dhuhr))   return Prayer.dhuhr;
-    if (now.isBefore(asr))     return Prayer.asr;
+    if (now.isBefore(fajr)) return Prayer.fajr;
+    if (now.isBefore(dhuhr)) return Prayer.dhuhr; // includes (Fajr→Sunrise) gap
+    if (now.isBefore(asr)) return Prayer.asr;
     if (now.isBefore(maghrib)) return Prayer.maghrib;
-    if (now.isBefore(isha))    return Prayer.isha;
+    if (now.isBefore(isha)) return Prayer.isha;
     // Past Isha — next prayer is Fajr tomorrow
     return Prayer.fajr;
+  }
+
+  DateTime startTimeForPrayer(Prayer prayer) => timeFor(prayer);
+
+  DateTime endTimeForPrayer(Prayer prayer) {
+    switch (prayer) {
+      case Prayer.fajr:
+        return sunrise;
+      case Prayer.sunrise:
+        return dhuhr;
+      case Prayer.dhuhr:
+        return asr;
+      case Prayer.asr:
+        return maghrib;
+      case Prayer.maghrib:
+        return isha;
+      case Prayer.isha:
+        return tomorrowFajr ?? fajr.add(const Duration(days: 1));
+    }
+  }
+
+  /// Start time for the *upcoming* [nextPrayer] (handles tomorrow's Fajr).
+  DateTime? get nextPrayerStartTime {
+    final next = nextPrayer;
+    if (next == null) return null;
+    if (next == Prayer.fajr) {
+      final now = DateTime.now();
+      if (!now.isBefore(isha)) return tomorrowFajr ?? fajr.add(const Duration(days: 1));
+    }
+    return timeFor(next);
   }
 
   /// Time remaining until next prayer.
   /// After Isha, counts down to tomorrow's Fajr if available.
   Duration? get timeUntilNextPrayer {
     final now = DateTime.now();
-    if (now.isBefore(isha)) {
-      // Normal case — next prayer is still today
-      final next = nextPrayer;
-      if (next == null) return null;
-      return timeFor(next).difference(now);
-    }
-    // Past Isha — count down to tomorrow's Fajr
-    final tf = tomorrowFajr;
-    if (tf == null) return null;
-    return tf.difference(now);
+    final nextStart = nextPrayerStartTime;
+    if (nextStart == null) return null;
+    return nextStart.difference(now);
+  }
+
+  /// Time remaining until the end of the current prayer (waqt).
+  Duration? get timeUntilCurrentPrayerEnds {
+    final now = DateTime.now();
+    final current = currentPrayer;
+    if (current == null) return null;
+    return endTimeForPrayer(current).difference(now);
+  }
+
+  /// The 3 well-known forbidden time windows for nafl prayer.
+  /// (Approximation: sunrise ~15m, zenith ~10m, sunset ~15m)
+  List<ForbiddenPrayerTimeRange> get forbiddenTimes {
+    return [
+      ForbiddenPrayerTimeRange(
+        type: ForbiddenPrayerTime.sunrise,
+        start: sunrise,
+        end: sunrise.add(const Duration(minutes: 15)),
+      ),
+      ForbiddenPrayerTimeRange(
+        type: ForbiddenPrayerTime.zenith,
+        start: dhuhr.subtract(const Duration(minutes: 5)),
+        end: dhuhr.add(const Duration(minutes: 5)),
+      ),
+      ForbiddenPrayerTimeRange(
+        type: ForbiddenPrayerTime.sunset,
+        start: maghrib.subtract(const Duration(minutes: 15)),
+        end: maghrib,
+      ),
+    ];
   }
 
   /// Progress through the day (0.0 = Fajr, 1.0 = Isha)

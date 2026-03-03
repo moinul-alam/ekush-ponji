@@ -9,6 +9,7 @@ import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
 import 'package:ekush_ponji/features/words/models/word.dart';
 import 'package:ekush_ponji/features/words/words_viewmodel.dart';
+import 'package:ekush_ponji/core/services/share_service.dart';
 
 class WordsScreen extends BaseScreen {
   const WordsScreen({super.key});
@@ -248,6 +249,7 @@ class _WordCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context);
+    final boundaryKey = GlobalKey();
 
     return SizedBox(
       width: double.infinity,
@@ -256,123 +258,154 @@ class _WordCard extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            gradient: LinearGradient(
-              colors: [
-                colorScheme.tertiaryContainer.withValues(alpha: 0.4),
-                colorScheme.primaryContainer.withValues(alpha: 0.4),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+        child: RepaintBoundary(
+          key: boundaryKey,
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: LinearGradient(
+                colors: [
+                  colorScheme.tertiaryContainer.withValues(alpha: 0.4),
+                  colorScheme.primaryContainer.withValues(alpha: 0.4),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
             ),
-          ),
-          padding: const EdgeInsets.all(24),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Part of speech badge + bookmark
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: colorScheme.tertiaryContainer,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        word.partOfSpeech,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: colorScheme.onTertiaryContainer,
-                          fontWeight: FontWeight.w600,
+            padding: const EdgeInsets.all(24),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Part of speech badge + actions
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: colorScheme.tertiaryContainer,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          word.partOfSpeech,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: colorScheme.onTertiaryContainer,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
-                    ),
-                    IconButton(
-                      onPressed: onToggleSave,
-                      icon: Icon(
-                        word.isSaved
-                            ? Icons.bookmark_rounded
-                            : Icons.bookmark_outline_rounded,
-                        color: word.isSaved
-                            ? colorScheme.primary
-                            : colorScheme.onSurfaceVariant,
+                      Row(
+                        children: [
+                          IconButton(
+                            onPressed: () => ShareService.shareRepaintBoundary(
+                              boundaryKey: boundaryKey,
+                              fileBaseName:
+                                  'ekush_ponji_word_${word.storageKey}',
+                            ),
+                            icon: Icon(Icons.share_rounded,
+                                color: colorScheme.onSurfaceVariant),
+                            tooltip: l10n.share,
+                          ),
+                          IconButton(
+                            onPressed: onToggleSave,
+                            icon: Icon(
+                              word.isSaved
+                                  ? Icons.bookmark_rounded
+                                  : Icons.bookmark_outline_rounded,
+                              color: word.isSaved
+                                  ? colorScheme.primary
+                                  : colorScheme.onSurfaceVariant,
+                            ),
+                            tooltip: word.isSaved ? 'Unsave' : 'Save',
+                          ),
+                        ],
                       ),
-                      tooltip: word.isSaved ? 'Unsave' : 'Save',
+                    ],
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Word + pronunciation
+                  Text(
+                    word.word,
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.tertiary,
                     ),
-                  ],
-                ),
-
-                const SizedBox(height: 16),
-
-                // Word + pronunciation
-                Text(
-                  word.word,
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.tertiary,
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  word.pronunciation,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                    fontStyle: FontStyle.italic,
+                  const SizedBox(height: 4),
+                  Text(
+                    word.pronunciation,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      fontStyle: FontStyle.italic,
+                    ),
                   ),
-                ),
 
-                const SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
-                Divider(
-                    color: colorScheme.outline.withValues(alpha: 0.3),
-                    height: 1),
+                  Divider(
+                      color: colorScheme.outline.withValues(alpha: 0.3),
+                      height: 1),
 
-                const SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
-                // Meaning EN
-                _buildSection(
-                  context,
-                  icon: Icons.lightbulb_outline_rounded,
-                  title: l10n.meaning,
-                  content: word.meaningEn,
-                ),
+                  // Meaning EN
+                  _buildSection(
+                    context,
+                    icon: Icons.lightbulb_outline_rounded,
+                    title: l10n.meaning,
+                    content: word.meaningEn,
+                  ),
 
-                const SizedBox(height: 4),
+                  const SizedBox(height: 4),
 
-                // Meaning BN
-                _buildSection(
-                  context,
-                  icon: Icons.translate_rounded,
-                  title: 'অর্থ',
-                  content: word.meaningBn,
-                ),
+                  // Meaning BN
+                  _buildSection(
+                    context,
+                    icon: Icons.translate_rounded,
+                    title: 'অর্থ',
+                    content: word.meaningBn,
+                  ),
 
-                const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-                // Synonym
-                _buildSection(
-                  context,
-                  icon: Icons.sync_alt_rounded,
-                  title: l10n.synonym,
-                  content: word.synonym,
-                ),
+                  // Synonym
+                  _buildSection(
+                    context,
+                    icon: Icons.sync_alt_rounded,
+                    title: l10n.synonym,
+                    content: word.synonym,
+                  ),
 
-                const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-                // Example
-                _buildSection(
-                  context,
-                  icon: Icons.chat_bubble_outline_rounded,
-                  title: l10n.example,
-                  content: word.example,
-                  isItalic: true,
-                ),
-              ],
+                  // Example
+                  _buildSection(
+                    context,
+                    icon: Icons.chat_bubble_outline_rounded,
+                    title: l10n.example,
+                    content: word.example,
+                    isItalic: true,
+                  ),
+
+                  const SizedBox(height: 18),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      'Ekush Ponji',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant
+                            .withValues(alpha: 0.55),
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.6,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

@@ -89,9 +89,15 @@ abstract class AppLocalizations {
     String daysStr = localizeNumber(days.abs());
 
     if (days > 0) {
-      return format(inDays, [daysStr]);
+      return formatNamed(
+        inDays,
+        {'count': daysStr},
+      );
     } else {
-      return format(daysAgo, [daysStr]);
+      return formatNamed(
+        daysAgo,
+        {'count': daysStr},
+      );
     }
   }
 
@@ -182,6 +188,10 @@ abstract class AppLocalizations {
   String get notesSubtitle;
   String get savedQuotes; 
   String get savedWords;
+  String get share;
+  String get adjustFontSize;
+  String get notificationsPermissionRequired;
+
 
   // Drawer
   String get profile;
@@ -216,6 +226,14 @@ abstract class AppLocalizations {
   String get resetSettings;
   String get resetSettingsConfirmMessage;
   String get resetSettingsSubtitle;
+  String get languageBangla;
+  String get languageEnglish;
+  String get pageNotFound;
+  String get goToHome;
+  String get backToHome;
+  String get deleteEvent;
+  String get deleteReminder;
+  String get confirm;
 
   // Calendar Types
   String get calendarShortGregorian;
@@ -249,6 +267,45 @@ abstract class AppLocalizations {
   String formatUpcomingEventsInMonth(String monthName);
   String formatUpcomingHolidaysInMonth(String monthName);
 
+  // GPS
+  String get updateLocation;
+  String get detectingLocation;
+  String get updatingLocation;
+  String get calculatingPrayerTimes;
+  String get localtionServicesDisabled;
+  String get locationPermissionRequired;
+  String get locationPermissionDenied;
+  String get enableLocationServicesForPrayerTimes;
+  String get localtionServiceRequiredForPrayerTimes;
+  String get locationServiceUsageForPrayerTimes;
+  String get openSettings;
+  String get getPrayerTimes;
+  String get prayerSettingsTitle;
+  String get prayerCalculationMethod;
+  String get prayerMadhab;
+  String get prayerMadhabHanafi;
+  String get prayerMadhabShafii;
+  String get prayerNotificationsTitle;
+  String get prayerEnableNotifications;
+  String get prayerNotificationsSubtitle;
+  String get prayerPerPrayerTitle;
+  String get prayerNotifyBeforeTitle;
+  String get prayerNotifyOnTime;
+  String get prayerNotifyMinutesBefore;
+  String get prayerSectionSun;
+  String get prayerSectionPrayers;
+  String get sunrise;
+  String get sunset;
+  String get currentPrayer;
+  String get nextPrayer;
+  String get remainingTime;
+  String get prayerSectionForbiddenTimes;
+  String get forbiddenTimeSunrise;
+  String get forbiddenTimeZenith;
+  String get forbiddenTimeSunset;
+  String get allPrayersCompletedToday;
+  String get dayProgressTitle;
+
   // Event categories (for calendar event labels)
   String get categoryWork;
   String get categoryPersonal;
@@ -263,6 +320,7 @@ abstract class AppLocalizations {
   String get priorityMedium;
   String get priorityHigh;
   String get priorityUrgent;
+  String get priority;
 
   // Days of week
   String get monday;

@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/features/prayer_times/models/prayer_times_model.dart';
 import 'package:ekush_ponji/features/prayer_times/prayer_settings_viewmodel.dart';
+import 'package:ekush_ponji/core/services/local_notification_service.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class PrayerSettingsSheet extends ConsumerWidget {
   final VoidCallback onSettingsChanged;
@@ -49,9 +51,7 @@ class PrayerSettingsSheet extends ConsumerWidget {
                 Icon(Icons.tune_rounded, color: cs.primary, size: 20),
                 const SizedBox(width: 8),
                 Text(
-                  l10n.languageCode == 'bn'
-                      ? 'নামাজের সেটিংস'
-                      : 'Prayer Settings',
+                  l10n.prayerSettingsTitle,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
@@ -70,9 +70,7 @@ class PrayerSettingsSheet extends ConsumerWidget {
                 children: [
                   // ── Calculation method ───────────────────
                   _SectionHeader(
-                    label: l10n.languageCode == 'bn'
-                        ? 'হিসাবের পদ্ধতি'
-                        : 'Calculation Method',
+                    label: l10n.prayerCalculationMethod,
                     theme: theme,
                     cs: cs,
                   ),
@@ -115,17 +113,15 @@ class PrayerSettingsSheet extends ConsumerWidget {
 
                   // ── Madhab ───────────────────────────────
                   _SectionHeader(
-                    label: l10n.languageCode == 'bn' ? 'মাজহাব' : 'Madhab',
+                    label: l10n.prayerMadhab,
                     theme: theme,
                     cs: cs,
                   ),
                   const SizedBox(height: 8),
                   _SegmentRow(
                     selected: calc.isHanafi,
-                    leftLabel:
-                        l10n.languageCode == 'bn' ? 'হানাফি' : 'Hanafi',
-                    rightLabel:
-                        l10n.languageCode == 'bn' ? 'শাফেয়ী' : 'Shafi\'i',
+                    leftLabel: l10n.prayerMadhabHanafi,
+                    rightLabel: l10n.prayerMadhabShafii,
                     onLeft: () {
                       vm.setHanafi(true);
                       onSettingsChanged();
@@ -144,23 +140,48 @@ class PrayerSettingsSheet extends ConsumerWidget {
 
                   // ── Master notification switch ────────────
                   _SectionHeader(
-                    label: l10n.languageCode == 'bn'
-                        ? 'আযানের বিজ্ঞপ্তি'
-                        : 'Prayer Notifications',
+                    label: l10n.prayerNotificationsTitle,
                     theme: theme,
                     cs: cs,
                   ),
                   const SizedBox(height: 8),
                   _SettingsTile(
-                    label: l10n.languageCode == 'bn'
-                        ? 'বিজ্ঞপ্তি চালু করুন'
-                        : 'Enable Notifications',
-                    subtitle: l10n.languageCode == 'bn'
-                        ? 'সকল নামাজের জন্য অনুস্মারক'
-                        : 'Get reminders for all prayers',
+                    label: l10n.prayerEnableNotifications,
+                    subtitle: l10n.prayerNotificationsSubtitle,
                     trailing: Switch(
                       value: notif.masterEnabled,
                       onChanged: (val) async {
+                        if (val) {
+                          final ok =
+                              await LocalNotificationService.ensurePermission();
+                          if (!ok) {
+                            if (context.mounted) {
+                              await showDialog<void>(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: Text(l10n.notifications),
+                                  content: Text(
+                                      l10n.notificationsPermissionRequired),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(),
+                                      child: Text(l10n.cancel),
+                                    ),
+                                    TextButton(
+                                      onPressed: () async {
+                                        Navigator.of(context).pop();
+                                        await openAppSettings();
+                                      },
+                                      child: Text(l10n.openSettings),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }
+                            return;
+                          }
+                        }
                         await vm.setMasterEnabled(val);
                         onSettingsChanged();
                       },
@@ -173,9 +194,7 @@ class PrayerSettingsSheet extends ConsumerWidget {
                   if (notif.masterEnabled) ...[
                     const SizedBox(height: 12),
                     _SectionHeader(
-                      label: l10n.languageCode == 'bn'
-                          ? 'প্রতিটি নামাজের বিজ্ঞপ্তি'
-                          : 'Per Prayer',
+                      label: l10n.prayerPerPrayerTitle,
                       theme: theme,
                       cs: cs,
                     ),
@@ -207,6 +226,38 @@ class PrayerSettingsSheet extends ConsumerWidget {
                                 theme: theme,
                                 cs: cs,
                                 onChanged: (val) async {
+                                  if (val) {
+                                    final ok =
+                                        await LocalNotificationService
+                                            .ensurePermission();
+                                    if (!ok) {
+                                      if (context.mounted) {
+                                        await showDialog<void>(
+                                          context: context,
+                                          builder: (context) => AlertDialog(
+                                            title: Text(l10n.notifications),
+                                            content: Text(l10n
+                                                .notificationsPermissionRequired),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () =>
+                                                    Navigator.of(context).pop(),
+                                                child: Text(l10n.cancel),
+                                              ),
+                                              TextButton(
+                                                onPressed: () async {
+                                                  Navigator.of(context).pop();
+                                                  await openAppSettings();
+                                                },
+                                                child: Text(l10n.openSettings),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      }
+                                      return;
+                                    }
+                                  }
                                   await vm.setPrayerEnabled(prayer, val);
                                   onSettingsChanged();
                                 },
@@ -229,9 +280,7 @@ class PrayerSettingsSheet extends ConsumerWidget {
 
                     // ── Notification offset ──────────────────
                     _SectionHeader(
-                      label: l10n.languageCode == 'bn'
-                          ? 'কতক্ষণ আগে বিজ্ঞপ্তি দেবে'
-                          : 'Notify Before Prayer',
+                      label: l10n.prayerNotifyBeforeTitle,
                       theme: theme,
                       cs: cs,
                     ),
@@ -240,12 +289,11 @@ class PrayerSettingsSheet extends ConsumerWidget {
                       children: [0, 5, 10].map((minutes) {
                         final isSelected = notif.offsetMinutes == minutes;
                         final label = minutes == 0
-                            ? (l10n.languageCode == 'bn'
-                                ? 'সময়মতো'
-                                : 'At time')
-                            : (l10n.languageCode == 'bn'
-                                ? '$minutes মিনিট আগে'
-                                : '$minutes min before');
+                            ? l10n.prayerNotifyOnTime
+                            : l10n.formatNamed(
+                                l10n.prayerNotifyMinutesBefore,
+                                {'minutes': l10n.localizeNumber(minutes)},
+                              );
                         return Expanded(
                           child: GestureDetector(
                             onTap: () async {

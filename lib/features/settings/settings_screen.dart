@@ -245,7 +245,7 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             RadioListTile<String>(
-              title: const Text('বাংলা'),
+              title: Text(l10n.languageBangla),
               value: 'bn',
               groupValue: currentLanguage,
               onChanged: (value) {
@@ -256,7 +256,7 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
               },
             ),
             RadioListTile<String>(
-              title: const Text('English'),
+              title: Text(l10n.languageEnglish),
               value: 'en',
               groupValue: currentLanguage,
               onChanged: (value) {
