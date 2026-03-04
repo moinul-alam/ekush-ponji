@@ -1,4 +1,5 @@
 // lib/features/words/words_screen.dart
+// CHANGED: share button uses ShareService.shareWidget() with WordShareCard.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +10,7 @@ import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
 import 'package:ekush_ponji/features/words/models/word.dart';
 import 'package:ekush_ponji/features/words/words_viewmodel.dart';
+import 'package:ekush_ponji/features/words/widgets/word_share_card.dart'; // NEW
 import 'package:ekush_ponji/core/services/share_service.dart';
 
 class WordsScreen extends BaseScreen {
@@ -113,9 +115,7 @@ class _WordsScreenState extends BaseScreenState<WordsScreen>
 
     final words = vm.allWords;
     if (words.isEmpty) {
-      return buildEmptyWidget(
-        const ViewStateEmpty('No words available'),
-      );
+      return buildEmptyWidget(const ViewStateEmpty('No words available'));
     }
 
     if (_currentIndex >= words.length) {
@@ -208,16 +208,12 @@ class _WordsScreenState extends BaseScreenState<WordsScreen>
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 IconButton.outlined(
-                  onPressed: _currentIndex > 0
-                      ? () => _goToPrevious(words)
-                      : null,
+                  onPressed:
+                      _currentIndex > 0 ? () => _goToPrevious(words) : null,
                   icon: const Icon(Icons.arrow_back_ios_new_rounded),
                   tooltip: AppLocalizations.of(context).previous,
                 ),
-                _DotIndicator(
-                  total: words.length,
-                  current: _currentIndex,
-                ),
+                _DotIndicator(total: words.length, current: _currentIndex),
                 IconButton.outlined(
                   onPressed: _currentIndex < words.length - 1
                       ? () => _goToNext(words)
@@ -234,178 +230,155 @@ class _WordsScreenState extends BaseScreenState<WordsScreen>
   }
 }
 
-// ─── Word Card ────────────────────────────────────────────────
+// ─── Word Card (interactive, on-screen) ───────────────────────
+// NOTE: RepaintBoundary removed — sharing uses WordShareCard off-screen.
 class _WordCard extends StatelessWidget {
   final WordModel word;
   final VoidCallback onToggleSave;
 
-  const _WordCard({
-    required this.word,
-    required this.onToggleSave,
-  });
+  const _WordCard({required this.word, required this.onToggleSave});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context);
-    final boundaryKey = GlobalKey();
 
     return SizedBox(
       width: double.infinity,
       child: Card(
         elevation: 3,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: RepaintBoundary(
-          key: boundaryKey,
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              gradient: LinearGradient(
-                colors: [
-                  colorScheme.tertiaryContainer.withValues(alpha: 0.4),
-                  colorScheme.primaryContainer.withValues(alpha: 0.4),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            gradient: LinearGradient(
+              colors: [
+                colorScheme.tertiaryContainer.withValues(alpha: 0.4),
+                colorScheme.primaryContainer.withValues(alpha: 0.4),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
-            padding: const EdgeInsets.all(24),
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Part of speech badge + actions
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: colorScheme.tertiaryContainer,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          word.partOfSpeech,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: colorScheme.onTertiaryContainer,
-                            fontWeight: FontWeight.w600,
-                          ),
+          ),
+          padding: const EdgeInsets.all(24),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Part of speech badge + actions
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: colorScheme.tertiaryContainer,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        word.partOfSpeech,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: colorScheme.onTertiaryContainer,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                      Row(
-                        children: [
-                          IconButton(
-                            onPressed: () => ShareService.shareRepaintBoundary(
-                              boundaryKey: boundaryKey,
-                              fileBaseName:
-                                  'ekush_ponji_word_${word.storageKey}',
-                            ),
-                            icon: Icon(Icons.share_rounded,
-                                color: colorScheme.onSurfaceVariant),
-                            tooltip: l10n.share,
-                          ),
-                          IconButton(
-                            onPressed: onToggleSave,
-                            icon: Icon(
-                              word.isSaved
-                                  ? Icons.bookmark_rounded
-                                  : Icons.bookmark_outline_rounded,
-                              color: word.isSaved
-                                  ? colorScheme.primary
-                                  : colorScheme.onSurfaceVariant,
-                            ),
-                            tooltip: word.isSaved ? 'Unsave' : 'Save',
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Word + pronunciation
-                  Text(
-                    word.word,
-                    style: theme.textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.tertiary,
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    word.pronunciation,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                      fontStyle: FontStyle.italic,
+                    Row(
+                      children: [
+                        // ── CHANGED: use ShareService.shareWidget ──────
+                        IconButton(
+                          onPressed: () => ShareService.shareWidget(
+                            widget: WordShareCard(word: word),
+                            fileBaseName:
+                                'ekush_ponji_word_${word.storageKey}',
+                          ),
+                          icon: Icon(Icons.share_rounded,
+                              color: colorScheme.onSurfaceVariant),
+                          tooltip: l10n.share,
+                        ),
+                        // ───────────────────────────────────────────────
+                        IconButton(
+                          onPressed: onToggleSave,
+                          icon: Icon(
+                            word.isSaved
+                                ? Icons.bookmark_rounded
+                                : Icons.bookmark_outline_rounded,
+                            color: word.isSaved
+                                ? colorScheme.primary
+                                : colorScheme.onSurfaceVariant,
+                          ),
+                          tooltip: word.isSaved ? 'Unsave' : 'Save',
+                        ),
+                      ],
                     ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                // Word + pronunciation
+                Text(
+                  word.word,
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.tertiary,
                   ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  word.pronunciation,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
 
-                  const SizedBox(height: 20),
+                const SizedBox(height: 20),
 
-                  Divider(
-                      color: colorScheme.outline.withValues(alpha: 0.3),
-                      height: 1),
+                Divider(
+                    color: colorScheme.outline.withValues(alpha: 0.3),
+                    height: 1),
 
-                  const SizedBox(height: 20),
+                const SizedBox(height: 20),
 
-                  // Meaning EN
-                  _buildSection(
-                    context,
+                _buildSection(context,
                     icon: Icons.lightbulb_outline_rounded,
                     title: l10n.meaning,
-                    content: word.meaningEn,
-                  ),
-
-                  const SizedBox(height: 4),
-
-                  // Meaning BN
-                  _buildSection(
-                    context,
+                    content: word.meaningEn),
+                const SizedBox(height: 4),
+                _buildSection(context,
                     icon: Icons.translate_rounded,
                     title: 'অর্থ',
-                    content: word.meaningBn,
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Synonym
-                  _buildSection(
-                    context,
+                    content: word.meaningBn),
+                const SizedBox(height: 16),
+                _buildSection(context,
                     icon: Icons.sync_alt_rounded,
                     title: l10n.synonym,
-                    content: word.synonym,
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Example
-                  _buildSection(
-                    context,
+                    content: word.synonym),
+                const SizedBox(height: 16),
+                _buildSection(context,
                     icon: Icons.chat_bubble_outline_rounded,
                     title: l10n.example,
                     content: word.example,
-                    isItalic: true,
-                  ),
+                    isItalic: true),
 
-                  const SizedBox(height: 18),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      'Ekush Ponji',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant
-                            .withValues(alpha: 0.55),
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.6,
-                      ),
+                const SizedBox(height: 18),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    'Ekush Ponji',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant
+                          .withValues(alpha: 0.55),
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.6,
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -422,7 +395,6 @@ class _WordCard extends StatelessWidget {
   }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

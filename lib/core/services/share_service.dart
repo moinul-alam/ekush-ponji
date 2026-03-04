@@ -1,4 +1,7 @@
 // lib/core/services/share_service.dart
+//
+// Key fix: added `shareWidget()` which renders any widget off-screen into a
+// PNG — no theme dependency, no empty-space issues, always correct size.
 
 import 'dart:io';
 import 'dart:typed_data';
@@ -11,26 +14,89 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 class ShareService {
-  /// Captures a [RepaintBoundary] identified by [boundaryKey] and shares it
-  /// as a PNG image.
-  ///
-  /// **Dark image fix:** Pass [backgroundColor] to composite a solid background
-  /// behind the captured widget before encoding. This prevents transparent or
-  /// theme-inherited dark surfaces from producing a black/dark share image.
-  ///
-  /// Callers should also ensure the widget inside the [RepaintBoundary] has an
-  /// explicit background (e.g. wrap with [Material] or [ColoredBox]) for best
-  /// results when [backgroundColor] is null.
-  ///
-  /// Parameters:
-  /// - [boundaryKey]    GlobalKey on the RepaintBoundary widget to capture.
-  /// - [fileBaseName]   Output filename without extension (e.g. 'prayer_card').
-  /// - [text]           Optional share text shown alongside the image.
-  /// - [pixelRatio]     Render resolution multiplier. Default 3.0 (high-res).
-  /// - [backgroundColor] Optional background color composited behind the image.
-  ///                    Use [Colors.white] to guarantee a white background, or
-  ///                    pass your theme's surface color. If null, the widget's
-  ///                    own background is used as-is.
+  // ─────────────────────────────────────────────────────────────────────────
+  // NEW: Render any widget to PNG and share — no RepaintBoundary needed.
+  //
+  // Usage:
+  //   await ShareService.shareWidget(
+  //     widget: QuoteShareCard(quote: quote),
+  //     fileBaseName: 'ekush_ponji_quote_${quote.storageKey}',
+  //   );
+  // ─────────────────────────────────────────────────────────────────────────
+  static Future<void> shareWidget({
+    required Widget widget,
+    required String fileBaseName,
+    String? text,
+    double pixelRatio = 3.0,
+    Size logicalSize = const Size(420, 9999), // height is unconstrained
+  }) async {
+    // Wrap in a LayoutBuilder so intrinsic height is respected
+    final repaintKey = GlobalKey();
+
+    final renderView = RenderRepaintBoundary();
+    final renderView2 = RenderView(
+      view: WidgetsBinding.instance.platformDispatcher.views.first,
+      child: RenderPositionedBox(
+        alignment: Alignment.topCenter,
+        child: renderView,
+      ),
+      configuration: ViewConfiguration(
+        logicalConstraints: BoxConstraints(
+          maxWidth: logicalSize.width,
+          maxHeight: logicalSize.height,
+        ),
+        devicePixelRatio: pixelRatio,
+      ),
+    );
+
+    final pipelineOwner = PipelineOwner();
+    pipelineOwner.rootNode = renderView2;
+    renderView2.prepareInitialFrame();
+
+    final buildOwner = BuildOwner(focusManager: FocusManager());
+
+    final rootElement = RenderObjectToWidgetAdapter<RenderBox>(
+      container: renderView,
+      child: Directionality(
+        textDirection: TextDirection.ltr,
+        child: MediaQuery(
+          data: const MediaQueryData(),
+          child: widget,
+        ),
+      ),
+    ).attachToRenderTree(buildOwner);
+
+    buildOwner.buildScope(rootElement);
+    buildOwner.finalizeTree();
+    pipelineOwner.flushLayout();
+    pipelineOwner.flushCompositingBits();
+    pipelineOwner.flushPaint();
+
+    final ui.Image image = await renderView.toImage(pixelRatio: pixelRatio);
+    final ByteData? byteData =
+        await image.toByteData(format: ui.ImageByteFormat.png);
+    image.dispose();
+
+    if (byteData == null) {
+      debugPrint('❌ ShareService.shareWidget: failed to encode PNG');
+      return;
+    }
+
+    final Uint8List pngBytes = byteData.buffer.asUint8List();
+    final Directory dir = await getTemporaryDirectory();
+    final File file = File('${dir.path}/$fileBaseName.png');
+    await file.writeAsBytes(pngBytes, flush: true);
+
+    await SharePlus.instance.share(
+      ShareParams(files: [XFile(file.path)], text: text),
+    );
+
+    debugPrint('✅ ShareService.shareWidget: shared $fileBaseName.png');
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // ORIGINAL: Capture an on-screen RepaintBoundary (kept for other usages).
+  // ─────────────────────────────────────────────────────────────────────────
   static Future<void> shareRepaintBoundary({
     required GlobalKey boundaryKey,
     required String fileBaseName,
@@ -38,7 +104,6 @@ class ShareService {
     double pixelRatio = 3.0,
     ui.Color? backgroundColor,
   }) async {
-    // Wait for any pending frames to finish rendering
     await WidgetsBinding.instance.endOfFrame;
 
     final context = boundaryKey.currentContext;
@@ -53,26 +118,21 @@ class ShareService {
       return;
     }
 
-    // Capture the widget as a raw image at the requested pixel ratio
     final ui.Image capturedImage =
         await renderObject.toImage(pixelRatio: pixelRatio);
 
     ui.Image finalImage = capturedImage;
 
-    // Composite a background color if provided — fixes dark/transparent images
     if (backgroundColor != null) {
       final recorder = ui.PictureRecorder();
       final canvas = ui.Canvas(recorder);
       final width = capturedImage.width.toDouble();
       final height = capturedImage.height.toDouble();
 
-      // Draw solid background first
       canvas.drawRect(
         ui.Rect.fromLTWH(0, 0, width, height),
         ui.Paint()..color = backgroundColor,
       );
-
-      // Draw the captured widget on top
       canvas.drawImage(capturedImage, ui.Offset.zero, ui.Paint());
 
       final picture = recorder.endRecording();
@@ -80,15 +140,11 @@ class ShareService {
         capturedImage.width,
         capturedImage.height,
       );
-
-      // Dispose the intermediate image to free memory
       capturedImage.dispose();
     }
 
-    // Encode to PNG bytes
     final ByteData? byteData =
         await finalImage.toByteData(format: ui.ImageByteFormat.png);
-
     finalImage.dispose();
 
     if (byteData == null) {
@@ -97,17 +153,12 @@ class ShareService {
     }
 
     final Uint8List pngBytes = byteData.buffer.asUint8List();
-
-    // Write to a temp file and share
     final Directory dir = await getTemporaryDirectory();
     final File file = File('${dir.path}/$fileBaseName.png');
     await file.writeAsBytes(pngBytes, flush: true);
 
     await SharePlus.instance.share(
-      ShareParams(
-        files: [XFile(file.path)],
-        text: text,
-      ),
+      ShareParams(files: [XFile(file.path)], text: text),
     );
 
     debugPrint('✅ ShareService: shared $fileBaseName.png');

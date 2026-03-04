@@ -134,7 +134,7 @@ class PrayerNotificationService {
     //   Body:  5:12 AM • Dhaka, Bangladesh
     //
     final title = languageCode == 'bn'
-        ? '${name}ের সময় হয়েছে'
+        ? '$name এর নামাজের সময় হয়েছে'
         : 'Time for $name';
 
     final body = languageCode == 'bn'

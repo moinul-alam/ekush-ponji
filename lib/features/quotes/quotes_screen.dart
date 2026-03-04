@@ -1,4 +1,6 @@
 // lib/features/quotes/quotes_screen.dart
+// CHANGED: share button now uses ShareService.shareWidget() with QuoteShareCard
+// instead of capturing the interactive card via RepaintBoundary.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +11,7 @@ import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
 import 'package:ekush_ponji/features/quotes/models/quote.dart';
 import 'package:ekush_ponji/features/quotes/quotes_viewmodel.dart';
+import 'package:ekush_ponji/features/quotes/widgets/quote_share_card.dart'; // NEW
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ekush_ponji/core/services/share_service.dart';
@@ -27,7 +30,7 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
   late Animation<Offset> _slideOutAnimation;
   late Animation<Offset> _slideInAnimation;
   bool _isAnimating = false;
-  bool _slideFromRight = true; // true = next, false = previous
+  bool _slideFromRight = true;
   double _quoteFontScale = 1.0;
 
   @override
@@ -82,19 +85,14 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
               const SizedBox(height: 12),
               Row(
                 children: [
-                  Text(
-                    'A',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
+                  Text('A', style: Theme.of(context).textTheme.bodyMedium),
                   Expanded(
                     child: Slider(
                       value: _quoteFontScale,
                       min: 0.8,
                       max: 1.6,
                       divisions: 8,
-                      onChanged: (v) {
-                        setState(() => _quoteFontScale = v);
-                      },
+                      onChanged: (v) => setState(() => _quoteFontScale = v),
                       onChangeEnd: _saveQuoteFontScale,
                     ),
                   ),
@@ -187,12 +185,9 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
 
     final quotes = vm.allQuotes;
     if (quotes.isEmpty) {
-      return buildEmptyWidget(
-        const ViewStateEmpty('No quotes available'),
-      );
+      return buildEmptyWidget(const ViewStateEmpty('No quotes available'));
     }
 
-    // Clamp index safety
     if (_currentIndex >= quotes.length) {
       _currentIndex = quotes.length - 1;
     }
@@ -239,7 +234,6 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
               child: AnimatedBuilder(
                 animation: _animationController,
                 builder: (context, child) {
-                  // During animation: slide out old, slide in new
                   final isForwarding = _animationController.isAnimating;
                   return Stack(
                     children: [
@@ -287,13 +281,11 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 IconButton.outlined(
-                  onPressed: _currentIndex > 0
-                      ? () => _goToPrevious(quotes)
-                      : null,
+                  onPressed:
+                      _currentIndex > 0 ? () => _goToPrevious(quotes) : null,
                   icon: const Icon(Icons.arrow_back_ios_new_rounded),
                   tooltip: AppLocalizations.of(context).previous,
                 ),
-                // Dot indicators (max 5 visible)
                 _DotIndicator(
                   total: quotes.length,
                   current: _currentIndex,
@@ -319,7 +311,8 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
   }
 }
 
-// ─── Quote Card ───────────────────────────────────────────────
+// ─── Quote Card (interactive, on-screen) ──────────────────────
+// NOTE: RepaintBoundary removed — sharing now uses QuoteShareCard off-screen.
 class _QuoteCard extends StatelessWidget {
   final QuoteModel quote;
   final VoidCallback onToggleSave;
@@ -336,7 +329,6 @@ class _QuoteCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context);
-    final boundaryKey = GlobalKey();
 
     return SizedBox(
       width: double.infinity,
@@ -345,136 +337,131 @@ class _QuoteCard extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
-        child: RepaintBoundary(
-          key: boundaryKey,
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              gradient: LinearGradient(
-                colors: [
-                  colorScheme.secondaryContainer.withValues(alpha: 0.4),
-                  colorScheme.tertiaryContainer.withValues(alpha: 0.4),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            gradient: LinearGradient(
+              colors: [
+                colorScheme.secondaryContainer.withValues(alpha: 0.4),
+                colorScheme.tertiaryContainer.withValues(alpha: 0.4),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Category + actions
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        quote.category,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: colorScheme.onPrimaryContainer,
-                          fontWeight: FontWeight.w600,
-                        ),
+          ),
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Category + actions
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      quote.category,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: colorScheme.onPrimaryContainer,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    Row(
-                      children: [
-                        IconButton(
-                          onPressed: () => ShareService.shareRepaintBoundary(
-                            boundaryKey: boundaryKey,
-                            fileBaseName:
-                                'ekush_ponji_quote_${quote.storageKey}',
-                          ),
-                          icon: Icon(Icons.share_rounded,
-                              color: colorScheme.onSurfaceVariant),
-                          tooltip: l10n.share,
-                        ),
-                        IconButton(
-                          onPressed: onToggleSave,
-                          icon: Icon(
-                            quote.isSaved
-                                ? Icons.bookmark_rounded
-                                : Icons.bookmark_outline_rounded,
-                            color: quote.isSaved
-                                ? colorScheme.primary
-                                : colorScheme.onSurfaceVariant,
-                          ),
-                          tooltip: quote.isSaved ? 'Unsave' : 'Save',
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 12),
-
-                // Quote body (auto-fit)
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  ),
+                  Row(
                     children: [
-                      Icon(
-                        Icons.format_quote_rounded,
-                        color: colorScheme.primary.withValues(alpha: 0.3),
-                        size: 48,
-                      ),
-                      const SizedBox(height: 10),
-                      Expanded(
-                        child: AutoSizeText(
-                          quote.text,
-                          maxLines: 12,
-                          minFontSize: 14 * quoteFontScale,
-                          maxFontSize: 34 * quoteFontScale,
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            color: colorScheme.onSurface,
-                            fontStyle: FontStyle.italic,
-                            height: 1.5,
-                          ),
+                      // ── CHANGED: use ShareService.shareWidget ──────────
+                      IconButton(
+                        onPressed: () => ShareService.shareWidget(
+                          widget: QuoteShareCard(quote: quote),
+                          fileBaseName:
+                              'ekush_ponji_quote_${quote.storageKey}',
                         ),
+                        icon: Icon(Icons.share_rounded,
+                            color: colorScheme.onSurfaceVariant),
+                        tooltip: l10n.share,
+                      ),
+                      // ───────────────────────────────────────────────────
+                      IconButton(
+                        onPressed: onToggleSave,
+                        icon: Icon(
+                          quote.isSaved
+                              ? Icons.bookmark_rounded
+                              : Icons.bookmark_outline_rounded,
+                          color: quote.isSaved
+                              ? colorScheme.primary
+                              : colorScheme.onSurfaceVariant,
+                        ),
+                        tooltip: quote.isSaved ? 'Unsave' : 'Save',
                       ),
                     ],
                   ),
-                ),
+                ],
+              ),
 
-                const SizedBox(height: 12),
+              const SizedBox(height: 12),
 
-                // Author + app name (watermark)
-                Row(
+              // Quote body
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 32,
-                      height: 2,
-                      color: colorScheme.primary,
+                    Icon(
+                      Icons.format_quote_rounded,
+                      color: colorScheme.primary.withValues(alpha: 0.3),
+                      size: 48,
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(height: 10),
                     Expanded(
-                      child: Text(
-                        quote.author,
-                        style: theme.textTheme.bodyMedium?.copyWith(
+                      child: AutoSizeText(
+                        quote.text,
+                        maxLines: 12,
+                        minFontSize: 14 * quoteFontScale,
+                        maxFontSize: 34 * quoteFontScale,
+                        style: theme.textTheme.titleLarge?.copyWith(
                           color: colorScheme.onSurface,
-                          fontWeight: FontWeight.w600,
+                          fontStyle: FontStyle.italic,
+                          height: 1.5,
                         ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    Text(
-                      'Ekush Ponji',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant
-                            .withValues(alpha: 0.55),
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.6,
                       ),
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Author + watermark
+              Row(
+                children: [
+                  Container(width: 32, height: 2, color: colorScheme.primary),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      quote.author,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurface,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Text(
+                    'Ekush Ponji',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color:
+                          colorScheme.onSurfaceVariant.withValues(alpha: 0.55),
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.6,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
