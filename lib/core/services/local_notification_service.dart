@@ -4,7 +4,6 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -23,21 +22,18 @@ class LocalNotificationService {
     // Step 1: Initialize timezone database
     tz.initializeTimeZones();
 
-    // Step 2: Set device's local timezone — CRITICAL
-    // Without this, tz.local defaults to UTC, causing all scheduled
-    // notifications to fire at wrong times (or silently drop if in the past)
+    // Step 2: Resolve device timezone using Dart's built-in DateTime —
     try {
-      final String deviceTimezone = await FlutterTimezone.getLocalTimezone();
-      tz.setLocalLocation(tz.getLocation(deviceTimezone));
-      debugPrint('✅ Timezone set to: $deviceTimezone');
+      final String tzName = _resolveLocalTimezoneName();
+      tz.setLocalLocation(tz.getLocation(tzName));
+      debugPrint('✅ Timezone set to: $tzName');
     } catch (e) {
-      debugPrint('❌ Failed to get device timezone, falling back to Asia/Dhaka: $e');
+      debugPrint('❌ Failed to resolve timezone, falling back to Asia/Dhaka: $e');
       tz.setLocalLocation(tz.getLocation('Asia/Dhaka'));
     }
 
     // Step 3: Configure platform initialization settings
-    const androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: false,
       requestBadgePermission: false,
@@ -147,12 +143,45 @@ class LocalNotificationService {
     debugPrint('🔔 Notification tapped: id=${response.id}, payload=${response.payload}');
   }
 
-  // ── Dev Utilities ─────────────────────────────────────────────────────────
+  // ── Timezone Resolution ───────────────────────────────────────────────────
 
-  /// Call this in tests or during hot-restart dev scenarios to force
-  /// re-initialization. Do NOT call in production code.
-  @visibleForTesting
-  static void resetForTesting() {
-    _initialized = false;
+  /// Resolves the device's IANA timezone name without any native plugin.
+  ///
+  /// Strategy: Dart's [DateTime.now()] always uses the host OS local timezone.
+  /// We read its UTC offset and match it against known IANA timezone names
+  /// from the tz database. For devices in Bangladesh (UTC+6) this will always
+  /// return 'Asia/Dhaka'. For other offsets a best-effort match is returned.
+  ///
+  /// Limitation: UTC offset alone cannot distinguish between timezones that
+  /// share the same offset (e.g. UTC+6 covers Asia/Dhaka and Asia/Almaty).
+  /// For a prayer-times app where users are overwhelmingly in Bangladesh,
+  /// this is acceptable and avoids a broken native dependency entirely.
+  static String _resolveLocalTimezoneName() {
+    final offsetMinutes = DateTime.now().timeZoneOffset.inMinutes;
+
+    // Common UTC offset → IANA timezone map
+    // Covers South Asia and neighbouring regions
+    const Map<int, String> offsetToTimezone = {
+      330:  'Asia/Kolkata',    // UTC+5:30 — India
+      345:  'Asia/Kathmandu',  // UTC+5:45 — Nepal
+      360:  'Asia/Dhaka',      // UTC+6    — Bangladesh ✓
+      390:  'Asia/Yangon',     // UTC+6:30 — Myanmar
+      420:  'Asia/Bangkok',    // UTC+7    — Thailand/Vietnam
+      480:  'Asia/Singapore',  // UTC+8    — Singapore/Malaysia
+      300:  'Asia/Karachi',    // UTC+5    — Pakistan
+      270:  'Asia/Kabul',      // UTC+4:30 — Afghanistan
+      240:  'Asia/Dubai',      // UTC+4    — UAE
+      180:  'Asia/Riyadh',     // UTC+3    — Saudi Arabia
+      120:  'Africa/Cairo',    // UTC+2    — Egypt
+      60:   'Europe/Paris',    // UTC+1    — Central Europe
+      0:    'Europe/London',   // UTC+0    — UK
+      -300: 'America/New_York',// UTC-5    — US Eastern
+      -360: 'America/Chicago', // UTC-6    — US Central
+      -420: 'America/Denver',  // UTC-7    — US Mountain
+      -480: 'America/Los_Angeles', // UTC-8 — US Pacific
+    };
+
+    return offsetToTimezone[offsetMinutes] ?? 'Asia/Dhaka';
   }
+
 }

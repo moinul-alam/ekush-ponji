@@ -1,8 +1,9 @@
+// lib/app/app.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-
 import 'package:ekush_ponji/app/router/app_router.dart';
 import 'package:ekush_ponji/core/themes/app_theme.dart';
 import 'package:ekush_ponji/app/providers/app_providers.dart';
@@ -29,13 +30,10 @@ class _EkushPonjiAppState extends ConsumerState<EkushPonjiApp> {
 
   @override
   Widget build(BuildContext context) {
-    // Watch theme mode - returns ThemeMode enum directly
     final themeMode = ref.watch(themeModeProvider);
-
-    // Watch locale changes
     final locale = ref.watch(localeProvider);
 
-    // Listen to theme changes and update system UI
+    // Update system UI on theme changes
     ref.listen<ThemeMode>(
       themeModeProvider,
       (previous, next) {
@@ -45,63 +43,60 @@ class _EkushPonjiAppState extends ConsumerState<EkushPonjiApp> {
       },
     );
 
-    // Set initial system UI ONLY ONCE on first build
+    // Set system UI once on first build
     if (!_systemUIInitialized) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           AppInitializer.updateSystemUIFromTheme(context, themeMode);
-          setState(() {
-            _systemUIInitialized = true;
-          });
+          setState(() => _systemUIInitialized = true);
         }
       });
     }
 
-    return MaterialApp.router(
-      title: AppConfig.appName,
-      debugShowCheckedModeBanner: false,
+    // ScreenUtilInit wraps MaterialApp.router so it has access to real screen
+    // dimensions before any widget builds. Since orientation is locked to
+    // portrait, this effectively initializes once per app session.
+    return ScreenUtilInit(
+      designSize: const Size(375, 812),
+      minTextAdapt: true,
+      splitScreenMode: true,
+      // ensureScreenSize waits for the first frame so dimensions are accurate
+      ensureScreenSize: true,
+      builder: (context, child) => MaterialApp.router(
+        title: AppConfig.appName,
+        debugShowCheckedModeBanner: false,
 
-      // Theme configuration
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: themeMode,
+        // Theme
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: themeMode,
 
-      // Localization configuration
-      locale: locale,
-      supportedLocales: AppConstants.supportedLocales,
-      localizationsDelegates: const [
-        AppLocalizationsDelegate(),
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      localeResolutionCallback: (locale, supportedLocales) {
-        // Check if the current locale is supported
-        if (locale != null) {
-          for (var supportedLocale in supportedLocales) {
-            if (supportedLocale.languageCode == locale.languageCode) {
-              return supportedLocale;
+        // Localization
+        locale: locale,
+        supportedLocales: AppConstants.supportedLocales,
+        localizationsDelegates: const [
+          AppLocalizationsDelegate(),
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        localeResolutionCallback: (locale, supportedLocales) {
+          if (locale != null) {
+            for (final supported in supportedLocales) {
+              if (supported.languageCode == locale.languageCode) {
+                return supported;
+              }
             }
           }
-        }
-        // Return default locale if not supported
-        return AppConstants.defaultLocale;
-      },
+          return AppConstants.defaultLocale;
+        },
 
-      // Router configuration
-      routerConfig: AppRouter.router,
+        // Router
+        routerConfig: AppRouter.router,
 
-      // Builder for ScreenUtil and responsive text
-      builder: (context, widget) {
-        // Initialize ScreenUtil here, once per route
-        ScreenUtil.init(
-          context,
-          designSize: const Size(375, 812),
-          minTextAdapt: true,
-          splitScreenMode: true,
-        );
-
-        return MediaQuery(
+        // Clamp system text scaling to prevent layout breaks on
+        // devices with very large or very small accessibility font sizes
+        builder: (context, widget) => MediaQuery(
           data: MediaQuery.of(context).copyWith(
             textScaler: MediaQuery.textScalerOf(context).clamp(
               minScaleFactor: 0.8,
@@ -109,8 +104,8 @@ class _EkushPonjiAppState extends ConsumerState<EkushPonjiApp> {
             ),
           ),
           child: widget ?? const SizedBox.shrink(),
-        );
-      },
+        ),
+      ),
     );
   }
 }

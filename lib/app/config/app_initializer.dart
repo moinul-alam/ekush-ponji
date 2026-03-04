@@ -14,7 +14,11 @@ import 'package:ekush_ponji/features/words/data/datasources/local/words_local_da
 import 'package:ekush_ponji/core/services/local_notification_service.dart';
 
 class AppInitializer {
-  /// Initialize app services
+
+  // ── Public Entry Point ────────────────────────────────────────────────────
+
+  /// Runs all startup initialization in the correct order.
+  /// Called once from main() before runApp().
   static Future<void> initialize() async {
     try {
       await _setDeviceOrientation();
@@ -22,7 +26,7 @@ class AppInitializer {
       await _registerHiveAdapters();
       await _openHiveBoxes();
       await _initializeSharedPreferences();
-      await LocalNotificationService.initialize();
+      await _initializeNotifications();
       await _performInitialSync();
 
       debugPrint('✅ App initialization completed successfully');
@@ -32,6 +36,8 @@ class AppInitializer {
       rethrow;
     }
   }
+
+  // ── Steps ─────────────────────────────────────────────────────────────────
 
   /// Lock device orientation to portrait only
   static Future<void> _setDeviceOrientation() async {
@@ -45,7 +51,7 @@ class AppInitializer {
   /// Initialize Hive local storage
   static Future<void> _initializeHive() async {
     await Hive.initFlutter();
-    debugPrint('✅ Hive initialized successfully');
+    debugPrint('✅ Hive initialized');
   }
 
   /// Register Hive type adapters
@@ -55,7 +61,7 @@ class AppInitializer {
       Hive.registerAdapter(HolidayTypeAdapter());
       Hive.registerAdapter(QuoteModelAdapter());
       Hive.registerAdapter(WordModelAdapter());
-      debugPrint('✅ Hive adapters registered successfully');
+      debugPrint('✅ Hive adapters registered');
     } catch (e) {
       debugPrint('❌ Failed to register Hive adapters: $e');
       rethrow;
@@ -69,20 +75,35 @@ class AppInitializer {
       await Hive.openBox('holidays');
       await Hive.openBox<QuoteModel>(savedQuotesBoxName);
       await Hive.openBox<WordModel>(savedWordsBoxName);
-      debugPrint('✅ All Hive boxes opened successfully');
+      debugPrint('✅ Hive boxes opened');
     } catch (e) {
       debugPrint('❌ Failed to open Hive boxes: $e');
       rethrow;
     }
   }
 
-  /// Initialize SharedPreferences for locale storage
+  /// Initialize SharedPreferences
+  /// Called early so it's warmed up and available synchronously later
   static Future<void> _initializeSharedPreferences() async {
     try {
       await SharedPreferences.getInstance();
       debugPrint('✅ SharedPreferences initialized');
     } catch (e) {
-      debugPrint('❌ Error initializing SharedPreferences: $e');
+      // Non-fatal — SharedPreferences will re-initialize on first use
+      debugPrint('⚠️ SharedPreferences init warning: $e');
+    }
+  }
+
+  /// Initialize notification service — timezone + plugin setup.
+  /// Must run after Hive (settings box) is open, before any feature
+  /// that schedules notifications (prayer times, reminders, events).
+  static Future<void> _initializeNotifications() async {
+    try {
+      await LocalNotificationService.initialize();
+      debugPrint('✅ Notification service initialized');
+    } catch (e) {
+      // Non-fatal — app works without notifications
+      debugPrint('⚠️ Notification service init warning: $e');
     }
   }
 
@@ -90,45 +111,52 @@ class AppInitializer {
   static Future<void> _performInitialSync() async {
     try {
       debugPrint('🔄 Starting initial holiday sync...');
-
       final syncService = SyncService();
       final success = await syncService.syncHolidays();
 
       if (success) {
-        debugPrint('✅ Initial holiday sync completed successfully');
+        debugPrint('✅ Initial holiday sync completed');
       } else {
-        debugPrint('⚠️ Initial holiday sync failed (app will use cached data)');
+        debugPrint('⚠️ Holiday sync failed — app will use cached data');
       }
     } catch (e) {
-      debugPrint('⚠️ Error during initial sync: $e (app will continue)');
+      // Non-fatal — cached data will be used
+      debugPrint('⚠️ Holiday sync error: $e');
     }
   }
 
-  /// Update system UI based on current ThemeMode and platform brightness
+  // ── System UI ─────────────────────────────────────────────────────────────
+
+  /// Update system UI overlay style (status bar, nav bar) to match
+  /// the current theme. Call this on first build and on theme changes.
   static void updateSystemUIFromTheme(
-      BuildContext context, ThemeMode themeMode) {
+    BuildContext context,
+    ThemeMode themeMode,
+  ) {
     final platformBrightness = MediaQuery.of(context).platformBrightness;
-    final isDarkMode = themeMode == ThemeMode.dark ||
+    final isDark = themeMode == ThemeMode.dark ||
         (themeMode == ThemeMode.system &&
             platformBrightness == Brightness.dark);
-    final colorScheme = isDarkMode
-        ? AppTheme.darkTheme.colorScheme
-        : AppTheme.lightTheme.colorScheme;
+
+    final colorScheme =
+        isDark ? AppTheme.darkTheme.colorScheme : AppTheme.lightTheme.colorScheme;
 
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
+      statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
       systemNavigationBarColor: colorScheme.surface,
       systemNavigationBarIconBrightness:
-          isDarkMode ? Brightness.light : Brightness.dark,
+          isDark ? Brightness.light : Brightness.dark,
     ));
   }
 
-  /// Close all Hive boxes and cleanup
+  // ── Cleanup ───────────────────────────────────────────────────────────────
+
+  /// Close all Hive boxes. Call from app lifecycle dispose if needed.
   static Future<void> dispose() async {
     try {
       await Hive.close();
-      debugPrint('✅ Hive boxes closed successfully');
+      debugPrint('✅ Hive boxes closed');
     } catch (e) {
       debugPrint('❌ Failed to close Hive boxes: $e');
     }
