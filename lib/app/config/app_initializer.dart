@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:workmanager/workmanager.dart';
 import 'package:ekush_ponji/core/themes/app_theme.dart';
 import 'package:ekush_ponji/features/home/models/holiday.dart';
 import 'package:ekush_ponji/core/services/sync_service.dart';
@@ -12,21 +14,22 @@ import 'package:ekush_ponji/features/words/models/word.dart';
 import 'package:ekush_ponji/features/quotes/data/datasources/local/quotes_local_datasource.dart';
 import 'package:ekush_ponji/features/words/data/datasources/local/words_local_datasource.dart';
 import 'package:ekush_ponji/core/services/local_notification_service.dart';
+import 'package:ekush_ponji/core/services/background_task_dispatcher.dart';
 
 class AppInitializer {
 
   // ── Public Entry Point ────────────────────────────────────────────────────
 
-  /// Runs all startup initialization in the correct order.
-  /// Called once from main() before runApp().
   static Future<void> initialize() async {
     try {
       await _setDeviceOrientation();
+      await _initializeFirebase();
       await _initializeHive();
       await _registerHiveAdapters();
       await _openHiveBoxes();
       await _initializeSharedPreferences();
       await _initializeNotifications();
+      await _registerBootTask();
       await _performInitialSync();
 
       debugPrint('✅ App initialization completed successfully');
@@ -39,7 +42,6 @@ class AppInitializer {
 
   // ── Steps ─────────────────────────────────────────────────────────────────
 
-  /// Lock device orientation to portrait only
   static Future<void> _setDeviceOrientation() async {
     await SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
@@ -48,13 +50,23 @@ class AppInitializer {
     debugPrint('✅ Device orientation set to portrait');
   }
 
-  /// Initialize Hive local storage
+  /// Firebase must be initialized before any Firestore/Auth access.
+  /// Called without FirebaseOptions — reads from google-services.json directly.
+  static Future<void> _initializeFirebase() async {
+    try {
+      await Firebase.initializeApp();
+      debugPrint('✅ Firebase initialized');
+    } catch (e) {
+      debugPrint('❌ Firebase initialization failed: $e');
+      rethrow; // Fatal — Firestore won't work without this
+    }
+  }
+
   static Future<void> _initializeHive() async {
     await Hive.initFlutter();
     debugPrint('✅ Hive initialized');
   }
 
-  /// Register Hive type adapters
   static Future<void> _registerHiveAdapters() async {
     try {
       Hive.registerAdapter(HolidayAdapter());
@@ -68,7 +80,6 @@ class AppInitializer {
     }
   }
 
-  /// Open all required Hive boxes
   static Future<void> _openHiveBoxes() async {
     try {
       await Hive.openBox('settings');
@@ -82,53 +93,62 @@ class AppInitializer {
     }
   }
 
-  /// Initialize SharedPreferences
-  /// Called early so it's warmed up and available synchronously later
   static Future<void> _initializeSharedPreferences() async {
     try {
       await SharedPreferences.getInstance();
       debugPrint('✅ SharedPreferences initialized');
     } catch (e) {
-      // Non-fatal — SharedPreferences will re-initialize on first use
       debugPrint('⚠️ SharedPreferences init warning: $e');
     }
   }
 
-  /// Initialize notification service — timezone + plugin setup.
-  /// Must run after Hive (settings box) is open, before any feature
-  /// that schedules notifications (prayer times, reminders, events).
   static Future<void> _initializeNotifications() async {
     try {
       await LocalNotificationService.initialize();
       debugPrint('✅ Notification service initialized');
     } catch (e) {
-      // Non-fatal — app works without notifications
       debugPrint('⚠️ Notification service init warning: $e');
     }
   }
 
-  /// Perform initial holiday sync from Firebase
+  /// Registers a one-off WorkManager task that fires after device reboot.
+  /// WorkManager persists this across reboots automatically — when Android
+  /// restarts it runs [callbackDispatcher] in a background isolate to
+  /// restore prayer alarms without the user needing to open the app.
+  static Future<void> _registerBootTask() async {
+    try {
+      await Workmanager().registerOneOffTask(
+        kReschedulePrayerTask,
+        kReschedulePrayerTask,
+        initialDelay: const Duration(seconds: 30),
+        existingWorkPolicy: ExistingWorkPolicy.replace,
+        constraints: Constraints(
+          networkType: NetworkType.notRequired,
+        ),
+      );
+      debugPrint('✅ Boot reschedule task registered');
+    } catch (e) {
+      debugPrint('⚠️ Boot task registration warning: $e');
+    }
+  }
+
   static Future<void> _performInitialSync() async {
     try {
       debugPrint('🔄 Starting initial holiday sync...');
       final syncService = SyncService();
       final success = await syncService.syncHolidays();
-
       if (success) {
         debugPrint('✅ Initial holiday sync completed');
       } else {
         debugPrint('⚠️ Holiday sync failed — app will use cached data');
       }
     } catch (e) {
-      // Non-fatal — cached data will be used
       debugPrint('⚠️ Holiday sync error: $e');
     }
   }
 
   // ── System UI ─────────────────────────────────────────────────────────────
 
-  /// Update system UI overlay style (status bar, nav bar) to match
-  /// the current theme. Call this on first build and on theme changes.
   static void updateSystemUIFromTheme(
     BuildContext context,
     ThemeMode themeMode,
@@ -152,7 +172,6 @@ class AppInitializer {
 
   // ── Cleanup ───────────────────────────────────────────────────────────────
 
-  /// Close all Hive boxes. Call from app lifecycle dispose if needed.
   static Future<void> dispose() async {
     try {
       await Hive.close();

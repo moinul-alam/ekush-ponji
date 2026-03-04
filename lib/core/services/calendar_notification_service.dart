@@ -1,5 +1,6 @@
 // lib/features/calendar/services/calendar_notification_service.dart
 
+import 'package:flutter/material.dart' show Color;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:ekush_ponji/core/services/local_notification_service.dart';
 import 'package:ekush_ponji/features/home/models/event.dart';
@@ -11,24 +12,22 @@ class CalendarNotificationService {
   static const _reminderChannelId = 'reminders_channel';
   static const _reminderChannelName = 'Reminders';
 
-  // ── Stable ID Generation ──────────────────────────────────────────────────
+  // App primary green — consistent with prayer notifications
+  static const int _accentColorValue = 0xFF006B54;
+
+  // ── Stable ID Generation ───────────────────────────────────────────────────
 
   /// Generates a stable, non-negative notification ID from a raw string ID.
   ///
-  /// Problem with the previous implementation: Dart's [hashCode] can return
-  /// negative values (including [int.minValue] on 64-bit), where .abs() is
-  /// still negative — causing the notification plugin to reject the ID.
-  ///
-  /// This version uses a simple djb2-style hash that always produces a
-  /// non-negative integer within Android's safe notification ID range.
+  /// Uses djb2-style hash guaranteed to produce a non-negative 31-bit integer.
+  /// This avoids the Dart hashCode pitfall where .abs() of int.minValue
+  /// remains negative on 64-bit platforms.
   static int _stableId(String rawId, {required int base}) {
-    // djb2 hash — always non-negative via bitmask
     int hash = 5381;
     for (final unit in rawId.codeUnits) {
       hash = ((hash << 5) + hash) + unit;
       hash &= 0x7FFFFFFF; // keep positive, 31-bit safe
     }
-    // Combine with base, stay within safe int range
     return (base + (hash % 100000000)).abs();
   }
 
@@ -38,7 +37,7 @@ class CalendarNotificationService {
   static int reminderNotificationId(Reminder reminder) =>
       _stableId(reminder.id, base: 400000000);
 
-  // ── Event Scheduling ──────────────────────────────────────────────────────
+  // ── Event Scheduling ───────────────────────────────────────────────────────
 
   static Future<void> scheduleEvent(Event event) async {
     final ok = await LocalNotificationService.ensurePermission();
@@ -68,6 +67,7 @@ class CalendarNotificationService {
       scheduledTime: scheduledTime,
       title: event.title,
       body: 'Ekush Ponji • Event',
+      payload: 'event:${event.id}', // tapping opens Calendar screen
       details: NotificationDetails(
         android: AndroidNotificationDetails(
           _eventChannelId,
@@ -76,6 +76,9 @@ class CalendarNotificationService {
           importance: Importance.high,
           priority: Priority.high,
           icon: '@mipmap/ic_launcher',
+          color: const Color(_accentColorValue),
+          category: AndroidNotificationCategory.event,
+          styleInformation: BigTextStyleInformation(event.title),
         ),
         iOS: const DarwinNotificationDetails(
           presentAlert: true,
@@ -86,7 +89,7 @@ class CalendarNotificationService {
     );
   }
 
-  // ── Reminder Scheduling ───────────────────────────────────────────────────
+  // ── Reminder Scheduling ────────────────────────────────────────────────────
 
   static Future<void> scheduleReminder(Reminder reminder) async {
     final ok = await LocalNotificationService.ensurePermission();
@@ -115,6 +118,7 @@ class CalendarNotificationService {
       scheduledTime: scheduledTime,
       title: reminder.title,
       body: 'Ekush Ponji • Reminder',
+      payload: 'reminder:${reminder.id}', // tapping opens Reminders screen
       details: NotificationDetails(
         android: AndroidNotificationDetails(
           _reminderChannelId,
@@ -123,6 +127,9 @@ class CalendarNotificationService {
           importance: Importance.high,
           priority: Priority.high,
           icon: '@mipmap/ic_launcher',
+          color: const Color(_accentColorValue),
+          category: AndroidNotificationCategory.reminder,
+          styleInformation: BigTextStyleInformation(reminder.title),
         ),
         iOS: const DarwinNotificationDetails(
           presentAlert: true,
@@ -133,7 +140,7 @@ class CalendarNotificationService {
     );
   }
 
-  // ── Cancel ────────────────────────────────────────────────────────────────
+  // ── Cancel ─────────────────────────────────────────────────────────────────
 
   static Future<void> cancelEvent(Event event) async {
     await LocalNotificationService.cancel(eventNotificationId(event));

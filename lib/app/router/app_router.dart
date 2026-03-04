@@ -24,7 +24,14 @@ import 'package:ekush_ponji/core/localization/app_localizations.dart';
 class AppRouter {
   AppRouter._();
 
+  /// A global navigator key passed to GoRouter.
+  /// This allows navigation from outside the widget tree — specifically
+  /// from notification tap callbacks which have no BuildContext.
+  static final GlobalKey<NavigatorState> navigatorKey =
+      GlobalKey<NavigatorState>();
+
   static final GoRouter router = GoRouter(
+    navigatorKey: navigatorKey,
     initialLocation: RouteNames.splash,
     debugLogDiagnostics: false,
     routes: [
