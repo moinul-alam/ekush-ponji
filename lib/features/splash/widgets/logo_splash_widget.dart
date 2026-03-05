@@ -11,32 +11,26 @@ class _LogoSplashWidgetState extends State<LogoSplashWidget>
     with TickerProviderStateMixin {
   late final AnimationController _logoController;
   late final AnimationController _textController;
-  late final AnimationController _shimmerController;
+  late final AnimationController _glowController;
 
   late final Animation<double> _logoScale;
   late final Animation<double> _logoFade;
   late final Animation<double> _logoRotation;
   late final Animation<double> _textFade;
   late final Animation<Offset> _textSlide;
-  late final Animation<double> _shimmerPosition;
+  late final Animation<double> _glowPulse;
 
-  // Animation constants
+  // Animation durations
   static const _logoDuration = Duration(milliseconds: 1200);
   static const _textDuration = Duration(milliseconds: 800);
-  static const _shimmerDuration = Duration(milliseconds: 1500);
+  static const _glowDuration = Duration(milliseconds: 2000);
   static const _textDelay = Duration(milliseconds: 400);
 
   // Design constants
-  static const _logoSize = 140.0;
-  static const _logoRadius = 32.0;
-  static const _logoPadding = 20.0;
+  static const double logoSize = 140.0;
   static const _verticalSpacing = 40.0;
   static const _taglineSpacing = 12.0;
-
-  // Alpha values for better performance
   static const _shadowAlpha = 51; // 0.2 opacity
-  static const _shimmerAlpha = 77; // 0.3 opacity
-  static const _taglineAlpha = 242; // 0.95 opacity
 
   @override
   void initState() {
@@ -57,92 +51,59 @@ class _LogoSplashWidgetState extends State<LogoSplashWidget>
       duration: _textDuration,
     );
 
-    _shimmerController = AnimationController(
+    // Glow pulses continuously but softly
+    _glowController = AnimationController(
       vsync: this,
-      duration: _shimmerDuration,
-    )..repeat();
+      duration: _glowDuration,
+    )..repeat(reverse: true);
   }
 
   void _initializeAnimations() {
-    // Logo animations with optimized curves
-    _logoScale = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(
-      CurvedAnimation(
-        parent: _logoController,
-        curve: Curves.elasticOut,
-      ),
+    _logoScale = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _logoController, curve: Curves.elasticOut),
     );
 
-    _logoFade = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(
+    _logoFade = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _logoController,
         curve: const Interval(0.0, 0.5, curve: Curves.easeIn),
       ),
     );
 
-    _logoRotation = Tween<double>(
-      begin: -0.1,
-      end: 0.0,
-    ).animate(
-      CurvedAnimation(
-        parent: _logoController,
-        curve: Curves.easeOutBack,
-      ),
+    _logoRotation = Tween<double>(begin: -0.08, end: 0.0).animate(
+      CurvedAnimation(parent: _logoController, curve: Curves.easeOutBack),
     );
 
-    // Text animations
-    _textFade = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(
-      CurvedAnimation(
-        parent: _textController,
-        curve: Curves.easeIn,
-      ),
+    _textFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _textController, curve: Curves.easeIn),
     );
 
     _textSlide = Tween<Offset>(
       begin: const Offset(0, 0.5),
       end: Offset.zero,
     ).animate(
-      CurvedAnimation(
-        parent: _textController,
-        curve: Curves.easeOutCubic,
-      ),
+      CurvedAnimation(parent: _textController, curve: Curves.easeOutCubic),
     );
 
-    // Shimmer animation
-    _shimmerPosition = Tween<double>(
-      begin: -2.0,
-      end: 2.0,
-    ).animate(
-      CurvedAnimation(
-        parent: _shimmerController,
-        curve: Curves.easeInOut,
-      ),
+    // Glow radius pulses between 0.85 and 1.0 scale — subtle breathing effect
+    _glowPulse = Tween<double>(begin: 0.85, end: 1.0).animate(
+      CurvedAnimation(parent: _glowController, curve: Curves.easeInOut),
     );
   }
 
   Future<void> _startAnimationSequence() async {
     await _logoController.forward();
-    if (mounted) {
-      await Future.delayed(_textDelay);
-      if (mounted) {
-        await _textController.forward();
-      }
-    }
+    if (!mounted) return;
+    await Future.delayed(_textDelay);
+    if (!mounted) return;
+    await _textController.forward();
   }
 
   @override
   void dispose() {
     _logoController.dispose();
     _textController.dispose();
-    _shimmerController.dispose();
+    _glowController.dispose();
     super.dispose();
   }
 
@@ -153,11 +114,11 @@ class _LogoSplashWidgetState extends State<LogoSplashWidget>
       children: [
         _AnimatedLogo(
           logoController: _logoController,
-          shimmerController: _shimmerController,
+          glowController: _glowController,
           logoScale: _logoScale,
           logoRotation: _logoRotation,
           logoFade: _logoFade,
-          shimmerPosition: _shimmerPosition,
+          glowPulse: _glowPulse,
         ),
         const SizedBox(height: _verticalSpacing),
         _AnimatedAppName(
@@ -175,30 +136,31 @@ class _LogoSplashWidgetState extends State<LogoSplashWidget>
   }
 }
 
-// Extracted Logo Widget for better maintainability
+// ─── Logo with transparent background + glow ───────────────────────────────
+
 class _AnimatedLogo extends StatelessWidget {
   const _AnimatedLogo({
     required this.logoController,
-    required this.shimmerController,
+    required this.glowController,
     required this.logoScale,
     required this.logoRotation,
     required this.logoFade,
-    required this.shimmerPosition,
+    required this.glowPulse,
   });
 
   final AnimationController logoController;
-  final AnimationController shimmerController;
+  final AnimationController glowController;
   final Animation<double> logoScale;
   final Animation<double> logoRotation;
   final Animation<double> logoFade;
-  final Animation<double> shimmerPosition;
+  final Animation<double> glowPulse;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final primaryColor = Theme.of(context).colorScheme.primary;
 
     return AnimatedBuilder(
-      animation: logoController,
+      animation: Listenable.merge([logoController, glowController]),
       builder: (context, _) {
         return Transform.scale(
           scale: logoScale.value,
@@ -206,10 +168,9 @@ class _AnimatedLogo extends StatelessWidget {
             angle: logoRotation.value,
             child: Opacity(
               opacity: logoFade.value,
-              child: _LogoContainer(
-                shimmerController: shimmerController,
-                shimmerPosition: shimmerPosition,
-                primaryColor: theme.colorScheme.primary,
+              child: _LogoWithGlow(
+                glowPulse: glowPulse.value,
+                primaryColor: primaryColor,
               ),
             ),
           ),
@@ -219,116 +180,90 @@ class _AnimatedLogo extends StatelessWidget {
   }
 }
 
-class _LogoContainer extends StatelessWidget {
-  const _LogoContainer({
-    required this.shimmerController,
-    required this.shimmerPosition,
+class _LogoWithGlow extends StatelessWidget {
+  const _LogoWithGlow({
+    required this.glowPulse,
     required this.primaryColor,
   });
 
-  final AnimationController shimmerController;
-  final Animation<double> shimmerPosition;
+  final double glowPulse;
   final Color primaryColor;
+
+  @override
+  Widget build(BuildContext context) {
+    const size = _LogoSplashWidgetState.logoSize;
+
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Outer ambient glow — largest, most transparent
+          _GlowRing(
+            size: size * 1.5 * glowPulse,
+            color: Colors.white,
+            opacity: 0.06,
+          ),
+          // Middle glow ring
+          _GlowRing(
+            size: size * 1.2 * glowPulse,
+            color: Colors.white,
+            opacity: 0.10,
+          ),
+          // Inner tight glow — closest to logo
+          _GlowRing(
+            size: size * 1.0,
+            color: Colors.white,
+            opacity: 0.08 * glowPulse,
+          ),
+          // The logo itself — no background, no border
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Image.asset(
+              'assets/images/logo.png',
+              fit: BoxFit.contain,
+              filterQuality: FilterQuality.high,
+              errorBuilder: (context, error, stackTrace) {
+                return Icon(
+                  Icons.calendar_month_rounded,
+                  size: 90,
+                  color: Colors.white,
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GlowRing extends StatelessWidget {
+  const _GlowRing({
+    required this.size,
+    required this.color,
+    required this.opacity,
+  });
+
+  final double size;
+  final Color color;
+  final double opacity;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: _LogoSplashWidgetState._logoSize,
-      height: _LogoSplashWidgetState._logoSize,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(_LogoSplashWidgetState._logoRadius),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(_LogoSplashWidgetState._shadowAlpha),
-            blurRadius: 30,
-            offset: const Offset(0, 15),
-            spreadRadius: -5,
-          ),
-        ],
-      ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          _ShimmerEffect(
-            shimmerController: shimmerController,
-            shimmerPosition: shimmerPosition,
-          ),
-          _LogoImage(primaryColor: primaryColor),
-        ],
+        shape: BoxShape.circle,
+        color: color.withValues(alpha: opacity),
       ),
     );
   }
 }
 
-class _ShimmerEffect extends StatelessWidget {
-  const _ShimmerEffect({
-    required this.shimmerController,
-    required this.shimmerPosition,
-  });
-
-  final AnimationController shimmerController;
-  final Animation<double> shimmerPosition;
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: shimmerController,
-      builder: (context, _) {
-        return ClipRRect(
-          borderRadius:
-              BorderRadius.circular(_LogoSplashWidgetState._logoRadius),
-          child: ShaderMask(
-            shaderCallback: (bounds) {
-              return LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: const [
-                  Colors.transparent,
-                  Color.fromRGBO(255, 255, 255,
-                      _LogoSplashWidgetState._shimmerAlpha / 255),
-                  Colors.transparent,
-                ],
-                stops: [
-                  (shimmerPosition.value - 0.3).clamp(0.0, 1.0),
-                  shimmerPosition.value.clamp(0.0, 1.0),
-                  (shimmerPosition.value + 0.3).clamp(0.0, 1.0),
-                ],
-              ).createShader(bounds);
-            },
-            child: Container(
-              color: Colors.white,
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _LogoImage extends StatelessWidget {
-  const _LogoImage({required this.primaryColor});
-
-  final Color primaryColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(_LogoSplashWidgetState._logoPadding),
-      child: Image.asset(
-        'assets/images/logo.png',
-        fit: BoxFit.contain,
-        errorBuilder: (context, error, stackTrace) {
-          return Icon(
-            Icons.calendar_month_rounded,
-            size: 70,
-            color: primaryColor,
-          );
-        },
-      ),
-    );
-  }
-}
+// ─── App name ──────────────────────────────────────────────────────────────
 
 class _AnimatedAppName extends StatelessWidget {
   const _AnimatedAppName({
@@ -360,10 +295,9 @@ class _AnimatedAppName extends StatelessWidget {
                 letterSpacing: 1.5,
                 shadows: [
                   Shadow(
-                    color: Colors.black
-                        .withAlpha(_LogoSplashWidgetState._shadowAlpha),
+                    color: Colors.black.withValues(alpha: 0.25),
                     offset: const Offset(0, 4),
-                    blurRadius: 8,
+                    blurRadius: 12,
                   ),
                 ],
               ),
@@ -374,6 +308,8 @@ class _AnimatedAppName extends StatelessWidget {
     );
   }
 }
+
+// ─── Tagline ───────────────────────────────────────────────────────────────
 
 class _AnimatedTagline extends StatelessWidget {
   const _AnimatedTagline({
@@ -396,8 +332,7 @@ class _AnimatedTagline extends StatelessWidget {
           child: Text(
             'Bengali Calendar & Events',
             style: theme.textTheme.bodyLarge?.copyWith(
-              color: const Color.fromRGBO(
-                  255, 255, 255, _LogoSplashWidgetState._taglineAlpha / 255),
+              color: Colors.white.withValues(alpha: 0.80),
               letterSpacing: 0.5,
             ),
           ),

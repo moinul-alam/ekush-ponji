@@ -19,9 +19,8 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _navigateToHome() async {
-    await Future.delayed(const Duration(seconds: 5));
+    await Future.delayed(const Duration(seconds: 3));
     if (mounted) {
-      // Assuming RouteNames.home is a valid path in your GoRouter configuration
       context.go(RouteNames.home);
     }
   }
@@ -29,12 +28,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final size = MediaQuery.of(context).size;
-
-    // Alpha values derived from 255 * opacity:
-    // 0.8 opacity -> 204 alpha (255 * 0.8)
-    // 0.9 opacity -> 229 alpha (255 * 0.9)
-    // 0.05 opacity -> 13 alpha (255 * 0.05)
+    final size = MediaQuery.sizeOf(context);
 
     return Scaffold(
       body: Container(
@@ -46,7 +40,7 @@ class _SplashScreenState extends State<SplashScreen> {
             end: Alignment.bottomRight,
             colors: [
               theme.colorScheme.primary,
-              theme.colorScheme.primary.withAlpha(204),
+              theme.colorScheme.primary.withValues(alpha: 0.85),
               theme.colorScheme.primaryContainer,
             ],
             stops: const [0.0, 0.5, 1.0],
@@ -54,23 +48,24 @@ class _SplashScreenState extends State<SplashScreen> {
         ),
         child: Stack(
           children: [
-            // Background decorative circles
-            _buildBackgroundCircles(),
+            // Background decorative circles — visible but still soft
+            _buildBackgroundCircles(size),
 
-            // Main content
-            Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const LogoSplashWidget(),
+            // Main content — logo + text, vertically centered
+            const Center(
+              child: LogoSplashWidget(),
+            ),
 
-                  // const SizedBox(height: 60),
-
-                  // Loading animation - easily swappable (from local import)
-                  AppLoadingWidget(
-                    color: Colors.white.withAlpha(229),
-                  ),
-                ],
+            // Loading indicator pinned to bottom
+            Positioned(
+              bottom: 72,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: AppLoadingWidget(
+                  color: Colors.white.withValues(alpha: 0.75),
+                  animationType: AnimationType.bouncingWeekdays,
+                ),
               ),
             ),
           ],
@@ -79,36 +74,72 @@ class _SplashScreenState extends State<SplashScreen> {
     );
   }
 
-  Widget _buildBackgroundCircles() {
-    const int backgroundAlpha = 13;
+  Widget _buildBackgroundCircles(Size size) {
+    // Slightly more visible (alpha 20 vs old 13) so they read as intentional
+    // but still very soft against the gradient
+    const circleAlpha = 20;
 
     return Stack(
       children: [
+        // Top-right: medium circle
         Positioned(
-          top: -100,
-          right: -100,
-          child: Container(
-            width: 300,
-            height: 300,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withAlpha(backgroundAlpha),
-            ),
+          top: -80,
+          right: -80,
+          child: _BackgroundCircle(
+            size: 280,
+            alpha: circleAlpha,
           ),
         ),
+        // Top-right: smaller inner circle for depth
         Positioned(
-          bottom: -150,
-          left: -100,
-          child: Container(
-            width: 400,
-            height: 400,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withAlpha(backgroundAlpha),
-            ),
+          top: 20,
+          right: 20,
+          child: _BackgroundCircle(
+            size: 120,
+            alpha: circleAlpha - 6,
+          ),
+        ),
+        // Bottom-left: large circle
+        Positioned(
+          bottom: -120,
+          left: -80,
+          child: _BackgroundCircle(
+            size: 380,
+            alpha: circleAlpha,
+          ),
+        ),
+        // Bottom-left: smaller inner circle for depth
+        Positioned(
+          bottom: 80,
+          left: 60,
+          child: _BackgroundCircle(
+            size: 100,
+            alpha: circleAlpha - 6,
           ),
         ),
       ],
+    );
+  }
+}
+
+class _BackgroundCircle extends StatelessWidget {
+  const _BackgroundCircle({
+    required this.size,
+    required this.alpha,
+  });
+
+  final double size;
+  final int alpha;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white.withAlpha(alpha),
+      ),
     );
   }
 }
