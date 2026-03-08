@@ -1,5 +1,3 @@
-// lib/app/config/app_initializer.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -18,25 +16,40 @@ import 'package:ekush_ponji/core/services/background_task_dispatcher.dart';
 
 class AppInitializer {
 
-  // ── Public Entry Point ────────────────────────────────────────────────────
+  // ── Phase 1: Critical path — runs BEFORE runApp ───────────────────────────
+  // Only pure Dart, no platform channels, no network.
+  // Target: < 50ms so the black screen is imperceptible.
 
-  static Future<void> initialize() async {
+  static Future<void> initializeCore() async {
     try {
       await _setDeviceOrientation();
-      await _initializeFirebase();
       await _initializeHive();
       await _registerHiveAdapters();
       await _openHiveBoxes();
+      debugPrint('✅ Core initialization completed');
+    } catch (e, stackTrace) {
+      debugPrint('❌ Core initialization failed: $e');
+      debugPrint('StackTrace: $stackTrace');
+      rethrow; // Fatal — app cannot run without Hive
+    }
+  }
+
+  // ── Phase 2: Background — runs AFTER runApp ───────────────────────────────
+  // Splash is already visible. Firebase, network, notifications run here.
+  // Errors are non-fatal — app falls back to cached data gracefully.
+
+  static Future<void> initializeBackground() async {
+    try {
+      await _initializeFirebase();
       await _initializeSharedPreferences();
       await _initializeNotifications();
       await _registerBootTask();
       await _performInitialSync();
-
-      debugPrint('✅ App initialization completed successfully');
+      debugPrint('✅ Background initialization completed');
     } catch (e, stackTrace) {
-      debugPrint('❌ App initialization failed: $e');
+      debugPrint('❌ Background initialization error: $e');
       debugPrint('StackTrace: $stackTrace');
-      rethrow;
+      // Non-fatal — splash will still navigate, app uses cached data
     }
   }
 
@@ -50,15 +63,13 @@ class AppInitializer {
     debugPrint('✅ Device orientation set to portrait');
   }
 
-  /// Firebase must be initialized before any Firestore/Auth access.
-  /// Called without FirebaseOptions — reads from google-services.json directly.
   static Future<void> _initializeFirebase() async {
     try {
       await Firebase.initializeApp();
       debugPrint('✅ Firebase initialized');
     } catch (e) {
       debugPrint('❌ Firebase initialization failed: $e');
-      rethrow; // Fatal — Firestore won't work without this
+      rethrow;
     }
   }
 
@@ -111,10 +122,6 @@ class AppInitializer {
     }
   }
 
-  /// Registers a one-off WorkManager task that fires after device reboot.
-  /// WorkManager persists this across reboots automatically — when Android
-  /// restarts it runs [callbackDispatcher] in a background isolate to
-  /// restore prayer alarms without the user needing to open the app.
   static Future<void> _registerBootTask() async {
     try {
       await Workmanager().registerOneOffTask(
@@ -122,9 +129,7 @@ class AppInitializer {
         kReschedulePrayerTask,
         initialDelay: const Duration(seconds: 30),
         existingWorkPolicy: ExistingWorkPolicy.replace,
-        constraints: Constraints(
-          networkType: NetworkType.notRequired,
-        ),
+        constraints: Constraints(networkType: NetworkType.notRequired),
       );
       debugPrint('✅ Boot reschedule task registered');
     } catch (e) {
@@ -158,8 +163,9 @@ class AppInitializer {
         (themeMode == ThemeMode.system &&
             platformBrightness == Brightness.dark);
 
-    final colorScheme =
-        isDark ? AppTheme.darkTheme.colorScheme : AppTheme.lightTheme.colorScheme;
+    final colorScheme = isDark
+        ? AppTheme.darkTheme.colorScheme
+        : AppTheme.lightTheme.colorScheme;
 
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,

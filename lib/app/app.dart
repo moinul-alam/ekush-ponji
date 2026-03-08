@@ -1,5 +1,3 @@
-// lib/app/app.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -20,12 +18,15 @@ class EkushPonjiApp extends ConsumerStatefulWidget {
 }
 
 class _EkushPonjiAppState extends ConsumerState<EkushPonjiApp> {
-  bool _systemUIInitialized = false;
 
   @override
-  void dispose() {
-    _systemUIInitialized = false;
-    super.dispose();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Set system UI overlay style once after first frame — no rebuild needed
+    AppInitializer.updateSystemUIFromTheme(
+      context,
+      ref.read(themeModeProvider),
+    );
   }
 
   @override
@@ -33,35 +34,18 @@ class _EkushPonjiAppState extends ConsumerState<EkushPonjiApp> {
     final themeMode = ref.watch(themeModeProvider);
     final locale = ref.watch(localeProvider);
 
-    // Update system UI on theme changes
-    ref.listen<ThemeMode>(
-      themeModeProvider,
-      (previous, next) {
-        if (previous != next && mounted) {
-          AppInitializer.updateSystemUIFromTheme(context, next);
-        }
-      },
-    );
+    // Update system UI whenever theme changes
+    ref.listen<ThemeMode>(themeModeProvider, (previous, next) {
+      if (previous != next && mounted) {
+        AppInitializer.updateSystemUIFromTheme(context, next);
+      }
+    });
 
-    // Set system UI once on first build
-    if (!_systemUIInitialized) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          AppInitializer.updateSystemUIFromTheme(context, themeMode);
-          setState(() => _systemUIInitialized = true);
-        }
-      });
-    }
-
-    // ScreenUtilInit wraps MaterialApp.router so it has access to real screen
-    // dimensions before any widget builds. Since orientation is locked to
-    // portrait, this effectively initializes once per app session.
     return ScreenUtilInit(
       designSize: const Size(375, 812),
       minTextAdapt: true,
       splitScreenMode: true,
-      // ensureScreenSize waits for the first frame so dimensions are accurate
-      ensureScreenSize: true,
+      ensureScreenSize: false,
       builder: (context, child) => MaterialApp.router(
         title: AppConfig.appName,
         debugShowCheckedModeBanner: false,
@@ -94,8 +78,7 @@ class _EkushPonjiAppState extends ConsumerState<EkushPonjiApp> {
         // Router
         routerConfig: AppRouter.router,
 
-        // Clamp system text scaling to prevent layout breaks on
-        // devices with very large or very small accessibility font sizes
+        // Clamp text scaling to prevent layout breaks on accessibility sizes
         builder: (context, widget) => MediaQuery(
           data: MediaQuery.of(context).copyWith(
             textScaler: MediaQuery.textScalerOf(context).clamp(

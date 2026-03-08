@@ -1,32 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ekush_ponji/app/providers/app_providers.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
 import 'package:ekush_ponji/features/splash/widgets/logo_splash_widget.dart';
 import 'package:ekush_ponji/features/splash/widgets/app_loading_widget.dart';
 
-class SplashScreen extends StatefulWidget {
+// ✅ ConsumerStatefulWidget so we can watch Riverpod providers
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
-  @override
-  void initState() {
-    super.initState();
-    _navigateToHome();
-  }
-
-  Future<void> _navigateToHome() async {
-    await Future.delayed(const Duration(seconds: 3));
-    if (mounted) {
-      context.go(RouteNames.home);
-    }
-  }
+class _SplashScreenState extends ConsumerState<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // ✅ Listen to appReadyProvider — navigates the moment it flips true
+    ref.listen<bool>(appReadyProvider, (_, isReady) {
+      if (isReady && mounted) {
+        context.go(RouteNames.home);
+      }
+    });
+
     final theme = Theme.of(context);
     final size = MediaQuery.sizeOf(context);
 
@@ -48,15 +46,10 @@ class _SplashScreenState extends State<SplashScreen> {
         ),
         child: Stack(
           children: [
-            // Background decorative circles — visible but still soft
             _buildBackgroundCircles(size),
-
-            // Main content — logo + text, vertically centered
             const Center(
               child: LogoSplashWidget(),
             ),
-
-            // Loading indicator pinned to bottom
             Positioned(
               bottom: 72,
               left: 0,
@@ -75,47 +68,28 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Widget _buildBackgroundCircles(Size size) {
-    // Slightly more visible (alpha 20 vs old 13) so they read as intentional
-    // but still very soft against the gradient
     const circleAlpha = 20;
-
     return Stack(
       children: [
-        // Top-right: medium circle
         Positioned(
           top: -80,
           right: -80,
-          child: _BackgroundCircle(
-            size: 280,
-            alpha: circleAlpha,
-          ),
+          child: _BackgroundCircle(size: 280, alpha: circleAlpha),
         ),
-        // Top-right: smaller inner circle for depth
         Positioned(
           top: 20,
           right: 20,
-          child: _BackgroundCircle(
-            size: 120,
-            alpha: circleAlpha - 6,
-          ),
+          child: _BackgroundCircle(size: 120, alpha: circleAlpha - 6),
         ),
-        // Bottom-left: large circle
         Positioned(
           bottom: -120,
           left: -80,
-          child: _BackgroundCircle(
-            size: 380,
-            alpha: circleAlpha,
-          ),
+          child: _BackgroundCircle(size: 380, alpha: circleAlpha),
         ),
-        // Bottom-left: smaller inner circle for depth
         Positioned(
           bottom: 80,
           left: 60,
-          child: _BackgroundCircle(
-            size: 100,
-            alpha: circleAlpha - 6,
-          ),
+          child: _BackgroundCircle(size: 100, alpha: circleAlpha - 6),
         ),
       ],
     );
@@ -123,10 +97,7 @@ class _SplashScreenState extends State<SplashScreen> {
 }
 
 class _BackgroundCircle extends StatelessWidget {
-  const _BackgroundCircle({
-    required this.size,
-    required this.alpha,
-  });
+  const _BackgroundCircle({required this.size, required this.alpha});
 
   final double size;
   final int alpha;

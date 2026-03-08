@@ -1,5 +1,3 @@
-// lib/features/settings/settings_viewmodel.dart
-
 import 'package:ekush_ponji/core/base/base_viewmodel.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +8,9 @@ import 'package:ekush_ponji/app/providers/app_providers.dart';
 class SettingsViewModel extends BaseViewModel {
   static const String _notificationsKey = 'notifications_enabled';
   static const String _autoBackupKey = 'auto_backup_enabled';
+
+  // Cached instance — fetched once in loadSettings, reused everywhere
+  SharedPreferences? _prefs;
 
   bool _notificationsEnabled = true;
   bool _autoBackupEnabled = false;
@@ -29,9 +30,10 @@ class SettingsViewModel extends BaseViewModel {
   Future<void> loadSettings() async {
     await executeAsync(
       operation: () async {
-        final prefs = await SharedPreferences.getInstance();
-        _notificationsEnabled = prefs.getBool(_notificationsKey) ?? true;
-        _autoBackupEnabled = prefs.getBool(_autoBackupKey) ?? false;
+        // Fetch and cache once here — all subsequent calls reuse _prefs
+        _prefs = await SharedPreferences.getInstance();
+        _notificationsEnabled = _prefs!.getBool(_notificationsKey) ?? true;
+        _autoBackupEnabled = _prefs!.getBool(_autoBackupKey) ?? false;
       },
       loadingMessage: 'Loading settings...',
       successMessage: null,
@@ -70,8 +72,7 @@ class SettingsViewModel extends BaseViewModel {
         _notificationsEnabled = value;
         await _saveSetting(_notificationsKey, value);
       },
-      successMessage:
-          value ? 'Notifications enabled' : 'Notifications disabled',
+      successMessage: value ? 'Notifications enabled' : 'Notifications disabled',
       errorMessage: 'Failed to update notifications',
       showLoading: false,
     );
@@ -79,8 +80,6 @@ class SettingsViewModel extends BaseViewModel {
 
   /// No-op kept for API compatibility. Auto-backup is not implemented yet.
   Future<void> toggleAutoBackup(bool value) async {
-    // The UI will never call this with value = true (shows "coming soon" instead).
-    // If somehow called with false, just persist it.
     _autoBackupEnabled = false;
     await _saveSetting(_autoBackupKey, false);
   }
@@ -100,14 +99,13 @@ class SettingsViewModel extends BaseViewModel {
     );
   }
 
-  /// Resets all user preferences (SharedPreferences) to their defaults and
-  /// propagates the reset to the live Riverpod providers so the UI updates
-  /// immediately — no restart required.
+  /// Resets all user preferences to defaults and propagates to Riverpod
+  /// providers so the UI updates immediately — no restart required.
   Future<void> resetSettings(WidgetRef ref) async {
     await executeAsync(
       operation: () async {
-        // 1. Wipe SharedPreferences
-        final prefs = await SharedPreferences.getInstance();
+        // 1. Wipe SharedPreferences using cached instance
+        final prefs = _prefs ?? await SharedPreferences.getInstance();
         await prefs.clear();
 
         // 2. Reset in-memory viewmodel state
@@ -126,8 +124,9 @@ class SettingsViewModel extends BaseViewModel {
     );
   }
 
+  // Uses cached _prefs — no repeated getInstance() calls
   Future<void> _saveSetting(String key, bool value) async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = _prefs ?? await SharedPreferences.getInstance();
     await prefs.setBool(key, value);
   }
 }

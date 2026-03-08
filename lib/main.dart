@@ -1,29 +1,38 @@
-// lib/main.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:ekush_ponji/app/app.dart';
 import 'package:ekush_ponji/app/config/app_initializer.dart';
+import 'package:ekush_ponji/app/providers/app_providers.dart';
 import 'package:ekush_ponji/core/services/background_task_dispatcher.dart';
 
 Future<void> main() async {
-  // Ensure Flutter binding is initialized for async operations
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize workmanager with our background task dispatcher.
+  // WorkManager must be initialized before runApp — it registers
+  // the callback dispatcher which needs to be available immediately
   await Workmanager().initialize(
     callbackDispatcher,
-    isInDebugMode: false, // set true during development to see task notifications
+    isInDebugMode: false,
   );
 
-  // Initialize services and app state before running the app
-  await AppInitializer.initialize();
+  // Phase 1 — Hive only. Pure Dart, ~20ms, no black screen.
+  await AppInitializer.initializeCore();
 
-  // Run the app with Riverpod's ProviderScope for state management
+  final container = ProviderContainer();
+
+  // runApp fires immediately after Hive is ready —
+  // theme + locale load from Hive on first frame correctly
   runApp(
-    const ProviderScope(
-      child: EkushPonjiApp(),
+    UncontrolledProviderScope(
+      container: container,
+      child: const EkushPonjiApp(),
     ),
   );
+
+  // Phase 2 — Firebase, notifications, sync run while splash is visible
+  await AppInitializer.initializeBackground();
+
+  // Signal splash to navigate now that everything is ready
+  container.read(appReadyProvider.notifier).setReady();
 }
