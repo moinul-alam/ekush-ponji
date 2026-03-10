@@ -1,3 +1,5 @@
+// lib/features/splash/splash_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,57 +8,41 @@ import 'package:ekush_ponji/app/router/route_names.dart';
 import 'package:ekush_ponji/features/splash/widgets/logo_splash_widget.dart';
 import 'package:ekush_ponji/features/splash/widgets/app_loading_widget.dart';
 
-// ✅ ConsumerStatefulWidget so we can watch Riverpod providers
-class SplashScreen extends ConsumerStatefulWidget {
+class SplashScreen extends ConsumerWidget {
   const SplashScreen({super.key});
 
   @override
-  ConsumerState<SplashScreen> createState() => _SplashScreenState();
-}
-
-class _SplashScreenState extends ConsumerState<SplashScreen> {
-
-  @override
-  Widget build(BuildContext context) {
-    // ✅ Listen to appReadyProvider — navigates the moment it flips true
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Navigate the moment app signals ready
     ref.listen<bool>(appReadyProvider, (_, isReady) {
-      if (isReady && mounted) {
-        context.go(RouteNames.home);
-      }
+      if (isReady) context.go(RouteNames.home);
     });
 
-    final theme = Theme.of(context);
     final size = MediaQuery.sizeOf(context);
 
     return Scaffold(
-      body: Container(
+      backgroundColor: const Color(0xFF080D1A), // Deep navy — makes blue logo glow
+      body: SizedBox(
         width: size.width,
         height: size.height,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              theme.colorScheme.primary,
-              theme.colorScheme.primary.withValues(alpha: 0.85),
-              theme.colorScheme.primaryContainer,
-            ],
-            stops: const [0.0, 0.5, 1.0],
-          ),
-        ),
         child: Stack(
           children: [
-            _buildBackgroundCircles(size),
+            // Ambient background — deep space feel, no green
+            const _SplashBackground(),
+
+            // Logo + name + tagline centered
             const Center(
               child: LogoSplashWidget(),
             ),
+
+            // Loading indicator at bottom
             Positioned(
               bottom: 72,
               left: 0,
               right: 0,
               child: Center(
                 child: AppLoadingWidget(
-                  color: Colors.white.withValues(alpha: 0.75),
+                  color: const Color(0xFF4DA6FF).withValues(alpha: 0.75),
                   animationType: AnimationType.bouncingWeekdays,
                 ),
               ),
@@ -66,51 +52,77 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
       ),
     );
   }
+}
 
-  Widget _buildBackgroundCircles(Size size) {
-    const circleAlpha = 20;
-    return Stack(
-      children: [
-        Positioned(
-          top: -80,
-          right: -80,
-          child: _BackgroundCircle(size: 280, alpha: circleAlpha),
-        ),
-        Positioned(
-          top: 20,
-          right: 20,
-          child: _BackgroundCircle(size: 120, alpha: circleAlpha - 6),
-        ),
-        Positioned(
-          bottom: -120,
-          left: -80,
-          child: _BackgroundCircle(size: 380, alpha: circleAlpha),
-        ),
-        Positioned(
-          bottom: 80,
-          left: 60,
-          child: _BackgroundCircle(size: 100, alpha: circleAlpha - 6),
-        ),
-      ],
+/// Ambient radial glows — deep navy with blue/indigo accents.
+/// No green. Complements the blue logo naturally.
+class _SplashBackground extends StatelessWidget {
+  const _SplashBackground();
+
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+
+    return SizedBox.expand(
+      child: CustomPaint(
+        painter: _BackgroundPainter(size: size),
+      ),
     );
   }
 }
 
-class _BackgroundCircle extends StatelessWidget {
-  const _BackgroundCircle({required this.size, required this.alpha});
-
-  final double size;
-  final int alpha;
+class _BackgroundPainter extends CustomPainter {
+  final Size size;
+  const _BackgroundPainter({required this.size});
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.white.withAlpha(alpha),
-      ),
+  void paint(Canvas canvas, Size size) {
+    // Top-right: soft blue radial glow
+    _drawRadialGlow(
+      canvas,
+      center: Offset(size.width * 0.85, size.height * 0.12),
+      radius: size.width * 0.65,
+      color: const Color(0xFF1A4A8A),
+      opacity: 0.45,
+    );
+
+    // Center: deep indigo bloom behind logo
+    _drawRadialGlow(
+      canvas,
+      center: Offset(size.width * 0.5, size.height * 0.42),
+      radius: size.width * 0.7,
+      color: const Color(0xFF0D2A5E),
+      opacity: 0.6,
+    );
+
+    // Bottom-left: cyan accent glow
+    _drawRadialGlow(
+      canvas,
+      center: Offset(size.width * 0.1, size.height * 0.88),
+      radius: size.width * 0.55,
+      color: const Color(0xFF0A3366),
+      opacity: 0.4,
     );
   }
+
+  void _drawRadialGlow(
+    Canvas canvas, {
+    required Offset center,
+    required double radius,
+    required Color color,
+    required double opacity,
+  }) {
+    final paint = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          color.withValues(alpha: opacity),
+          color.withValues(alpha: 0.0),
+        ],
+      ).createShader(Rect.fromCircle(center: center, radius: radius));
+
+    canvas.drawCircle(center, radius, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _BackgroundPainter old) => false;
 }

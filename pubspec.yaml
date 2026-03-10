@@ -8,10 +8,13 @@ environment:
 
 flutter_launcher_icons:
   android: true
-  ios: false
+  ios: true
   image_path: "assets/images/app_icon.png"
-  adaptive_icon_background: "#ffffff"
-  adaptive_icon_foreground: "assets/images/app_icon.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/images/app_icon_foreground.png"
+  min_sdk_android: 21
+  web:
+    generate: false
 
 dependencies:
   flutter:
@@ -67,6 +70,9 @@ dependencies:
   # Background manager
   workmanager: ^0.9.0
 
+  
+  flutter_native_splash: ^2.4.1
+
 
 
 dev_dependencies:
@@ -83,6 +89,8 @@ dev_dependencies:
   # Linting
   flutter_lints: ^6.0.0
 
+  flutter_native_splash: ^2.4.1
+
 flutter:
   uses-material-design: true
 
@@ -91,3 +99,15 @@ flutter:
     - assets/images/
     - assets/icons/
     - assets/data/
+
+flutter_native_splash:
+  color: "#FFFFFF"               # white background
+  image: assets/images/app_icon_foreground.png
+  color_dark: "#FFFFFF"          # white even in dark mode
+  image_dark: assets/images/app_icon_foreground.png
+  android_12:
+    color: "#FFFFFF"
+    image: assets/images/app_icon_foreground.png
+    color_dark: "#FFFFFF"
+    image_dark: assets/images/app_icon_foreground.png
+  fullscreen: false

@@ -1,28 +1,28 @@
+// lib/main.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:workmanager/workmanager.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:ekush_ponji/app/app.dart';
 import 'package:ekush_ponji/app/config/app_initializer.dart';
 import 'package:ekush_ponji/app/providers/app_providers.dart';
-import 'package:ekush_ponji/core/services/background_task_dispatcher.dart';
+
+// WorkManager import removed from main — initialized inside AppInitializer Phase 2
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  // Lock splash open until we explicitly release it
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
-  // WorkManager must be initialized before runApp — it registers
-  // the callback dispatcher which needs to be available immediately
-  await Workmanager().initialize(
-    callbackDispatcher,
-    isInDebugMode: false,
-  );
-
-  // Phase 1 — Hive only. Pure Dart, ~20ms, no black screen.
+  // Phase 1 — Hive (settings box only) + orientation lock, concurrently.
+  // WorkManager moved to Phase 2 — no reason to block first frame for it.
+  // Target: ~20-30ms total.
   await AppInitializer.initializeCore();
 
+  // Providers can now read theme + locale from Hive on first frame
   final container = ProviderContainer();
 
-  // runApp fires immediately after Hive is ready —
-  // theme + locale load from Hive on first frame correctly
+  // First frame renders immediately — custom splash screen appears
   runApp(
     UncontrolledProviderScope(
       container: container,
@@ -30,9 +30,15 @@ Future<void> main() async {
     ),
   );
 
-  // Phase 2 — Firebase, notifications, sync run while splash is visible
+  // ✅ Native splash dismissed — custom Flutter splash is now visible.
+  // Happens after first frame, before any heavy work.
+  FlutterNativeSplash.remove();
+
+  // Phase 2 — All heavy work runs concurrently behind the custom splash.
+  // Firebase + SharedPreferences + WorkManager + secondary Hive boxes
+  // all run in parallel. Sync has a 5s timeout — never blocks home.
   await AppInitializer.initializeBackground();
 
-  // Signal splash to navigate now that everything is ready
+  // Custom splash navigates to home screen
   container.read(appReadyProvider.notifier).setReady();
 }

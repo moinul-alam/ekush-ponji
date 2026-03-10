@@ -1,9 +1,10 @@
+// lib/app/config/app_initializer.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:workmanager/workmanager.dart';
 import 'package:ekush_ponji/core/themes/app_theme.dart';
 import 'package:ekush_ponji/features/home/models/holiday.dart';
 import 'package:ekush_ponji/core/services/sync_service.dart';
@@ -13,54 +14,115 @@ import 'package:ekush_ponji/features/quotes/data/datasources/local/quotes_local_
 import 'package:ekush_ponji/features/words/data/datasources/local/words_local_datasource.dart';
 import 'package:ekush_ponji/core/services/local_notification_service.dart';
 import 'package:ekush_ponji/core/services/background_task_dispatcher.dart';
+import 'package:workmanager/workmanager.dart';
 
 class AppInitializer {
 
   // ── Phase 1: Critical path — runs BEFORE runApp ───────────────────────────
-  // Only pure Dart, no platform channels, no network.
-  // Target: < 50ms so the black screen is imperceptible.
+  // Goal: absolute minimum to get first frame on screen.
+  // Only opens the 'settings' box — all providers need it at first frame.
+  // Everything else deferred to Phase 2.
+  // Target: < 30ms total.
 
   static Future<void> initializeCore() async {
     try {
-      await _setDeviceOrientation();
-      await _initializeHive();
-      await _registerHiveAdapters();
-      await _openHiveBoxes();
+      // These two are independent — run concurrently
+      await Future.wait([
+        _setDeviceOrientation(),
+        _initializeHiveAndSettings(),
+      ]);
       debugPrint('✅ Core initialization completed');
     } catch (e, stackTrace) {
       debugPrint('❌ Core initialization failed: $e');
       debugPrint('StackTrace: $stackTrace');
-      rethrow; // Fatal — app cannot run without Hive
+      rethrow; // Fatal — app cannot run without Hive settings box
     }
   }
 
-  // ── Phase 2: Background — runs AFTER runApp ───────────────────────────────
-  // Splash is already visible. Firebase, network, notifications run here.
+  // ── Phase 2: Background — runs AFTER runApp + splash is visible ───────────
+  // All tasks are independent — run concurrently with Future.wait.
   // Errors are non-fatal — app falls back to cached data gracefully.
+  // WorkManager moved here — no need to block Phase 1.
 
   static Future<void> initializeBackground() async {
     try {
-      await _initializeFirebase();
-      await _initializeSharedPreferences();
-      await _initializeNotifications();
-      await _registerBootTask();
-      await _performInitialSync();
+      // Step A: Open remaining Hive boxes + Firebase + SharedPreferences
+      // concurrently — none depend on each other
+      await Future.wait([
+        _openSecondaryHiveBoxes(),
+        _initializeFirebase(),
+        _initializeSharedPreferences(),
+        _initializeWorkManager(),
+      ]);
+
+      // Step B: Notifications depends on nothing above but benefits from
+      // Firebase being ready. Run after Step A.
+      // Sync also starts here — with a hard timeout so it never blocks home.
+      await Future.wait([
+        _initializeNotifications(),
+        _performInitialSyncWithTimeout(),
+      ]);
+
       debugPrint('✅ Background initialization completed');
     } catch (e, stackTrace) {
       debugPrint('❌ Background initialization error: $e');
       debugPrint('StackTrace: $stackTrace');
-      // Non-fatal — splash will still navigate, app uses cached data
+      // Non-fatal — app proceeds to home with cached data
     }
   }
 
-  // ── Steps ─────────────────────────────────────────────────────────────────
+  // ── Phase 1 Steps ─────────────────────────────────────────────────────────
 
   static Future<void> _setDeviceOrientation() async {
     await SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
-    debugPrint('✅ Device orientation set to portrait');
+    debugPrint('✅ Device orientation set');
+  }
+
+  /// Initializes Hive, registers all adapters, then opens ONLY the settings
+  /// box. Providers read theme + locale from this box on first frame.
+  /// All other boxes open in Phase 2.
+  static Future<void> _initializeHiveAndSettings() async {
+    try {
+      await Hive.initFlutter();
+
+      // Register all adapters upfront — cheap, pure Dart
+      _registerHiveAdapters();
+
+      // Only open settings — the only box needed before first frame
+      await Hive.openBox('settings');
+
+      debugPrint('✅ Hive + settings box ready');
+    } catch (e) {
+      debugPrint('❌ Hive initialization failed: $e');
+      rethrow;
+    }
+  }
+
+  static void _registerHiveAdapters() {
+    Hive.registerAdapter(HolidayAdapter());
+    Hive.registerAdapter(HolidayTypeAdapter());
+    Hive.registerAdapter(QuoteModelAdapter());
+    Hive.registerAdapter(WordModelAdapter());
+    debugPrint('✅ Hive adapters registered');
+  }
+
+  // ── Phase 2 Steps ─────────────────────────────────────────────────────────
+
+  /// Opens all boxes not needed at first frame
+  static Future<void> _openSecondaryHiveBoxes() async {
+    try {
+      await Future.wait([
+        Hive.openBox('holidays'),
+        Hive.openBox<QuoteModel>(savedQuotesBoxName),
+        Hive.openBox<WordModel>(savedWordsBoxName),
+      ]);
+      debugPrint('✅ Secondary Hive boxes opened');
+    } catch (e) {
+      debugPrint('⚠️ Secondary Hive boxes warning: $e');
+    }
   }
 
   static Future<void> _initializeFirebase() async {
@@ -73,57 +135,22 @@ class AppInitializer {
     }
   }
 
-  static Future<void> _initializeHive() async {
-    await Hive.initFlutter();
-    debugPrint('✅ Hive initialized');
-  }
-
-  static Future<void> _registerHiveAdapters() async {
-    try {
-      Hive.registerAdapter(HolidayAdapter());
-      Hive.registerAdapter(HolidayTypeAdapter());
-      Hive.registerAdapter(QuoteModelAdapter());
-      Hive.registerAdapter(WordModelAdapter());
-      debugPrint('✅ Hive adapters registered');
-    } catch (e) {
-      debugPrint('❌ Failed to register Hive adapters: $e');
-      rethrow;
-    }
-  }
-
-  static Future<void> _openHiveBoxes() async {
-    try {
-      await Hive.openBox('settings');
-      await Hive.openBox('holidays');
-      await Hive.openBox<QuoteModel>(savedQuotesBoxName);
-      await Hive.openBox<WordModel>(savedWordsBoxName);
-      debugPrint('✅ Hive boxes opened');
-    } catch (e) {
-      debugPrint('❌ Failed to open Hive boxes: $e');
-      rethrow;
-    }
-  }
-
   static Future<void> _initializeSharedPreferences() async {
     try {
+      // Warms up the SharedPreferences singleton so first read is instant
       await SharedPreferences.getInstance();
-      debugPrint('✅ SharedPreferences initialized');
+      debugPrint('✅ SharedPreferences warmed up');
     } catch (e) {
-      debugPrint('⚠️ SharedPreferences init warning: $e');
+      debugPrint('⚠️ SharedPreferences warning: $e');
     }
   }
 
-  static Future<void> _initializeNotifications() async {
+  static Future<void> _initializeWorkManager() async {
     try {
-      await LocalNotificationService.initialize();
-      debugPrint('✅ Notification service initialized');
-    } catch (e) {
-      debugPrint('⚠️ Notification service init warning: $e');
-    }
-  }
-
-  static Future<void> _registerBootTask() async {
-    try {
+      await Workmanager().initialize(
+        callbackDispatcher,
+        isInDebugMode: false,
+      );
       await Workmanager().registerOneOffTask(
         kReschedulePrayerTask,
         kReschedulePrayerTask,
@@ -131,22 +158,40 @@ class AppInitializer {
         existingWorkPolicy: ExistingWorkPolicy.replace,
         constraints: Constraints(networkType: NetworkType.notRequired),
       );
-      debugPrint('✅ Boot reschedule task registered');
+      debugPrint('✅ WorkManager initialized and boot task registered');
     } catch (e) {
-      debugPrint('⚠️ Boot task registration warning: $e');
+      debugPrint('⚠️ WorkManager warning: $e');
     }
   }
 
-  static Future<void> _performInitialSync() async {
+  static Future<void> _initializeNotifications() async {
     try {
-      debugPrint('🔄 Starting initial holiday sync...');
+      await LocalNotificationService.initialize();
+      debugPrint('✅ Notifications initialized');
+    } catch (e) {
+      debugPrint('⚠️ Notifications warning: $e');
+    }
+  }
+
+  /// Holiday sync with a hard 5-second timeout.
+  /// If network is slow or offline, app proceeds immediately.
+  /// Sync will retry next launch or via background task.
+  static Future<void> _performInitialSyncWithTimeout() async {
+    try {
+      debugPrint('🔄 Starting holiday sync...');
       final syncService = SyncService();
-      final success = await syncService.syncHolidays();
-      if (success) {
-        debugPrint('✅ Initial holiday sync completed');
-      } else {
-        debugPrint('⚠️ Holiday sync failed — app will use cached data');
-      }
+      final success = await syncService
+          .syncHolidays()
+          .timeout(
+            const Duration(seconds: 5),
+            onTimeout: () {
+              debugPrint('⏱️ Holiday sync timed out — using cached data');
+              return false;
+            },
+          );
+      debugPrint(success
+          ? '✅ Holiday sync completed'
+          : '⚠️ Holiday sync failed — using cached data');
     } catch (e) {
       debugPrint('⚠️ Holiday sync error: $e');
     }
