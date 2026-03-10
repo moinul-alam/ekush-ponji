@@ -1,5 +1,4 @@
 // lib/features/words/words_screen.dart
-// CHANGED: share button uses ShareService.shareWidget() with WordShareCard.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,11 +9,15 @@ import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
 import 'package:ekush_ponji/features/words/models/word.dart';
 import 'package:ekush_ponji/features/words/words_viewmodel.dart';
-import 'package:ekush_ponji/features/words/widgets/word_share_card.dart'; // NEW
+import 'package:ekush_ponji/features/words/widgets/word_share_card.dart';
 import 'package:ekush_ponji/core/services/share_service.dart';
 
 class WordsScreen extends BaseScreen {
-  const WordsScreen({super.key});
+  /// When navigating from home, pass the daily word's index so the screen
+  /// opens directly on that word instead of always starting at index 0.
+  final int initialIndex;
+
+  const WordsScreen({super.key, this.initialIndex = 0});
 
   @override
   BaseScreenState createState() => _WordsScreenState();
@@ -22,7 +25,7 @@ class WordsScreen extends BaseScreen {
 
 class _WordsScreenState extends BaseScreenState<WordsScreen>
     with SingleTickerProviderStateMixin {
-  int _currentIndex = 0;
+  late int _currentIndex;
   late AnimationController _animationController;
   late Animation<Offset> _slideOutAnimation;
   late Animation<Offset> _slideInAnimation;
@@ -35,6 +38,7 @@ class _WordsScreenState extends BaseScreenState<WordsScreen>
 
   @override
   void onScreenInit() {
+    _currentIndex = widget.initialIndex;
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 350),
@@ -93,6 +97,12 @@ class _WordsScreenState extends BaseScreenState<WordsScreen>
   PreferredSizeWidget? buildAppBar(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     return AppBar(
+      // Back button is shown automatically because this screen is pushed
+      // onto the navigator stack via context.pushNamed()
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_ios_new_rounded),
+        onPressed: () => context.pop(),
+      ),
       title: Text(l10n.wordOfTheDay),
       actions: [
         IconButton(
@@ -123,6 +133,8 @@ class _WordsScreenState extends BaseScreenState<WordsScreen>
     }
 
     final word = words[_currentIndex];
+    final canGoPrev = _currentIndex > 0;
+    final canGoNext = _currentIndex < words.length - 1;
 
     return GestureDetector(
       onHorizontalDragEnd: (details) {
@@ -133,105 +145,108 @@ class _WordsScreenState extends BaseScreenState<WordsScreen>
           _goToPrevious(words);
         }
       },
-      child: Column(
+      child: Stack(
         children: [
-          // Progress indicator
+          // ── Animated card ──────────────────────────────────────
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '${_currentIndex + 1} / ${words.length}',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                ),
-                Text(
-                  '← ${AppLocalizations.of(context).previous}  |  ${AppLocalizations.of(context).next} →',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                ),
-              ],
-            ),
-          ),
-
-          // Animated card
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: AnimatedBuilder(
-                animation: _animationController,
-                builder: (context, child) {
-                  final isForwarding = _animationController.isAnimating;
-                  return Stack(
-                    children: [
-                      if (isForwarding)
-                        SlideTransition(
-                          position: _slideOutAnimation,
-                          child: _WordCard(
-                            word: word,
-                            onToggleSave: () => vm.toggleSave(word),
-                          ),
-                        ),
-                      if (isForwarding)
-                        SlideTransition(
-                          position: _slideInAnimation,
-                          child: _WordCard(
-                            word: words[_slideFromRight
-                                ? (_currentIndex < words.length - 1
-                                    ? _currentIndex + 1
-                                    : _currentIndex)
-                                : (_currentIndex > 0
-                                    ? _currentIndex - 1
-                                    : _currentIndex)],
-                            onToggleSave: () => vm.toggleSave(word),
-                          ),
-                        ),
-                      if (!isForwarding)
-                        _WordCard(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: AnimatedBuilder(
+              animation: _animationController,
+              builder: (context, child) {
+                final isForwarding = _animationController.isAnimating;
+                return Stack(
+                  children: [
+                    if (isForwarding)
+                      SlideTransition(
+                        position: _slideOutAnimation,
+                        child: _WordCard(
                           word: word,
                           onToggleSave: () => vm.toggleSave(word),
                         ),
-                    ],
-                  );
-                },
-              ),
+                      ),
+                    if (isForwarding)
+                      SlideTransition(
+                        position: _slideInAnimation,
+                        child: _WordCard(
+                          word: words[_slideFromRight
+                              ? (_currentIndex < words.length - 1
+                                  ? _currentIndex + 1
+                                  : _currentIndex)
+                              : (_currentIndex > 0
+                                  ? _currentIndex - 1
+                                  : _currentIndex)],
+                          onToggleSave: () => vm.toggleSave(word),
+                        ),
+                      ),
+                    if (!isForwarding)
+                      _WordCard(
+                        word: word,
+                        onToggleSave: () => vm.toggleSave(word),
+                      ),
+                  ],
+                );
+              },
             ),
           ),
 
-          // Navigation arrows
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton.outlined(
-                  onPressed:
-                      _currentIndex > 0 ? () => _goToPrevious(words) : null,
-                  icon: const Icon(Icons.arrow_back_ios_new_rounded),
-                  tooltip: AppLocalizations.of(context).previous,
+          // ── Floating prev arrow ────────────────────────────────
+          if (canGoPrev)
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              child: Center(
+                child: GestureDetector(
+                  onTap: () => _goToPrevious(words),
+                  child: Container(
+                    margin: const EdgeInsets.only(left: 4),
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.18),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
                 ),
-                _DotIndicator(total: words.length, current: _currentIndex),
-                IconButton.outlined(
-                  onPressed: _currentIndex < words.length - 1
-                      ? () => _goToNext(words)
-                      : null,
-                  icon: const Icon(Icons.arrow_forward_ios_rounded),
-                  tooltip: AppLocalizations.of(context).next,
-                ),
-              ],
+              ),
             ),
-          ),
+
+          // ── Floating next arrow ────────────────────────────────
+          if (canGoNext)
+            Positioned(
+              right: 0,
+              top: 0,
+              bottom: 0,
+              child: Center(
+                child: GestureDetector(
+                  onTap: () => _goToNext(words),
+                  child: Container(
+                    margin: const EdgeInsets.only(right: 4),
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.18),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
   }
 }
 
-// ─── Word Card (interactive, on-screen) ───────────────────────
-// NOTE: RepaintBoundary removed — sharing uses WordShareCard off-screen.
+// ─── Word Card ────────────────────────────────────────────────
 class _WordCard extends StatelessWidget {
   final WordModel word;
   final VoidCallback onToggleSave;
@@ -246,6 +261,7 @@ class _WordCard extends StatelessWidget {
 
     return SizedBox(
       width: double.infinity,
+      height: double.infinity,
       child: Card(
         elevation: 3,
         shape:
@@ -288,7 +304,6 @@ class _WordCard extends StatelessWidget {
                     ),
                     Row(
                       children: [
-                        // ── CHANGED: use ShareService.shareWidget ──────
                         IconButton(
                           onPressed: () => ShareService.shareWidget(
                             widget: WordShareCard(word: word),
@@ -299,7 +314,6 @@ class _WordCard extends StatelessWidget {
                               color: colorScheme.onSurfaceVariant),
                           tooltip: l10n.share,
                         ),
-                        // ───────────────────────────────────────────────
                         IconButton(
                           onPressed: onToggleSave,
                           icon: Icon(
@@ -421,40 +435,6 @@ class _WordCard extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-// ─── Dot Indicator ────────────────────────────────────────────
-class _DotIndicator extends StatelessWidget {
-  final int total;
-  final int current;
-
-  const _DotIndicator({required this.total, required this.current});
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    const maxDots = 5;
-    final visibleCount = total.clamp(0, maxDots);
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(visibleCount, (i) {
-        final isActive = i == current.clamp(0, maxDots - 1);
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 250),
-          margin: const EdgeInsets.symmetric(horizontal: 3),
-          width: isActive ? 20 : 8,
-          height: 8,
-          decoration: BoxDecoration(
-            color: isActive
-                ? colorScheme.primary
-                : colorScheme.onSurface.withValues(alpha: 0.2),
-            borderRadius: BorderRadius.circular(4),
-          ),
-        );
-      }),
     );
   }
 }

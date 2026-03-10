@@ -1,6 +1,4 @@
 // lib/features/quotes/quotes_screen.dart
-// CHANGED: share button now uses ShareService.shareWidget() with QuoteShareCard
-// instead of capturing the interactive card via RepaintBoundary.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,13 +9,17 @@ import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
 import 'package:ekush_ponji/features/quotes/models/quote.dart';
 import 'package:ekush_ponji/features/quotes/quotes_viewmodel.dart';
-import 'package:ekush_ponji/features/quotes/widgets/quote_share_card.dart'; // NEW
+import 'package:ekush_ponji/features/quotes/widgets/quote_share_card.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ekush_ponji/core/services/share_service.dart';
 
 class QuotesScreen extends BaseScreen {
-  const QuotesScreen({super.key});
+  /// When navigating from home, pass the daily quote's index so the screen
+  /// opens directly on that quote instead of always starting at index 0.
+  final int initialIndex;
+
+  const QuotesScreen({super.key, this.initialIndex = 0});
 
   @override
   BaseScreenState createState() => _QuotesScreenState();
@@ -25,7 +27,7 @@ class QuotesScreen extends BaseScreen {
 
 class _QuotesScreenState extends BaseScreenState<QuotesScreen>
     with SingleTickerProviderStateMixin {
-  int _currentIndex = 0;
+  late int _currentIndex;
   late AnimationController _animationController;
   late Animation<Offset> _slideOutAnimation;
   late Animation<Offset> _slideInAnimation;
@@ -39,6 +41,7 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
 
   @override
   void onScreenInit() {
+    _currentIndex = widget.initialIndex;
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 350),
@@ -158,6 +161,12 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
   PreferredSizeWidget? buildAppBar(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     return AppBar(
+      // Back button is shown automatically because this screen is pushed
+      // onto the navigator stack via context.pushNamed()
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_ios_new_rounded),
+        onPressed: () => context.pop(),
+      ),
       title: Text(l10n.quoteOfTheDay),
       actions: [
         IconButton(
@@ -193,6 +202,8 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
     }
 
     final quote = quotes[_currentIndex];
+    final canGoPrev = _currentIndex > 0;
+    final canGoNext = _currentIndex < quotes.length - 1;
 
     return GestureDetector(
       onHorizontalDragEnd: (details) {
@@ -203,116 +214,111 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
           _goToPrevious(quotes);
         }
       },
-      child: Column(
+      child: Stack(
         children: [
-          // Progress indicator
+          // ── Animated card ──────────────────────────────────────
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '${_currentIndex + 1} / ${quotes.length}',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                ),
-                Text(
-                  _swipeHintText(context),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                ),
-              ],
-            ),
-          ),
-
-          // Animated card
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: AnimatedBuilder(
-                animation: _animationController,
-                builder: (context, child) {
-                  final isForwarding = _animationController.isAnimating;
-                  return Stack(
-                    children: [
-                      if (isForwarding)
-                        SlideTransition(
-                          position: _slideOutAnimation,
-                          child: _QuoteCard(
-                            quote: quote,
-                            onToggleSave: () => vm.toggleSave(quote),
-                            quoteFontScale: _quoteFontScale,
-                          ),
-                        ),
-                      if (isForwarding)
-                        SlideTransition(
-                          position: _slideInAnimation,
-                          child: _QuoteCard(
-                            quote: quotes[_slideFromRight
-                                ? (_currentIndex < quotes.length - 1
-                                    ? _currentIndex + 1
-                                    : _currentIndex)
-                                : (_currentIndex > 0
-                                    ? _currentIndex - 1
-                                    : _currentIndex)],
-                            onToggleSave: () => vm.toggleSave(quote),
-                            quoteFontScale: _quoteFontScale,
-                          ),
-                        ),
-                      if (!isForwarding)
-                        _QuoteCard(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: AnimatedBuilder(
+              animation: _animationController,
+              builder: (context, child) {
+                final isForwarding = _animationController.isAnimating;
+                return Stack(
+                  children: [
+                    if (isForwarding)
+                      SlideTransition(
+                        position: _slideOutAnimation,
+                        child: _QuoteCard(
                           quote: quote,
                           onToggleSave: () => vm.toggleSave(quote),
                           quoteFontScale: _quoteFontScale,
                         ),
-                    ],
-                  );
-                },
-              ),
+                      ),
+                    if (isForwarding)
+                      SlideTransition(
+                        position: _slideInAnimation,
+                        child: _QuoteCard(
+                          quote: quotes[_slideFromRight
+                              ? (_currentIndex < quotes.length - 1
+                                  ? _currentIndex + 1
+                                  : _currentIndex)
+                              : (_currentIndex > 0
+                                  ? _currentIndex - 1
+                                  : _currentIndex)],
+                          onToggleSave: () => vm.toggleSave(quote),
+                          quoteFontScale: _quoteFontScale,
+                        ),
+                      ),
+                    if (!isForwarding)
+                      _QuoteCard(
+                        quote: quote,
+                        onToggleSave: () => vm.toggleSave(quote),
+                        quoteFontScale: _quoteFontScale,
+                      ),
+                  ],
+                );
+              },
             ),
           ),
 
-          // Navigation arrows
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton.outlined(
-                  onPressed:
-                      _currentIndex > 0 ? () => _goToPrevious(quotes) : null,
-                  icon: const Icon(Icons.arrow_back_ios_new_rounded),
-                  tooltip: AppLocalizations.of(context).previous,
+          // ── Floating prev arrow ────────────────────────────────
+          if (canGoPrev)
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              child: Center(
+                child: GestureDetector(
+                  onTap: () => _goToPrevious(quotes),
+                  child: Container(
+                    margin: const EdgeInsets.only(left: 4),
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.18),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
                 ),
-                _DotIndicator(
-                  total: quotes.length,
-                  current: _currentIndex,
-                ),
-                IconButton.outlined(
-                  onPressed: _currentIndex < quotes.length - 1
-                      ? () => _goToNext(quotes)
-                      : null,
-                  icon: const Icon(Icons.arrow_forward_ios_rounded),
-                  tooltip: AppLocalizations.of(context).next,
-                ),
-              ],
+              ),
             ),
-          ),
+
+          // ── Floating next arrow ────────────────────────────────
+          if (canGoNext)
+            Positioned(
+              right: 0,
+              top: 0,
+              bottom: 0,
+              child: Center(
+                child: GestureDetector(
+                  onTap: () => _goToNext(quotes),
+                  child: Container(
+                    margin: const EdgeInsets.only(right: 4),
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.18),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
   }
-
-  String _swipeHintText(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return '← ${l10n.previous}  |  ${l10n.next} →';
-  }
 }
 
-// ─── Quote Card (interactive, on-screen) ──────────────────────
-// NOTE: RepaintBoundary removed — sharing now uses QuoteShareCard off-screen.
+// ─── Quote Card ───────────────────────────────────────────────
 class _QuoteCard extends StatelessWidget {
   final QuoteModel quote;
   final VoidCallback onToggleSave;
@@ -332,6 +338,7 @@ class _QuoteCard extends StatelessWidget {
 
     return SizedBox(
       width: double.infinity,
+      height: double.infinity,
       child: Card(
         elevation: 3,
         shape: RoundedRectangleBorder(
@@ -374,7 +381,6 @@ class _QuoteCard extends StatelessWidget {
                   ),
                   Row(
                     children: [
-                      // ── CHANGED: use ShareService.shareWidget ──────────
                       IconButton(
                         onPressed: () => ShareService.shareWidget(
                           widget: QuoteShareCard(quote: quote),
@@ -385,7 +391,6 @@ class _QuoteCard extends StatelessWidget {
                             color: colorScheme.onSurfaceVariant),
                         tooltip: l10n.share,
                       ),
-                      // ───────────────────────────────────────────────────
                       IconButton(
                         onPressed: onToggleSave,
                         icon: Icon(
@@ -453,8 +458,8 @@ class _QuoteCard extends StatelessWidget {
                   Text(
                     'Ekush Ponji',
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color:
-                          colorScheme.onSurfaceVariant.withValues(alpha: 0.55),
+                      color: colorScheme.onSurfaceVariant
+                          .withValues(alpha: 0.55),
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0.6,
                     ),
@@ -465,40 +470,6 @@ class _QuoteCard extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-// ─── Dot Indicator ────────────────────────────────────────────
-class _DotIndicator extends StatelessWidget {
-  final int total;
-  final int current;
-
-  const _DotIndicator({required this.total, required this.current});
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    const maxDots = 5;
-    final visibleCount = total.clamp(0, maxDots);
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(visibleCount, (i) {
-        final isActive = i == current.clamp(0, maxDots - 1);
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 250),
-          margin: const EdgeInsets.symmetric(horizontal: 3),
-          width: isActive ? 20 : 8,
-          height: 8,
-          decoration: BoxDecoration(
-            color: isActive
-                ? colorScheme.primary
-                : colorScheme.onSurface.withValues(alpha: 0.2),
-            borderRadius: BorderRadius.circular(4),
-          ),
-        );
-      }),
     );
   }
 }

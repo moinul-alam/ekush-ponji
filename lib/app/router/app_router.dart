@@ -164,10 +164,14 @@ class AppRouter {
       ),
 
       // Quotes
+      // state.extra carries the int initialIndex passed via context.pushNamed()
+      // from the home screen, so the screen opens on the daily quote directly.
       GoRoute(
         path: RouteNames.quotes,
         name: 'quotes',
-        builder: (context, state) => const QuotesScreen(),
+        builder: (context, state) => QuotesScreen(
+          initialIndex: (state.extra as int?) ?? 0,
+        ),
       ),
       GoRoute(
         path: RouteNames.savedQuotes,
@@ -176,10 +180,14 @@ class AppRouter {
       ),
 
       // Words
+      // state.extra carries the int initialIndex passed via context.pushNamed()
+      // from the home screen, so the screen opens on the daily word directly.
       GoRoute(
         path: RouteNames.words,
         name: 'words',
-        builder: (context, state) => const WordsScreen(),
+        builder: (context, state) => WordsScreen(
+          initialIndex: (state.extra as int?) ?? 0,
+        ),
       ),
       GoRoute(
         path: RouteNames.savedWords,
