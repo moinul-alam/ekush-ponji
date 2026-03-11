@@ -1,0 +1,33 @@
+{
+  "manifestVersion": 1,
+  "lastUpdated": "2026-03-11",
+  "baseUrl": "https://raw.githubusercontent.com/moinul-alam/ekush_ponji/refs/heads/main/assets/data",
+  "datasets": {
+    "holidays": {
+      "version": 1,
+      "type": "by_year",
+      "path": "holidays",
+      "files": {
+        "2022": "holidays/holidays_2022.json",
+        "2023": "holidays/holidays_2023.json",
+        "2024": "holidays/holidays_2024.json",
+        "2025": "holidays/holidays_2025.json",
+        "2026": "holidays/holidays_2026.json"
+      }
+    },
+    "quotes": {
+      "version": 1,
+      "type": "single_file",
+      "files": {
+        "en": "quotes/quotes_en.json"
+      }
+    },
+    "words": {
+      "version": 1,
+      "type": "single_file",
+      "files": {
+        "en": "words/words_en.json"
+      }
+    }
+  }
+}
