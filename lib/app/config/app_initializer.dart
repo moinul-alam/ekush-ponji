@@ -6,8 +6,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:ekush_ponji/core/themes/app_theme.dart';
-import 'package:ekush_ponji/features/home/models/holiday.dart';
-import 'package:ekush_ponji/core/services/holiday_sync_service.dart';
+import 'package:ekush_ponji/features/holidays/models/holiday.dart';
+import 'package:ekush_ponji/features/holidays/services/holiday_sync_service.dart';
 import 'package:ekush_ponji/features/quotes/models/quote.dart';
 import 'package:ekush_ponji/features/words/models/word.dart';
 import 'package:ekush_ponji/features/quotes/data/datasources/local/quotes_local_datasource.dart';
@@ -17,7 +17,6 @@ import 'package:ekush_ponji/core/services/background_task_dispatcher.dart';
 import 'package:workmanager/workmanager.dart';
 
 class AppInitializer {
-
   // ── Phase 1: Critical path ────────────────────────────────────────────────
   static Future<void> initializeCore() async {
     try {
@@ -182,8 +181,7 @@ class AppInitializer {
 
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness:
-          isDark ? Brightness.light : Brightness.dark,
+      statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
       systemNavigationBarColor: colorScheme.surface,
       systemNavigationBarIconBrightness:
           isDark ? Brightness.light : Brightness.dark,

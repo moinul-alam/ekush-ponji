@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:ekush_ponji/features/home/models/reminder.dart';
+import 'package:ekush_ponji/features/reminders/models/reminder.dart';
 
 const String _remindersBoxName = 'reminders';
 

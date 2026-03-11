@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/features/calendar/models/calendar_day.dart';
 import 'package:ekush_ponji/features/calendar/models/hijri_date.dart';
-import 'package:ekush_ponji/features/home/models/holiday.dart';
+import 'package:ekush_ponji/features/holidays/models/holiday.dart';
 
 class CalendarDayCell extends StatelessWidget {
   final CalendarDay day;
@@ -53,7 +53,7 @@ class CalendarDayCell extends StatelessWidget {
 
   // Holiday background: fixed clean colors — no opacity mixing with surface
   static const Color _holidayBgLight = Color(0xFFFFF5F5); // barely-there blush
-  static const Color _holidayBgDark  = Color(0xFF251A1A); // very dark warm
+  static const Color _holidayBgDark = Color(0xFF251A1A); // very dark warm
 
   static const Color gregorianSpecialColor = Color(0xFFCC0000);
   static const double cellBorderRadius = 4;

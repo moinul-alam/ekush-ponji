@@ -14,7 +14,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:ekush_ponji/core/services/local_notification_service.dart';
-import 'package:ekush_ponji/core/services/prayer_notification_service.dart';
+import 'package:ekush_ponji/features/prayer_times/services/prayer_notification_service.dart';
 import 'package:ekush_ponji/features/prayer_times/models/prayer_times_model.dart';
 
 // ── Task name constants ────────────────────────────────────────────────────────

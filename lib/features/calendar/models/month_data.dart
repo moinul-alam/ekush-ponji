@@ -1,9 +1,9 @@
 import 'package:ekush_ponji/core/utils/number_converter.dart';
 import 'package:ekush_ponji/features/calendar/models/calendar_day.dart';
 import 'package:ekush_ponji/features/calendar/models/bengali_date.dart';
-import 'package:ekush_ponji/features/home/models/holiday.dart';
-import 'package:ekush_ponji/features/home/models/event.dart';
-import 'package:ekush_ponji/features/home/models/reminder.dart';
+import 'package:ekush_ponji/features/holidays/models/holiday.dart';
+import 'package:ekush_ponji/features/events/models/event.dart';
+import 'package:ekush_ponji/features/reminders/models/reminder.dart';
 
 /// Model class for a complete month's data
 /// Contains all information needed to render a month in the calendar
@@ -39,8 +39,19 @@ class MonthData {
   /// Get month name in English
   String get monthName {
     const months = [
-      '', 'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      '',
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
     ];
     return months[gregorianMonth];
   }
@@ -78,18 +89,18 @@ class MonthData {
 
   /// Get days from previous month
   List<CalendarDay> get previousMonthDays {
-    return days.where((day) => 
-      !day.isCurrentMonth && 
-      day.gregorianDate.isBefore(firstDate)
-    ).toList();
+    return days
+        .where((day) =>
+            !day.isCurrentMonth && day.gregorianDate.isBefore(firstDate))
+        .toList();
   }
 
   /// Get days from next month
   List<CalendarDay> get nextMonthDays {
-    return days.where((day) => 
-      !day.isCurrentMonth && 
-      day.gregorianDate.isAfter(lastDate)
-    ).toList();
+    return days
+        .where(
+            (day) => !day.isCurrentMonth && day.gregorianDate.isAfter(lastDate))
+        .toList();
   }
 
   /// Get today's CalendarDay (if this month contains today)
@@ -105,27 +116,23 @@ class MonthData {
   /// Get upcoming holidays in this month
   List<Holiday> get upcomingHolidays {
     final now = DateTime.now();
-    return holidays.where((h) => 
-      h.startDate.isAfter(now) || h.isToday
-    ).toList()
+    return holidays.where((h) => h.startDate.isAfter(now) || h.isToday).toList()
       ..sort((a, b) => a.startDate.compareTo(b.startDate));
   }
 
   /// Get upcoming events in this month
   List<Event> get upcomingEvents {
     final now = DateTime.now();
-    return events.where((e) => 
-      e.startTime.isAfter(now) || e.isToday
-    ).toList()
+    return events.where((e) => e.startTime.isAfter(now) || e.isToday).toList()
       ..sort((a, b) => a.startTime.compareTo(b.startTime));
   }
 
   /// Get upcoming reminders in this month
   List<Reminder> get upcomingReminders {
     final now = DateTime.now();
-    return reminders.where((r) => 
-      (r.dateTime.isAfter(now) || r.isToday) && !r.isCompleted
-    ).toList()
+    return reminders
+        .where((r) => (r.dateTime.isAfter(now) || r.isToday) && !r.isCompleted)
+        .toList()
       ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
   }
 
@@ -181,14 +188,17 @@ class MonthData {
           .map((d) => CalendarDay.fromJson(d as Map<String, dynamic>))
           .toList(),
       holidays: (json['holidays'] as List<dynamic>?)
-          ?.map((h) => Holiday.fromJson(h as Map<String, dynamic>))
-          .toList() ?? [],
+              ?.map((h) => Holiday.fromJson(h as Map<String, dynamic>))
+              .toList() ??
+          [],
       events: (json['events'] as List<dynamic>?)
-          ?.map((e) => Event.fromJson(e as Map<String, dynamic>))
-          .toList() ?? [],
+              ?.map((e) => Event.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
       reminders: (json['reminders'] as List<dynamic>?)
-          ?.map((r) => Reminder.fromJson(r as Map<String, dynamic>))
-          .toList() ?? [],
+              ?.map((r) => Reminder.fromJson(r as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
 

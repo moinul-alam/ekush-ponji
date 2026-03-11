@@ -2,14 +2,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ekush_ponji/features/home/models/holiday.dart';
-import 'package:ekush_ponji/features/home/models/event.dart';
-import 'package:ekush_ponji/features/home/models/reminder.dart';
+import 'package:ekush_ponji/features/holidays/models/holiday.dart';
+import 'package:ekush_ponji/features/events/models/event.dart';
+import 'package:ekush_ponji/features/reminders/models/reminder.dart';
 import 'package:ekush_ponji/features/calendar/data/local/calendar_local_datasource.dart';
 import 'package:ekush_ponji/features/calendar/data/remote/calendar_remote_datasource.dart';
 import 'package:ekush_ponji/features/events/data/local/events_local_datasource.dart';
 import 'package:ekush_ponji/features/reminders/data/local/reminders_local_datasource.dart';
-import 'package:ekush_ponji/core/services/holiday_sync_service.dart';
+import 'package:ekush_ponji/features/holidays/services/holiday_sync_service.dart';
 
 /// CalendarRepository provides holidays, events, and reminders.
 /// Offline-first: always reads from Hive.
@@ -28,8 +28,7 @@ class CalendarRepository {
     RemindersLocalDatasource? remindersLocalDatasource,
     HolidaySyncService? syncService,
   })  : _localDatasource = localDatasource ?? CalendarLocalDatasource(),
-        _remoteDatasource =
-            remoteDatasource ?? CalendarRemoteDatasource(),
+        _remoteDatasource = remoteDatasource ?? CalendarRemoteDatasource(),
         _eventsLocalDatasource =
             eventsLocalDatasource ?? EventsLocalDatasource(),
         _remindersLocalDatasource =
@@ -55,8 +54,7 @@ class CalendarRepository {
 
   Future<List<Holiday>> getHolidaysForMonth(int year, int month) async {
     try {
-      final yearHolidays =
-          await _localDatasource.getAllHolidaysForYear(year);
+      final yearHolidays = await _localDatasource.getAllHolidaysForYear(year);
 
       final monthHolidays = yearHolidays.where((h) {
         if (!h.isMultiDay) {
@@ -64,15 +62,14 @@ class CalendarRepository {
         }
         final monthStart = DateTime(year, month, 1);
         final monthEnd = DateTime(year, month + 1, 0);
-        final startDay = DateTime(
-            h.startDate.year, h.startDate.month, h.startDate.day);
-        final endDay = DateTime(
-            h.endDate!.year, h.endDate!.month, h.endDate!.day);
+        final startDay =
+            DateTime(h.startDate.year, h.startDate.month, h.startDate.day);
+        final endDay =
+            DateTime(h.endDate!.year, h.endDate!.month, h.endDate!.day);
         return !endDay.isBefore(monthStart) && !startDay.isAfter(monthEnd);
       }).toList();
 
-      debugPrint(
-          '📅 Found ${monthHolidays.length} holidays for $year-$month');
+      debugPrint('📅 Found ${monthHolidays.length} holidays for $year-$month');
       return monthHolidays;
     } catch (e) {
       debugPrint('❌ Error getting holidays for month: $e');
@@ -82,8 +79,7 @@ class CalendarRepository {
 
   Future<List<Holiday>> getHolidaysForDate(DateTime date) async {
     try {
-      final monthHolidays =
-          await getHolidaysForMonth(date.year, date.month);
+      final monthHolidays = await getHolidaysForMonth(date.year, date.month);
       return monthHolidays.where((h) => h.containsDate(date)).toList();
     } catch (e) {
       debugPrint('❌ Error getting holidays for date: $e');
@@ -108,8 +104,7 @@ class CalendarRepository {
       final monthHolidays = await getHolidaysForMonth(year, month);
 
       for (final date in entry.value) {
-        map[date] =
-            monthHolidays.where((h) => h.containsDate(date)).toList();
+        map[date] = monthHolidays.where((h) => h.containsDate(date)).toList();
       }
     }
 
@@ -178,8 +173,7 @@ class CalendarRepository {
         debugPrint('✅ Modified govt holiday: ${holiday.name}');
       } else {
         final customHolidays = await _localDatasource.getCustomHolidays();
-        final index =
-            customHolidays.indexWhere((h) => h.id == holiday.id);
+        final index = customHolidays.indexWhere((h) => h.id == holiday.id);
         if (index != -1) {
           customHolidays[index] = holiday;
           await _localDatasource.saveCustomHolidays(customHolidays);
@@ -218,8 +212,7 @@ class CalendarRepository {
     try {
       return await _eventsLocalDatasource.getEventsForMonth(year, month);
     } catch (e) {
-      debugPrint(
-          '❌ CalendarRepository: Error getting events for month: $e');
+      debugPrint('❌ CalendarRepository: Error getting events for month: $e');
       return [];
     }
   }
@@ -228,8 +221,7 @@ class CalendarRepository {
     try {
       return await _eventsLocalDatasource.getEventsForDate(date);
     } catch (e) {
-      debugPrint(
-          '❌ CalendarRepository: Error getting events for date: $e');
+      debugPrint('❌ CalendarRepository: Error getting events for date: $e');
       return [];
     }
   }
@@ -239,8 +231,7 @@ class CalendarRepository {
     try {
       return await _eventsLocalDatasource.getEventsForDates(dates);
     } catch (e) {
-      debugPrint(
-          '❌ CalendarRepository: Error getting events for dates: $e');
+      debugPrint('❌ CalendarRepository: Error getting events for dates: $e');
       return {for (final date in dates) date: []};
     }
   }
@@ -249,11 +240,9 @@ class CalendarRepository {
 
   Future<List<Reminder>> getRemindersForMonth(int year, int month) async {
     try {
-      return await _remindersLocalDatasource.getRemindersForMonth(
-          year, month);
+      return await _remindersLocalDatasource.getRemindersForMonth(year, month);
     } catch (e) {
-      debugPrint(
-          '❌ CalendarRepository: Error getting reminders for month: $e');
+      debugPrint('❌ CalendarRepository: Error getting reminders for month: $e');
       return [];
     }
   }
@@ -262,8 +251,7 @@ class CalendarRepository {
     try {
       return await _remindersLocalDatasource.getRemindersForDate(date);
     } catch (e) {
-      debugPrint(
-          '❌ CalendarRepository: Error getting reminders for date: $e');
+      debugPrint('❌ CalendarRepository: Error getting reminders for date: $e');
       return [];
     }
   }
@@ -273,8 +261,7 @@ class CalendarRepository {
     try {
       return await _remindersLocalDatasource.getRemindersForDates(dates);
     } catch (e) {
-      debugPrint(
-          '❌ CalendarRepository: Error getting reminders for dates: $e');
+      debugPrint('❌ CalendarRepository: Error getting reminders for dates: $e');
       return {for (final date in dates) date: []};
     }
   }

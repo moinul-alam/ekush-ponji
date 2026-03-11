@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ekush_ponji/features/home/models/event.dart';
+import 'package:ekush_ponji/features/events/models/event.dart';
 import 'package:ekush_ponji/features/events/data/local/events_local_datasource.dart';
 
 class EventRepository {

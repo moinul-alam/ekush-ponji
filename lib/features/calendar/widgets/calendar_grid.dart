@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ekush_ponji/core/services/hijri_calendar_service.dart';
+import 'package:ekush_ponji/features/calendar/services/hijri_calendar_service.dart';
 import 'package:ekush_ponji/features/calendar/models/calendar_day.dart';
 import 'package:ekush_ponji/features/calendar/providers/calendar_visibility_provider.dart';
 import 'package:ekush_ponji/features/calendar/widgets/calendar_day_cell.dart';

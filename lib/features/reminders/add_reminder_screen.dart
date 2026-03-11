@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/features/reminders/add_reminder_viewmodel.dart';
-import 'package:ekush_ponji/features/home/models/reminder.dart';
+import 'package:ekush_ponji/features/reminders/models/reminder.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ekush_ponji/core/services/local_notification_service.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -360,14 +360,10 @@ class _PrioritySelector extends ConsumerWidget {
               onSelected: (_) => viewModel.setPriority(priority),
               selectedColor: color.withOpacity(0.15),
               labelStyle: theme.textTheme.labelMedium?.copyWith(
-                color: isSelected
-                    ? color
-                    : theme.colorScheme.onSurfaceVariant,
+                color: isSelected ? color : theme.colorScheme.onSurfaceVariant,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
-              side: isSelected
-                  ? BorderSide(color: color, width: 1.5)
-                  : null,
+              side: isSelected ? BorderSide(color: color, width: 1.5) : null,
             );
           }).toList(),
         ),

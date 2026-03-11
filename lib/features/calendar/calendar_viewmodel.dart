@@ -6,9 +6,9 @@ import 'package:ekush_ponji/core/base/view_state.dart';
 import 'package:ekush_ponji/features/calendar/models/calendar_day.dart';
 import 'package:ekush_ponji/features/calendar/models/month_data.dart';
 import 'package:ekush_ponji/features/calendar/data/calendar_repository.dart';
-import 'package:ekush_ponji/core/services/bengali_calendar_service.dart';
-import 'package:ekush_ponji/features/home/models/holiday.dart';
-import 'package:ekush_ponji/features/home/models/event.dart';
+import 'package:ekush_ponji/features/calendar/services/bengali_calendar_service.dart';
+import 'package:ekush_ponji/features/holidays/models/holiday.dart';
+import 'package:ekush_ponji/features/events/models/event.dart';
 
 class CalendarViewModel extends BaseViewModel {
   late final CalendarRepository _repository;
@@ -176,8 +176,7 @@ class CalendarViewModel extends BaseViewModel {
         bengaliDate: _bengaliService.getBengaliDate(date),
         isCurrentMonth: date.month == month && date.year == year,
         isToday: _isSameDay(date, today),
-        isSelected:
-            _selectedDate != null && _isSameDay(date, _selectedDate!),
+        isSelected: _selectedDate != null && _isSameDay(date, _selectedDate!),
         holidays: holidaysMap[date] ?? [],
         events: eventsMap[date] ?? [],
         reminders: remindersMap[date] ?? [],
@@ -188,8 +187,7 @@ class CalendarViewModel extends BaseViewModel {
         _bengaliService.getBengaliMonthsForGregorianMonth(year, month);
     final monthHolidays = await _repository.getHolidaysForMonth(year, month);
     final monthEvents = await _repository.getEventsForMonth(year, month);
-    final monthReminders =
-        await _repository.getRemindersForMonth(year, month);
+    final monthReminders = await _repository.getRemindersForMonth(year, month);
 
     return MonthData(
       gregorianYear: year,

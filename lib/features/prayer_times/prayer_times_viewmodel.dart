@@ -7,7 +7,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:ekush_ponji/features/prayer_times/models/prayer_times_model.dart';
-import 'package:ekush_ponji/core/services/prayer_notification_service.dart';
+import 'package:ekush_ponji/features/prayer_times/services/prayer_notification_service.dart';
 import 'package:ekush_ponji/features/prayer_times/prayer_settings_viewmodel.dart';
 
 // ── State ──────────────────────────────────────────────────────
@@ -60,7 +60,8 @@ class PrayerTimesViewModel extends Notifier<PrayerTimesState> {
   // ── Cache keys ────────────────────────────────────────────────
   static const String _cachedLatKey = 'prayer_cached_lat';
   static const String _cachedLngKey = 'prayer_cached_lng';
-  static const String _cachedLocationDisplayKey = 'prayer_cached_location_display';
+  static const String _cachedLocationDisplayKey =
+      'prayer_cached_location_display';
 
   @override
   PrayerTimesState build() {
@@ -426,18 +427,19 @@ class PrayerTimesViewModel extends Notifier<PrayerTimesState> {
     if (!notifPrefs.masterEnabled) return;
 
     // Use the pre-calculated tomorrow model if provided, otherwise calculate.
-    final tomorrow = tomorrowModel ?? () {
-      final t = DateTime.now().add(const Duration(days: 1));
-      final tomorrowComponents = DateComponents(t.year, t.month, t.day);
-      final coords = Coordinates(position.latitude, position.longitude);
-      final adhan = PrayerTimes(coords, tomorrowComponents, params);
-      return PrayerTimesModel.fromAdhan(
-        times: adhan,
-        latitude: position.latitude,
-        longitude: position.longitude,
-        locationDisplay: locationDisplay,
-      );
-    }();
+    final tomorrow = tomorrowModel ??
+        () {
+          final t = DateTime.now().add(const Duration(days: 1));
+          final tomorrowComponents = DateComponents(t.year, t.month, t.day);
+          final coords = Coordinates(position.latitude, position.longitude);
+          final adhan = PrayerTimes(coords, tomorrowComponents, params);
+          return PrayerTimesModel.fromAdhan(
+            times: adhan,
+            latitude: position.latitude,
+            longitude: position.longitude,
+            locationDisplay: locationDisplay,
+          );
+        }();
 
     await PrayerNotificationService.scheduleAll(
       today: todayModel,

@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ekush_ponji/core/base/base_screen.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
-import 'package:ekush_ponji/core/services/hijri_calendar_service.dart';
+import 'package:ekush_ponji/features/calendar/services/hijri_calendar_service.dart';
 import 'package:ekush_ponji/features/calendar/calendar_viewmodel.dart';
 import 'package:ekush_ponji/features/calendar/widgets/calendar_header.dart';
 import 'package:ekush_ponji/features/calendar/widgets/week_days_row.dart';
@@ -144,10 +144,8 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .shadow
-                        .withOpacity(0.07),
+                    color:
+                        Theme.of(context).colorScheme.shadow.withOpacity(0.07),
                     blurRadius: 16,
                     offset: const Offset(0, 4),
                   ),
@@ -181,8 +179,7 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
                   // reach CalendarDayCell's GestureDetector unobstructed
                   CalendarGrid(
                     days: viewModel.calendarDays,
-                    onDayTap: (day) =>
-                        viewModel.selectDate(day.gregorianDate),
+                    onDayTap: (day) => viewModel.selectDate(day.gregorianDate),
                   ),
 
                   const SizedBox(height: 8),

@@ -1,7 +1,7 @@
 // lib/features/holidays/widgets/holiday_gazette_section_widget.dart
 
 import 'package:flutter/material.dart';
-import 'package:ekush_ponji/features/home/models/holiday.dart';
+import 'package:ekush_ponji/features/holidays/models/holiday.dart';
 import 'package:ekush_ponji/features/holidays/widgets/holiday_card.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 
@@ -53,10 +53,8 @@ class _HolidayGazetteSectionWidgetState
             ),
             decoration: BoxDecoration(
               color: isMandatory
-                  ? theme.colorScheme.primaryContainer
-                      .withValues(alpha: 0.4)
-                  : theme.colorScheme.secondaryContainer
-                      .withValues(alpha: 0.3),
+                  ? theme.colorScheme.primaryContainer.withValues(alpha: 0.4)
+                  : theme.colorScheme.secondaryContainer.withValues(alpha: 0.3),
               border: Border(
                 left: BorderSide(
                   color: isMandatory

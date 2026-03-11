@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ekush_ponji/features/home/models/holiday.dart';
+import 'package:ekush_ponji/features/holidays/models/holiday.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 
 /// Displays all holidays for the selected calendar month
@@ -65,8 +65,8 @@ class CalendarHolidaysWidget extends StatelessWidget {
                   ],
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 8, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.secondaryContainer,
                     borderRadius: BorderRadius.circular(12),
@@ -248,8 +248,8 @@ class _CalendarHolidayItem extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 7, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                   decoration: BoxDecoration(
                     color: typeColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(6),
@@ -277,8 +277,7 @@ class _CalendarHolidayItem extends StatelessWidget {
                       ? localizations.passed
                       : holiday.daysUntil == 0
                           ? localizations.today
-                          : localizations
-                              .formatDaysDistance(holiday.daysUntil),
+                          : localizations.formatDaysDistance(holiday.daysUntil),
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: isPast
                         ? theme.colorScheme.onSurfaceVariant

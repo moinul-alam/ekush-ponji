@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/core/utils/number_converter.dart';
-import 'package:ekush_ponji/features/home/models/event.dart';
+import 'package:ekush_ponji/features/events/models/event.dart';
 
 /// Widget showing upcoming events in current month
 /// Displays next 3-5 events with time and location

@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ekush_ponji/features/prayer_times/models/prayer_times_model.dart';
-import 'package:ekush_ponji/core/services/prayer_notification_service.dart';
+import 'package:ekush_ponji/features/prayer_times/services/prayer_notification_service.dart';
 
 class PrayerSettingsState {
   final PrayerCalculationSettings calculationSettings;
@@ -103,24 +103,19 @@ class PrayerSettingsViewModel extends Notifier<PrayerSettingsState> {
     PrayerNotificationPrefs updated;
     switch (prayer) {
       case Prayer.fajr:
-        updated =
-            state.notificationPrefs.copyWith(fajrEnabled: enabled);
+        updated = state.notificationPrefs.copyWith(fajrEnabled: enabled);
         break;
       case Prayer.dhuhr:
-        updated =
-            state.notificationPrefs.copyWith(dhuhrEnabled: enabled);
+        updated = state.notificationPrefs.copyWith(dhuhrEnabled: enabled);
         break;
       case Prayer.asr:
-        updated =
-            state.notificationPrefs.copyWith(asrEnabled: enabled);
+        updated = state.notificationPrefs.copyWith(asrEnabled: enabled);
         break;
       case Prayer.maghrib:
-        updated =
-            state.notificationPrefs.copyWith(maghribEnabled: enabled);
+        updated = state.notificationPrefs.copyWith(maghribEnabled: enabled);
         break;
       case Prayer.isha:
-        updated =
-            state.notificationPrefs.copyWith(ishaEnabled: enabled);
+        updated = state.notificationPrefs.copyWith(ishaEnabled: enabled);
         break;
       default:
         return;

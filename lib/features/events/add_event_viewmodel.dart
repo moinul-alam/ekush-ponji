@@ -3,10 +3,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ekush_ponji/core/base/base_viewmodel.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
-import 'package:ekush_ponji/features/home/models/event.dart';
+import 'package:ekush_ponji/features/events/models/event.dart';
 import 'package:ekush_ponji/features/events/data/event_repository.dart';
 import 'package:ekush_ponji/features/calendar/calendar_viewmodel.dart';
-import 'package:ekush_ponji/core/services/calendar_notification_service.dart';
+import 'package:ekush_ponji/features/calendar/services/calendar_notification_service.dart';
 
 class AddEventViewModel extends BaseViewModel {
   late final EventRepository _repository;
@@ -162,8 +162,9 @@ class AddEventViewModel extends BaseViewModel {
         }
       },
       loadingMessage: isEditMode ? 'Updating event...' : 'Saving event...',
-      successMessage:
-          isEditMode ? 'Event updated successfully' : 'Event saved successfully',
+      successMessage: isEditMode
+          ? 'Event updated successfully'
+          : 'Event saved successfully',
       errorMessage:
           isEditMode ? 'Failed to update event' : 'Failed to save event',
     );

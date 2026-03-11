@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ekush_ponji/app/providers/app_providers.dart';
-import 'package:ekush_ponji/core/services/holiday_sync_service.dart';
+import 'package:ekush_ponji/features/holidays/services/holiday_sync_service.dart';
 import 'package:ekush_ponji/features/home/home_viewmodel.dart';
 
 class SettingsViewModel extends BaseViewModel {
@@ -118,20 +118,18 @@ class SettingsViewModel extends BaseViewModel {
     try {
       final service = HolidaySyncService();
       _lastSyncHadUpdate = await service.forceSync().timeout(
-        const Duration(seconds: 15),
-        onTimeout: () => false,
-      );
+            const Duration(seconds: 15),
+            onTimeout: () => false,
+          );
       if (_lastSyncHadUpdate) {
         widgetRef.invalidate(homeViewModelProvider);
       }
       setSuccess(
-        message: _lastSyncHadUpdate
-            ? 'Holiday data updated!'
-            : 'Already up to date',
+        message:
+            _lastSyncHadUpdate ? 'Holiday data updated!' : 'Already up to date',
       );
     } catch (e, st) {
-      handleError(e, st,
-          customMessage: 'Sync failed — check your connection');
+      handleError(e, st, customMessage: 'Sync failed — check your connection');
     }
   }
 

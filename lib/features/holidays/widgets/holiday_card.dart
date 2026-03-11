@@ -1,7 +1,7 @@
 // lib/features/holidays/widgets/holiday_card.dart
 
 import 'package:flutter/material.dart';
-import 'package:ekush_ponji/features/home/models/holiday.dart';
+import 'package:ekush_ponji/features/holidays/models/holiday.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 
 class HolidayCard extends StatelessWidget {
@@ -19,8 +19,7 @@ class HolidayCard extends StatelessWidget {
     final isbn = l10n.languageCode == 'bn';
 
     final name = isbn ? holiday.namebn : holiday.name;
-    final description =
-        isbn ? holiday.descriptionbn : holiday.description;
+    final description = isbn ? holiday.descriptionbn : holiday.description;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -86,8 +85,7 @@ class HolidayCard extends StatelessWidget {
                   ],
 
                   // Description
-                  if (description != null &&
-                      description.isNotEmpty) ...[
+                  if (description != null && description.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text(
                       description,
@@ -111,18 +109,15 @@ class HolidayCard extends StatelessWidget {
                         label: isbn
                             ? holiday.category.displayNameBn
                             : holiday.category.displayName,
-                        color: _categoryColor(
-                            holiday.category, theme),
+                        color: _categoryColor(holiday.category, theme),
                       ),
 
                       // Regional note chip
                       if (holiday.isRegional) ...[
                         _SmallChip(
                           label: isbn
-                              ? (holiday.regionNoteBn ??
-                                  'আঞ্চলিক')
-                              : (holiday.regionNote ??
-                                  'Regional'),
+                              ? (holiday.regionNoteBn ?? 'আঞ্চলিক')
+                              : (holiday.regionNote ?? 'Regional'),
                           color: theme.colorScheme.tertiary,
                         ),
                       ],

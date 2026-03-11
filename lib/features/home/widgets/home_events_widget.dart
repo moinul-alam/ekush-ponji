@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
-import 'package:ekush_ponji/features/home/models/event.dart';
+import 'package:ekush_ponji/features/events/models/event.dart';
 import 'package:ekush_ponji/features/home/widgets/home_section_widget.dart';
 import 'package:ekush_ponji/features/calendar/calendar_viewmodel.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
@@ -190,8 +190,16 @@ class _EventItem extends StatelessWidget {
 
     if (languageCode == 'bn') {
       const map = {
-        '0': '০', '1': '১', '2': '২', '3': '৩', '4': '৪',
-        '5': '৫', '6': '৬', '7': '৭', '8': '৮', '9': '৯',
+        '0': '০',
+        '1': '১',
+        '2': '২',
+        '3': '৩',
+        '4': '৪',
+        '5': '৫',
+        '6': '৬',
+        '7': '৭',
+        '8': '৮',
+        '9': '৯',
       };
       return time.split('').map((c) => map[c] ?? c).join();
     }

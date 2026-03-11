@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
-import 'package:ekush_ponji/core/services/bengali_calendar_service.dart';
-import 'package:ekush_ponji/core/services/hijri_calendar_service.dart';
+import 'package:ekush_ponji/features/calendar/services/bengali_calendar_service.dart';
+import 'package:ekush_ponji/features/calendar/services/hijri_calendar_service.dart';
 import 'package:ekush_ponji/features/calendar/models/bengali_date.dart';
 import 'package:ekush_ponji/features/calendar/models/hijri_date.dart';
 import 'package:ekush_ponji/features/home/widgets/home_section_widget.dart';
@@ -17,7 +17,8 @@ class TodayDateWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final now = DateTime.now();
-    final bengaliDate = ref.watch(bengaliCalendarServiceProvider).getBengaliDate(now);
+    final bengaliDate =
+        ref.watch(bengaliCalendarServiceProvider).getBengaliDate(now);
     final hijriDate = ref.watch(hijriCalendarServiceProvider).getHijriDate(now);
 
     return HomeSectionWidget(

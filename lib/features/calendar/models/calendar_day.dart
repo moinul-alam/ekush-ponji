@@ -1,7 +1,7 @@
 import 'package:ekush_ponji/features/calendar/models/bengali_date.dart';
-import 'package:ekush_ponji/features/home/models/holiday.dart';
-import 'package:ekush_ponji/features/home/models/event.dart';
-import 'package:ekush_ponji/features/home/models/reminder.dart';
+import 'package:ekush_ponji/features/holidays/models/holiday.dart';
+import 'package:ekush_ponji/features/events/models/event.dart';
+import 'package:ekush_ponji/features/reminders/models/reminder.dart';
 
 /// Model class for a single day cell in the calendar grid
 /// Contains both Gregorian and Bengali date information

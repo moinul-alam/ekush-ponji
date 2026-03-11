@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ekush_ponji/core/base/base_screen.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
-import 'package:ekush_ponji/features/home/models/holiday.dart';
+import 'package:ekush_ponji/features/holidays/models/holiday.dart';
 import 'package:ekush_ponji/features/holidays/holidays_viewmodel.dart';
 import 'package:ekush_ponji/features/holidays/widgets/holiday_gazette_section_widget.dart';
 import 'package:ekush_ponji/features/holidays/widgets/holiday_month_section_widget.dart';
@@ -249,12 +249,8 @@ class _ViewModeToggleBar extends StatelessWidget {
               const SizedBox(width: 6),
               Text(
                 isMonthWise
-                    ? (isBn
-                        ? 'গেজেট অনুযায়ী দেখুন'
-                        : 'View by Gazette Type')
-                    : (isBn
-                        ? 'মাস অনুযায়ী দেখুন'
-                        : 'View by Month'),
+                    ? (isBn ? 'গেজেট অনুযায়ী দেখুন' : 'View by Gazette Type')
+                    : (isBn ? 'মাস অনুযায়ী দেখুন' : 'View by Month'),
                 style: theme.textTheme.labelMedium,
               ),
             ],
@@ -315,8 +311,7 @@ class _MonthWiseView extends StatelessWidget {
       itemBuilder: (context, index) {
         final entry = grouped.entries.elementAt(index);
         final month = entry.key;
-        final isCurrentMonth =
-            month == now.month && year == now.year;
+        final isCurrentMonth = month == now.month && year == now.year;
 
         return HolidayMonthSectionWidget(
           month: month,

@@ -6,7 +6,7 @@ import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:ekush_ponji/features/prayer_times/prayer_times_viewmodel.dart';
 import 'package:ekush_ponji/features/prayer_times/prayer_settings_viewmodel.dart';
-import 'package:ekush_ponji/core/services/prayer_notification_service.dart';
+import 'package:ekush_ponji/features/prayer_times/services/prayer_notification_service.dart';
 import 'package:ekush_ponji/features/prayer_times/widgets/next_prayer_card.dart';
 import 'package:ekush_ponji/features/prayer_times/widgets/prayer_list_widget.dart';
 import 'package:ekush_ponji/features/prayer_times/widgets/prayer_timeline_widget.dart';
@@ -58,8 +58,9 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
             IconButton(
               icon: const Icon(Icons.my_location_rounded),
               tooltip: l10n.updateLocation,
-              onPressed: () =>
-                  ref.read(prayerTimesViewModelProvider.notifier).updateLocation(),
+              onPressed: () => ref
+                  .read(prayerTimesViewModelProvider.notifier)
+                  .updateLocation(),
             ),
           // Settings
           IconButton(
@@ -144,8 +145,7 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
             // ── Prayer list ───────────────────────────────
             PrayerListWidget(
               times: times,
-              highlightedPrayer:
-                  state.highlightedPrayer ?? times.nextPrayer,
+              highlightedPrayer: state.highlightedPrayer ?? times.nextPrayer,
               notifPrefs: settings.notificationPrefs,
               onToggleNotification: (prayer, enabled) async {
                 await ref
@@ -173,10 +173,8 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
     ColorScheme cs,
     ThemeData theme,
   ) {
-    final isPermission =
-        state.errorMessage == 'location_permission_denied';
-    final isDisabled =
-        state.errorMessage == 'location_service_disabled';
+    final isPermission = state.errorMessage == 'location_permission_denied';
+    final isDisabled = state.errorMessage == 'location_service_disabled';
 
     final icon = isPermission || isDisabled
         ? Icons.location_off_rounded
@@ -275,8 +273,8 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
               icon: const Icon(Icons.my_location_rounded),
               label: Text(l10n.getPrayerTimes),
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 28, vertical: 14),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
               ),
             ),
           ],

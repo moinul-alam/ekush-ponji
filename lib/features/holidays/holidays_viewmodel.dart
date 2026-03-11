@@ -3,7 +3,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ekush_ponji/core/base/base_viewmodel.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
-import 'package:ekush_ponji/features/home/models/holiday.dart';
+import 'package:ekush_ponji/features/holidays/models/holiday.dart';
 import 'package:ekush_ponji/features/calendar/data/calendar_repository.dart';
 
 // ─────────────────────────────────────────────────────────────
@@ -109,7 +109,7 @@ class HolidaysViewModel extends BaseViewModel {
 
   @override
   Future<bool> refresh() async {
-  setLoading(isRefreshing: true);
+    setLoading(isRefreshing: true);
     try {
       await _repository.syncHolidaysIfNeeded(_selectedYear);
       _holidays = await _repository.getHolidaysForYear(_selectedYear);

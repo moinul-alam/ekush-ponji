@@ -1,7 +1,7 @@
 // lib/features/home/widgets/home_holidays_widget.dart
 
 import 'package:flutter/material.dart';
-import 'package:ekush_ponji/features/home/models/holiday.dart';
+import 'package:ekush_ponji/features/holidays/models/holiday.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 
 class HomeHolidaysWidget extends StatefulWidget {
@@ -349,9 +349,7 @@ class _HolidayListItem extends StatelessWidget {
 
                     // Holiday name
                     Text(
-                      l10n.languageCode == 'bn'
-                          ? holiday.namebn
-                          : holiday.name,
+                      l10n.languageCode == 'bn' ? holiday.namebn : holiday.name,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                         color: cs.onSurface,

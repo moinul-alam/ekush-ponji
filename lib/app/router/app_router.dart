@@ -17,11 +17,10 @@ import 'package:ekush_ponji/features/words/words_screen.dart';
 import 'package:ekush_ponji/features/words/saved_words_screen.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
 import 'package:ekush_ponji/core/widgets/navigation/app_bottom_nav.dart';
-import 'package:ekush_ponji/features/home/models/event.dart';
-import 'package:ekush_ponji/features/home/models/reminder.dart';
+import 'package:ekush_ponji/features/events/models/event.dart';
+import 'package:ekush_ponji/features/reminders/models/reminder.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/features/holidays/holidays_screen.dart';
-
 
 class AppRouter {
   AppRouter._();
@@ -135,8 +134,7 @@ class AppRouter {
       GoRoute(
         path: RouteNames.eventsList,
         name: 'eventsList',
-        builder: (context, state) =>
-            const _PlaceholderScreen(title: 'Events'),
+        builder: (context, state) => const _PlaceholderScreen(title: 'Events'),
       ),
       GoRoute(
         path: RouteNames.addEvent,
@@ -211,7 +209,6 @@ class AppRouter {
         builder: (context, state) => const HolidaysScreen(),
       ),
     ],
-
     errorBuilder: (context, state) => _ErrorScreen(state: state),
   );
 }

@@ -3,7 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:ekush_ponji/features/home/models/holiday.dart';
+import 'package:ekush_ponji/features/holidays/models/holiday.dart';
 import 'package:ekush_ponji/core/models/holiday_manifest.dart';
 
 class HolidaySyncService {
@@ -113,8 +113,7 @@ class HolidaySyncService {
         return false;
       }
 
-      debugPrint(
-          '🆕 Fetching holiday data (v${manifest.holidaysVersion})...');
+      debugPrint('🆕 Fetching holiday data (v${manifest.holidaysVersion})...');
 
       int updatedCount = 0;
       for (final year in manifest.availableYears) {

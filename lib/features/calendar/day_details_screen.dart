@@ -6,9 +6,9 @@ import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/core/utils/number_converter.dart';
 import 'package:ekush_ponji/features/calendar/calendar_viewmodel.dart';
 import 'package:ekush_ponji/features/calendar/models/calendar_day.dart';
-import 'package:ekush_ponji/features/home/models/holiday.dart';
-import 'package:ekush_ponji/features/home/models/event.dart';
-import 'package:ekush_ponji/features/home/models/reminder.dart';
+import 'package:ekush_ponji/features/holidays/models/holiday.dart';
+import 'package:ekush_ponji/features/events/models/event.dart';
+import 'package:ekush_ponji/features/reminders/models/reminder.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
 
@@ -205,8 +205,7 @@ class _DateHeaderCard extends StatelessWidget {
           if (selectedDay.isToday) ...[
             const SizedBox(height: 10),
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 color: theme.colorScheme.primary,
                 borderRadius: BorderRadius.circular(20),
@@ -306,8 +305,8 @@ class _HolidayCard extends StatelessWidget {
                 ],
                 const SizedBox(height: 6),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 8, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: Colors.red.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(10),
@@ -398,8 +397,7 @@ class _EventCard extends StatelessWidget {
                   Row(
                     children: [
                       Icon(Icons.access_time,
-                          size: 12,
-                          color: theme.colorScheme.onSurfaceVariant),
+                          size: 12, color: theme.colorScheme.onSurfaceVariant),
                       const SizedBox(width: 4),
                       Text(
                         timeText,
@@ -441,8 +439,8 @@ class _EventCard extends StatelessWidget {
                   ],
                   const SizedBox(height: 6),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 3),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
                       color: Colors.blue.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(10),
@@ -530,8 +528,7 @@ class _ReminderCard extends StatelessWidget {
                   Row(
                     children: [
                       Icon(Icons.alarm,
-                          size: 12,
-                          color: theme.colorScheme.onSurfaceVariant),
+                          size: 12, color: theme.colorScheme.onSurfaceVariant),
                       const SizedBox(width: 4),
                       Text(
                         timeText,
@@ -554,8 +551,8 @@ class _ReminderCard extends StatelessWidget {
                   ],
                   const SizedBox(height: 6),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 3),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
                       color: _priorityColor(reminder.priority).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(10),

@@ -1,6 +1,6 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/material.dart';
-import 'package:ekush_ponji/features/home/models/holiday.dart';
+import 'package:ekush_ponji/features/holidays/models/holiday.dart';
 
 /// Local datasource for calendar data using Hive
 /// Handles all local storage operations for holidays
@@ -199,9 +199,10 @@ class CalendarLocalDatasource {
     final hiddenIds = await getHiddenHolidayIds();
 
     final customForYear = customHolidays
-      .where((h) => h.startDate.year == year ||
-          (h.endDate != null && h.endDate!.year == year))
-      .toList();
+        .where((h) =>
+            h.startDate.year == year ||
+            (h.endDate != null && h.endDate!.year == year))
+        .toList();
 
     final modifiedMap = {for (var h in modifiedHolidays) h.id: h};
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ekush_ponji/features/home/models/reminder.dart';
+import 'package:ekush_ponji/features/reminders/models/reminder.dart';
 import 'package:ekush_ponji/features/reminders/data/local/reminders_local_datasource.dart';
 
 class ReminderRepository {
@@ -64,8 +64,7 @@ class ReminderRepository {
     try {
       return await _localDatasource.getRemindersForMonth(year, month);
     } catch (e) {
-      debugPrint(
-          '❌ ReminderRepository: Error getting reminders for month: $e');
+      debugPrint('❌ ReminderRepository: Error getting reminders for month: $e');
       return [];
     }
   }
@@ -76,8 +75,7 @@ class ReminderRepository {
     try {
       return await _localDatasource.getRemindersForDates(dates);
     } catch (e) {
-      debugPrint(
-          '❌ ReminderRepository: Error getting reminders for dates: $e');
+      debugPrint('❌ ReminderRepository: Error getting reminders for dates: $e');
       return {for (final date in dates) date: []};
     }
   }
