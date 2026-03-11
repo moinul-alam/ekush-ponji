@@ -83,6 +83,14 @@ class AppDrawer extends StatelessWidget {
             },
           ),
           ListTile(
+            leading: const Icon(Icons.beach_access_rounded),
+            title: Text(l10n.allHolidays),
+            onTap: () {
+              Navigator.pop(context);
+              context.push(RouteNames.holidays);
+            },
+          ),
+          ListTile(
             leading: const Icon(Icons.mosque_outlined),
             title: Text(l10n.navPrayerTimes),
             onTap: () {

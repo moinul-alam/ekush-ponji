@@ -1,14 +1,13 @@
 {
   "version": 1,
-  "year": "2026",
-  "generatedAt": "2026-01-01T00:00:00.000Z",
+  "year": "2025",
+  "generatedAt": "2025-01-01T00:00:00.000Z",
   "holidays": [
-
     {
-      "id": "bd_2026_001",
+      "id": "bd_2025_001",
       "name": "International Mother Language Day",
       "namebn": "আন্তর্জাতিক মাতৃভাষা দিবস (শহিদ দিবস)",
-      "startDate": "2026-02-21",
+      "startDate": "2025-02-21",
       "gazetteType": "mandatoryGeneral",
       "category": "national",
       "description": "Commemorates the martyrs of the Bengali language movement of 1952",
@@ -16,10 +15,10 @@
       "isApproximate": false
     },
     {
-      "id": "bd_2026_002",
+      "id": "bd_2025_002",
       "name": "Independence and National Day",
       "namebn": "স্বাধীনতা ও জাতীয় দিবস",
-      "startDate": "2026-03-26",
+      "startDate": "2025-03-26",
       "gazetteType": "mandatoryGeneral",
       "category": "national",
       "description": "Commemorates Bangladesh's declaration of independence on March 26, 1971",
@@ -27,21 +26,33 @@
       "isApproximate": false
     },
     {
-      "id": "bd_2026_003",
-      "name": "Pohela Boishakh (Bengali New Year)",
-      "namebn": "পহেলা বৈশাখ (বাংলা নববর্ষ)",
-      "startDate": "2026-04-14",
+      "id": "bd_2025_003",
+      "name": "Eid ul-Fitr",
+      "namebn": "ঈদ-উল-ফিতর",
+      "startDate": "2025-03-31",
+      "endDate": "2025-04-02",
       "gazetteType": "mandatoryGeneral",
-      "category": "cultural",
-      "description": "Bengali New Year celebration, first day of the Bengali calendar",
-      "descriptionbn": "বাংলা নববর্ষের প্রথম দিন উদযাপন",
+      "category": "islamic",
+      "description": "Festival marking the end of Ramadan (3 core days)",
+      "descriptionbn": "রমজান মাসের সমাপ্তিতে ঈদ উদযাপন (মূল ৩ দিন)",
       "isApproximate": false
     },
     {
-      "id": "bd_2026_004",
+      "id": "bd_2025_004",
+      "name": "Pohela Boishakh (Bengali New Year)",
+      "namebn": "পহেলা বৈশাখ (বাংলা নববর্ষ)",
+      "startDate": "2025-04-14",
+      "gazetteType": "mandatoryGeneral",
+      "category": "cultural",
+      "description": "Bengali New Year celebration",
+      "descriptionbn": "বাংলা নববর্ষের উদযাপন",
+      "isApproximate": false
+    },
+    {
+      "id": "bd_2025_005",
       "name": "May Day",
       "namebn": "মে দিবস (আন্তর্জাতিক শ্রমিক দিবস)",
-      "startDate": "2026-05-01",
+      "startDate": "2025-05-01",
       "gazetteType": "mandatoryGeneral",
       "category": "cultural",
       "description": "International Workers' Day",
@@ -49,34 +60,33 @@
       "isApproximate": false
     },
     {
-      "id": "bd_2026_005",
-      "name": "Eid ul-Fitr",
-      "namebn": "ঈদ-উল-ফিতর",
-      "startDate": "2026-03-19",
-      "endDate": "2026-03-21",
+      "id": "bd_2025_006",
+      "name": "Buddha Purnima",
+      "namebn": "বুদ্ধ পূর্ণিমা",
+      "startDate": "2025-05-11",
       "gazetteType": "mandatoryGeneral",
-      "category": "islamic",
-      "description": "Festival marking the end of Ramadan (3 core days)",
-      "descriptionbn": "রমজান মাসের সমাপ্তিতে ঈদ উদযাপন (মূল ৩ দিন)",
-      "isApproximate": true
+      "category": "buddhist",
+      "description": "Vesak, celebrates the birth, enlightenment and death of the Buddha",
+      "descriptionbn": "গৌতম বুদ্ধের জন্ম, বোধিলাভ ও মহাপরিনির্বাণের স্মরণ",
+      "isApproximate": false
     },
     {
-      "id": "bd_2026_006",
+      "id": "bd_2025_007",
       "name": "Eid ul-Adha",
       "namebn": "ঈদ-উল-আজহা",
-      "startDate": "2026-05-27",
-      "endDate": "2026-05-29",
+      "startDate": "2025-06-07",
+      "endDate": "2025-06-09",
       "gazetteType": "mandatoryGeneral",
       "category": "islamic",
       "description": "Festival of Sacrifice (3 core days)",
       "descriptionbn": "কুরবানীর ঈদ (মূল ৩ দিন)",
-      "isApproximate": true
+      "isApproximate": false
     },
     {
-      "id": "bd_2026_007",
+      "id": "bd_2025_008",
       "name": "Janmashtami",
       "namebn": "শ্রীকৃষ্ণের জন্মাষ্টমী",
-      "startDate": "2026-09-04",
+      "startDate": "2025-08-16",
       "gazetteType": "mandatoryGeneral",
       "category": "hindu",
       "description": "Hindu festival celebrating the birth of Lord Krishna",
@@ -84,10 +94,10 @@
       "isApproximate": false
     },
     {
-      "id": "bd_2026_008",
+      "id": "bd_2025_009",
       "name": "Victory Day",
       "namebn": "বিজয় দিবস",
-      "startDate": "2026-12-16",
+      "startDate": "2025-12-16",
       "gazetteType": "mandatoryGeneral",
       "category": "national",
       "description": "Celebrates Bangladesh's victory in the Liberation War of 1971",
@@ -95,79 +105,89 @@
       "isApproximate": false
     },
     {
-      "id": "bd_2026_009",
+      "id": "bd_2025_010",
       "name": "Christmas Day",
       "namebn": "বড়দিন (যিশু খ্রিস্টের জন্মদিন)",
-      "startDate": "2026-12-25",
+      "startDate": "2025-12-25",
       "gazetteType": "mandatoryGeneral",
       "category": "christian",
       "description": "Christian holiday celebrating the birth of Jesus Christ",
       "descriptionbn": "যিশু খ্রিস্টের জন্মদিন উদযাপন",
       "isApproximate": false
     },
-
     {
-      "id": "bd_2026_010",
+      "id": "bd_2025_011",
       "name": "Shab-e-Barat",
       "namebn": "শব-ই-বরাত",
-      "startDate": "2026-02-04",
+      "startDate": "2025-02-14",
       "gazetteType": "mandatoryExecutive",
       "category": "islamic",
-      "description": "Night of forgiveness, observed on the 15th of Shaban",
+      "description": "Night of forgiveness, 15th of Shaban",
       "descriptionbn": "শাবান মাসের ১৫তম রাত, ক্ষমার রাত",
-      "isApproximate": true
+      "isApproximate": false
     },
     {
-      "id": "bd_2026_011",
+      "id": "bd_2025_012",
       "name": "Shab-e-Qadr",
       "namebn": "শব-ই-ক্বদর (লাইলাতুল ক্বদর)",
-      "startDate": "2026-03-17",
+      "startDate": "2025-03-27",
       "gazetteType": "mandatoryExecutive",
       "category": "islamic",
       "description": "Night of Power, the holiest night of Ramadan",
       "descriptionbn": "রমজানের সবচেয়ে পবিত্র রাত",
-      "isApproximate": true
+      "isApproximate": false
     },
     {
-      "id": "bd_2026_012",
+      "id": "bd_2025_013",
+      "name": "Jumatul Bidah",
+      "namebn": "জুমাতুল বিদা",
+      "startDate": "2025-03-28",
+      "gazetteType": "mandatoryExecutive",
+      "category": "islamic",
+      "description": "Last Friday of Ramadan",
+      "descriptionbn": "রমজান মাসের শেষ জুমা",
+      "isApproximate": false
+    },
+    {
+      "id": "bd_2025_014",
       "name": "Eid ul-Fitr (Extended)",
       "namebn": "ঈদ-উল-ফিতর (বর্ধিত ছুটি)",
-      "startDate": "2026-03-22",
-      "endDate": "2026-03-23",
+      "startDate": "2025-03-29",
+      "endDate": "2025-04-03",
       "gazetteType": "mandatoryExecutive",
       "category": "islamic",
       "description": "Extended Eid ul-Fitr holidays by executive order",
       "descriptionbn": "নির্বাহী আদেশে ঈদ-উল-ফিতরের বর্ধিত ছুটি",
-      "isApproximate": true
+      "isApproximate": false
     },
     {
-      "id": "bd_2026_013",
+      "id": "bd_2025_015",
       "name": "Eid ul-Adha (Extended)",
       "namebn": "ঈদ-উল-আজহা (বর্ধিত ছুটি)",
-      "startDate": "2026-05-26",
-      "endDate": "2026-05-31",
+      "startDate": "2025-06-05",
+      "endDate": "2025-06-10",
       "gazetteType": "mandatoryExecutive",
       "category": "islamic",
       "description": "Extended Eid ul-Adha holidays by executive order",
       "descriptionbn": "নির্বাহী আদেশে ঈদ-উল-আজহার বর্ধিত ছুটি",
-      "isApproximate": true
+      "isApproximate": false
     },
     {
-      "id": "bd_2026_014",
+      "id": "bd_2025_016",
       "name": "Ashura",
       "namebn": "আশুরা",
-      "startDate": "2026-06-26",
+      "startDate": "2025-07-06",
       "gazetteType": "mandatoryExecutive",
       "category": "islamic",
       "description": "10th day of Muharram, marks the martyrdom of Imam Hussain (RA)",
       "descriptionbn": "মহররমের ১০ম দিন, ইমাম হুসাইন (রা.)-এর শাহাদতের স্মরণ",
-      "isApproximate": true
+      "isApproximate": false
     },
     {
-      "id": "bd_2026_015",
+      "id": "bd_2025_017",
       "name": "July Mass Uprising Day",
       "namebn": "জুলাই গণঅভ্যুত্থান দিবস",
-      "startDate": "2026-08-05",
+      "startDate": "2025-08-05",
       "gazetteType": "mandatoryExecutive",
       "category": "national",
       "description": "Commemorates the student-led mass uprising of 2024",
@@ -175,22 +195,22 @@
       "isApproximate": false
     },
     {
-      "id": "bd_2026_016",
+      "id": "bd_2025_018",
       "name": "Eid-e-Miladunnabi",
       "namebn": "ঈদ-এ-মিলাদুন্নবী (সা.)",
-      "startDate": "2026-08-26",
+      "startDate": "2025-09-04",
       "gazetteType": "mandatoryExecutive",
       "category": "islamic",
-      "description": "Birth anniversary of Prophet Muhammad (PBUH), 12th of Rabi al-Awwal",
-      "descriptionbn": "রবিউল আউয়ালের ১২ তারিখ, হযরত মুহাম্মদ (সা.)-এর জন্মদিন",
-      "isApproximate": true
+      "description": "Birth anniversary of Prophet Muhammad (PBUH)",
+      "descriptionbn": "হযরত মুহাম্মদ (সা.)-এর জন্মদিন",
+      "isApproximate": false
     },
     {
-      "id": "bd_2026_017",
-      "name": "Durga Puja",
+      "id": "bd_2025_019",
+      "name": "Durga Puja (Navami & Vijaya Dashami)",
       "namebn": "দুর্গাপূজা (নবমী ও বিজয়া দশমী)",
-      "startDate": "2026-10-20",
-      "endDate": "2026-10-21",
+      "startDate": "2025-10-01",
+      "endDate": "2025-10-02",
       "gazetteType": "mandatoryExecutive",
       "category": "hindu",
       "description": "Hindu festival, Maha Navami and Vijaya Dashami",
@@ -198,21 +218,10 @@
       "isApproximate": false
     },
     {
-      "id": "bd_2026_018",
-      "name": "Buddha Purnima",
-      "namebn": "বুদ্ধ পূর্ণিমা",
-      "startDate": "2026-05-01",
-      "gazetteType": "mandatoryExecutive",
-      "category": "buddhist",
-      "description": "Vesak, celebrates the birth, enlightenment, and death of the Buddha",
-      "descriptionbn": "গৌতম বুদ্ধের জন্ম, বোধিলাভ ও মহাপরিনির্বাণের স্মরণ",
-      "isApproximate": false
-    },
-    {
-      "id": "bd_2026_019",
+      "id": "bd_2025_020",
       "name": "Chaitra Sankranti",
       "namebn": "চৈত্র সংক্রান্তি",
-      "startDate": "2026-04-13",
+      "startDate": "2025-04-13",
       "gazetteType": "mandatoryExecutive",
       "category": "ethnicMinority",
       "description": "Last day of the Bengali year, celebrated in Hill Districts",
@@ -222,57 +231,44 @@
       "regionNote": "Hill Districts only (Rangamati, Khagrachari, Bandarban)",
       "regionNoteBn": "পার্বত্য জেলাসমূহে প্রযোজ্য (রাঙামাটি, খাগড়াছড়ি, বান্দরবান)"
     },
-
     {
-      "id": "bd_2026_opt_m_001",
-      "name": "Isra' and Mi'raj",
+      "id": "bd_2025_opt_m_001",
+      "name": "Isra' and Mi'raj (Shab-e-Meraj)",
       "namebn": "শব-ই-মেরাজ",
-      "startDate": "2026-01-27",
+      "startDate": "2025-01-27",
       "gazetteType": "optionalMuslim",
       "category": "islamic",
-      "description": "Night Journey and Ascension of the Prophet (PBUH), 27th of Rajab",
-      "descriptionbn": "রজবের ২৭ তারিখ, মেরাজুন্নবী (সা.)",
-      "isApproximate": true
+      "description": "Night Journey and Ascension of the Prophet (PBUH)",
+      "descriptionbn": "মেরাজুন্নবী (সা.)",
+      "isApproximate": false
     },
     {
-      "id": "bd_2026_opt_m_002",
+      "id": "bd_2025_opt_m_002",
       "name": "First Day of Ramadan",
       "namebn": "পবিত্র রমজানের প্রথম দিন",
-      "startDate": "2026-03-03",
+      "startDate": "2025-03-02",
       "gazetteType": "optionalMuslim",
       "category": "islamic",
       "description": "Beginning of the holy month of Ramadan",
       "descriptionbn": "পবিত্র রমজান মাসের শুরু",
-      "isApproximate": true
+      "isApproximate": false
     },
     {
-      "id": "bd_2026_opt_m_003",
-      "name": "Jumatul Bidah",
-      "namebn": "জুমাতুল বিদা",
-      "startDate": "2026-03-20",
-      "gazetteType": "optionalMuslim",
-      "category": "islamic",
-      "description": "Last Friday of Ramadan",
-      "descriptionbn": "রমজান মাসের শেষ জুমা",
-      "isApproximate": true
-    },
-    {
-      "id": "bd_2026_opt_m_004",
+      "id": "bd_2025_opt_m_003",
       "name": "Muharram (Islamic New Year)",
       "namebn": "মুহররম (হিজরী নববর্ষ)",
-      "startDate": "2026-07-17",
+      "startDate": "2025-06-27",
       "gazetteType": "optionalMuslim",
       "category": "islamic",
       "description": "First day of the Islamic New Year (1 Muharram)",
-      "descriptionbn": "হিজরী নববর্ষের প্রথম দিন (১ মুহররম)",
-      "isApproximate": true
+      "descriptionbn": "হিজরী নববর্ষের প্রথম দিন",
+      "isApproximate": false
     },
-
     {
-      "id": "bd_2026_opt_h_001",
+      "id": "bd_2025_opt_h_001",
       "name": "Saraswati Puja",
       "namebn": "সরস্বতী পূজা",
-      "startDate": "2026-01-31",
+      "startDate": "2025-02-02",
       "gazetteType": "optionalHindu",
       "category": "hindu",
       "description": "Worship of Goddess Saraswati, deity of knowledge and arts",
@@ -280,10 +276,10 @@
       "isApproximate": false
     },
     {
-      "id": "bd_2026_opt_h_002",
+      "id": "bd_2025_opt_h_002",
       "name": "Dol Purnima (Holi)",
       "namebn": "দোল পূর্ণিমা (হোলি)",
-      "startDate": "2026-03-03",
+      "startDate": "2025-03-13",
       "gazetteType": "optionalHindu",
       "category": "hindu",
       "description": "Festival of colours, full moon of Falgun",
@@ -291,66 +287,44 @@
       "isApproximate": false
     },
     {
-      "id": "bd_2026_opt_h_003",
-      "name": "Shri Shri Durga Puja (Saptami)",
-      "namebn": "শারদীয় দুর্গাপূজা (সপ্তমী)",
-      "startDate": "2026-10-18",
+      "id": "bd_2025_opt_h_003",
+      "name": "Shri Shri Durga Puja (Saptami & Ashtami)",
+      "namebn": "শারদীয় দুর্গাপূজা (সপ্তমী ও অষ্টমী)",
+      "startDate": "2025-09-29",
+      "endDate": "2025-09-30",
       "gazetteType": "optionalHindu",
       "category": "hindu",
-      "description": "Maha Saptami, third day of Durga Puja",
-      "descriptionbn": "মহাসপ্তমী, দুর্গাপূজার তৃতীয় দিন",
+      "description": "Maha Saptami and Ashtami of Durga Puja",
+      "descriptionbn": "মহাসপ্তমী ও মহাষ্টমী",
       "isApproximate": false
     },
     {
-      "id": "bd_2026_opt_h_004",
-      "name": "Shri Shri Durga Puja (Ashtami)",
-      "namebn": "শারদীয় দুর্গাপূজা (অষ্টমী)",
-      "startDate": "2026-10-19",
-      "gazetteType": "optionalHindu",
-      "category": "hindu",
-      "description": "Maha Ashtami, fourth day of Durga Puja",
-      "descriptionbn": "মহাষ্টমী, দুর্গাপূজার চতুর্থ দিন",
-      "isApproximate": false
-    },
-    {
-      "id": "bd_2026_opt_h_005",
+      "id": "bd_2025_opt_h_004",
       "name": "Lakshmi Puja",
       "namebn": "লক্ষ্মীপূজা",
-      "startDate": "2026-10-28",
+      "startDate": "2025-10-07",
       "gazetteType": "optionalHindu",
       "category": "hindu",
-      "description": "Worship of Goddess Lakshmi, deity of wealth and prosperity",
-      "descriptionbn": "ধন ও সমৃদ্ধির দেবী লক্ষ্মীর পূজা",
+      "description": "Worship of Goddess Lakshmi",
+      "descriptionbn": "দেবী লক্ষ্মীর পূজা",
       "isApproximate": false
     },
     {
-      "id": "bd_2026_opt_h_006",
+      "id": "bd_2025_opt_h_005",
       "name": "Shyama Puja (Kali Puja / Diwali)",
       "namebn": "শ্যামাপূজা (কালীপূজা / দীপাবলি)",
-      "startDate": "2026-10-31",
+      "startDate": "2025-10-20",
       "gazetteType": "optionalHindu",
       "category": "hindu",
-      "description": "Worship of Goddess Kali, also coincides with Diwali festival of lights",
-      "descriptionbn": "দেবী কালীর পূজা এবং দীপাবলি উৎসব",
+      "description": "Worship of Goddess Kali, coincides with Diwali",
+      "descriptionbn": "দেবী কালীর পূজা ও দীপাবলি",
       "isApproximate": false
     },
     {
-      "id": "bd_2026_opt_h_007",
-      "name": "Raksha Bandhan",
-      "namebn": "রাখিবন্ধন",
-      "startDate": "2026-08-09",
-      "gazetteType": "optionalHindu",
-      "category": "hindu",
-      "description": "Festival celebrating the bond between brothers and sisters",
-      "descriptionbn": "ভাই-বোনের বন্ধনের উৎসব",
-      "isApproximate": false
-    },
-
-    {
-      "id": "bd_2026_opt_c_001",
+      "id": "bd_2025_opt_c_001",
       "name": "Good Friday",
       "namebn": "গুড ফ্রাইডে",
-      "startDate": "2026-04-03",
+      "startDate": "2025-04-18",
       "gazetteType": "optionalChristian",
       "category": "christian",
       "description": "Commemorates the crucifixion of Jesus Christ",
@@ -358,22 +332,21 @@
       "isApproximate": false
     },
     {
-      "id": "bd_2026_opt_c_002",
+      "id": "bd_2025_opt_c_002",
       "name": "Easter Sunday",
       "namebn": "ইস্টার সানডে",
-      "startDate": "2026-04-05",
+      "startDate": "2025-04-20",
       "gazetteType": "optionalChristian",
       "category": "christian",
       "description": "Celebrates the resurrection of Jesus Christ",
       "descriptionbn": "যিশু খ্রিস্টের পুনরুত্থান উদযাপন",
       "isApproximate": false
     },
-
     {
-      "id": "bd_2026_opt_b_001",
+      "id": "bd_2025_opt_b_001",
       "name": "Maghi Purnima",
       "namebn": "মাঘী পূর্ণিমা",
-      "startDate": "2026-02-12",
+      "startDate": "2025-02-12",
       "gazetteType": "optionalBuddhist",
       "category": "buddhist",
       "description": "Buddhist observance on the full moon of Magh",
@@ -381,34 +354,22 @@
       "isApproximate": false
     },
     {
-      "id": "bd_2026_opt_b_002",
-      "name": "Ashwin Purnima (Madhu Purnima)",
-      "namebn": "আশ্বিনী পূর্ণিমা (মধু পূর্ণিমা)",
-      "startDate": "2026-10-06",
-      "gazetteType": "optionalBuddhist",
-      "category": "buddhist",
-      "description": "Buddhist full moon festival in the month of Ashwin",
-      "descriptionbn": "আশ্বিন মাসের পূর্ণিমায় বৌদ্ধ উৎসব",
-      "isApproximate": false
-    },
-    {
-      "id": "bd_2026_opt_b_003",
+      "id": "bd_2025_opt_b_002",
       "name": "Kathin Chibor Dan",
       "namebn": "কঠিন চীবর দান",
-      "startDate": "2026-10-08",
+      "startDate": "2025-10-17",
       "gazetteType": "optionalBuddhist",
       "category": "buddhist",
       "description": "Offering of robes to Buddhist monks after Vassa",
       "descriptionbn": "বর্ষাবাস শেষে বৌদ্ধ ভিক্ষুদের চীবর দান",
       "isApproximate": false
     },
-
     {
-      "id": "bd_2026_opt_e_001",
+      "id": "bd_2025_opt_e_001",
       "name": "Bizu / Sangrain / Boishabi",
       "namebn": "বিজু / সাংগ্রাই / বৈসাবি",
-      "startDate": "2026-04-12",
-      "endDate": "2026-04-14",
+      "startDate": "2025-04-12",
+      "endDate": "2025-04-14",
       "gazetteType": "optionalEthnicMinority",
       "category": "ethnicMinority",
       "description": "New Year festival of the indigenous communities of the Chittagong Hill Tracts",

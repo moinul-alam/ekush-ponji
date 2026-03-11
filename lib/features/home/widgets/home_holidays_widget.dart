@@ -236,7 +236,7 @@ class _HolidayListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final isPast = holiday.daysUntil < 0;
     final isToday = holiday.daysUntil == 0;
-    final typeColor = _typeColor(holiday.type);
+    final typeColor = _typeColor(holiday.category);
     final cs = theme.colorScheme;
 
     return Opacity(
@@ -291,7 +291,7 @@ class _HolidayListItem extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    l10n.getMonthAbbreviation(holiday.date.month),
+                    l10n.getMonthAbbreviation(holiday.startDate.month),
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: cs.onSurfaceVariant,
                       fontWeight: FontWeight.w600,
@@ -330,11 +330,11 @@ class _HolidayListItem extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(_typeIcon(holiday.type),
+                          Icon(_typeIcon(holiday.category),
                               color: typeColor, size: 9),
                           const SizedBox(width: 3),
                           Text(
-                            _typeLabel(holiday.type),
+                            _typeLabel(holiday.category),
                             style: theme.textTheme.labelSmall?.copyWith(
                               color: typeColor,
                               fontWeight: FontWeight.w700,
@@ -434,49 +434,67 @@ class _HolidayListItem extends StatelessWidget {
 
   String _dateLabel() {
     if (holiday.isMultiDay) {
-      return '${l10n.localizeNumber(holiday.date.day)}–'
+      return '${l10n.localizeNumber(holiday.startDate.day)}–'
           '${l10n.localizeNumber(holiday.endDate!.day)}';
     }
-    return l10n.localizeNumber(holiday.date.day);
+    return l10n.localizeNumber(holiday.startDate.day);
   }
 
-  Color _typeColor(HolidayType type) {
-    switch (type) {
-      case HolidayType.national:
+  Color _typeColor(HolidayCategory category) {
+    switch (category) {
+      case HolidayCategory.national:
         return const Color(0xFF1565C0);
-      case HolidayType.religious:
+      case HolidayCategory.islamic:
         return const Color(0xFF2E7D32);
-      case HolidayType.cultural:
+      case HolidayCategory.hindu:
         return const Color(0xFFE65100);
-      case HolidayType.optional:
+      case HolidayCategory.christian:
         return const Color(0xFF6A1B9A);
+      case HolidayCategory.buddhist:
+        return const Color(0xFFF9A825);
+      case HolidayCategory.ethnicMinority:
+        return const Color(0xFF00838F);
+      case HolidayCategory.cultural:
+        return const Color(0xFFC62828);
     }
   }
 
-  IconData _typeIcon(HolidayType type) {
-    switch (type) {
-      case HolidayType.national:
+  IconData _typeIcon(HolidayCategory category) {
+    switch (category) {
+      case HolidayCategory.national:
         return Icons.flag_rounded;
-      case HolidayType.religious:
+      case HolidayCategory.islamic:
         return Icons.mosque_rounded;
-      case HolidayType.cultural:
+      case HolidayCategory.hindu:
+        return Icons.temple_hindu_rounded;
+      case HolidayCategory.christian:
+        return Icons.church_rounded;
+      case HolidayCategory.buddhist:
+        return Icons.self_improvement_rounded;
+      case HolidayCategory.ethnicMinority:
+        return Icons.diversity_3_rounded;
+      case HolidayCategory.cultural:
         return Icons.festival_rounded;
-      case HolidayType.optional:
-        return Icons.event_outlined;
     }
   }
 
-  String _typeLabel(HolidayType type) {
+  String _typeLabel(HolidayCategory category) {
     final isBangla = l10n.languageCode == 'bn';
-    switch (type) {
-      case HolidayType.national:
+    switch (category) {
+      case HolidayCategory.national:
         return isBangla ? 'জাতীয়' : 'National';
-      case HolidayType.religious:
-        return isBangla ? 'ধর্মীয়' : 'Religious';
-      case HolidayType.cultural:
+      case HolidayCategory.islamic:
+        return isBangla ? 'ইসলামী' : 'Islamic';
+      case HolidayCategory.hindu:
+        return isBangla ? 'হিন্দু' : 'Hindu';
+      case HolidayCategory.christian:
+        return isBangla ? 'খ্রিষ্টান' : 'Christian';
+      case HolidayCategory.buddhist:
+        return isBangla ? 'বৌদ্ধ' : 'Buddhist';
+      case HolidayCategory.ethnicMinority:
+        return isBangla ? 'নৃ-গোষ্ঠী' : 'Ethnic';
+      case HolidayCategory.cultural:
         return isBangla ? 'সাংস্কৃতিক' : 'Cultural';
-      case HolidayType.optional:
-        return isBangla ? 'ঐচ্ছিক' : 'Optional';
     }
   }
 }

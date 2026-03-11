@@ -199,6 +199,8 @@ abstract class AppLocalizations {
   String get helpSupport;
   String get settings;
   String get welcome;
+  String get allHolidays;
+
 
   // Settings
   String get settingsTitle;

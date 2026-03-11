@@ -22,16 +22,22 @@ class CalendarDayCell extends StatelessWidget {
     required this.onTap,
   });
 
-  Color _holidayAccentColor(HolidayType type) {
-    switch (type) {
-      case HolidayType.national:
-        return const Color(0xFF1565C0);
-      case HolidayType.religious:
-        return const Color(0xFF2E7D32);
-      case HolidayType.cultural:
-        return const Color(0xFFE65100);
-      case HolidayType.optional:
-        return const Color(0xFF6A1B9A);
+  Color _holidayAccentColor(HolidayCategory category) {
+    switch (category) {
+      case HolidayCategory.national:
+        return const Color(0xFF1565C0); // deep blue
+      case HolidayCategory.islamic:
+        return const Color(0xFF2E7D32); // green
+      case HolidayCategory.hindu:
+        return const Color(0xFFE65100); // deep orange
+      case HolidayCategory.christian:
+        return const Color(0xFF6A1B9A); // purple
+      case HolidayCategory.buddhist:
+        return const Color(0xFFF9A825); // amber
+      case HolidayCategory.ethnicMinority:
+        return const Color(0xFF00838F); // teal
+      case HolidayCategory.cultural:
+        return const Color(0xFFC62828); // deep red
     }
   }
 
@@ -91,7 +97,7 @@ class CalendarDayCell extends StatelessWidget {
                   child: Container(
                     width: 3,
                     decoration: BoxDecoration(
-                      color: _holidayAccentColor(day.firstHoliday!.type)
+                      color: _holidayAccentColor(day.firstHoliday!.category)
                           .withOpacity(0.85),
                       borderRadius: BorderRadius.circular(2),
                     ),

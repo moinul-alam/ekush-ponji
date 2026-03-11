@@ -106,9 +106,9 @@ class MonthData {
   List<Holiday> get upcomingHolidays {
     final now = DateTime.now();
     return holidays.where((h) => 
-      h.date.isAfter(now) || h.isToday
+      h.startDate.isAfter(now) || h.isToday
     ).toList()
-      ..sort((a, b) => a.date.compareTo(b.date));
+      ..sort((a, b) => a.startDate.compareTo(b.startDate));
   }
 
   /// Get upcoming events in this month

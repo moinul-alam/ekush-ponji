@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:ekush_ponji/core/themes/app_theme.dart';
 import 'package:ekush_ponji/features/home/models/holiday.dart';
-import 'package:ekush_ponji/core/services/sync_service.dart';
+import 'package:ekush_ponji/core/services/holiday_sync_service.dart';
 import 'package:ekush_ponji/features/quotes/models/quote.dart';
 import 'package:ekush_ponji/features/words/models/word.dart';
 import 'package:ekush_ponji/features/quotes/data/datasources/local/quotes_local_datasource.dart';
@@ -18,15 +18,9 @@ import 'package:workmanager/workmanager.dart';
 
 class AppInitializer {
 
-  // ── Phase 1: Critical path — runs BEFORE runApp ───────────────────────────
-  // Goal: absolute minimum to get first frame on screen.
-  // Only opens the 'settings' box — all providers need it at first frame.
-  // Everything else deferred to Phase 2.
-  // Target: < 30ms total.
-
+  // ── Phase 1: Critical path ────────────────────────────────────────────────
   static Future<void> initializeCore() async {
     try {
-      // These two are independent — run concurrently
       await Future.wait([
         _setDeviceOrientation(),
         _initializeHiveAndSettings(),
@@ -35,19 +29,13 @@ class AppInitializer {
     } catch (e, stackTrace) {
       debugPrint('❌ Core initialization failed: $e');
       debugPrint('StackTrace: $stackTrace');
-      rethrow; // Fatal — app cannot run without Hive settings box
+      rethrow;
     }
   }
 
-  // ── Phase 2: Background — runs AFTER runApp + splash is visible ───────────
-  // All tasks are independent — run concurrently with Future.wait.
-  // Errors are non-fatal — app falls back to cached data gracefully.
-  // WorkManager moved here — no need to block Phase 1.
-
+  // ── Phase 2: Background ───────────────────────────────────────────────────
   static Future<void> initializeBackground() async {
     try {
-      // Step A: Open remaining Hive boxes + Firebase + SharedPreferences
-      // concurrently — none depend on each other
       await Future.wait([
         _openSecondaryHiveBoxes(),
         _initializeFirebase(),
@@ -55,19 +43,15 @@ class AppInitializer {
         _initializeWorkManager(),
       ]);
 
-      // Step B: Notifications depends on nothing above but benefits from
-      // Firebase being ready. Run after Step A.
-      // Sync also starts here — with a hard timeout so it never blocks home.
       await Future.wait([
         _initializeNotifications(),
-        _performInitialSyncWithTimeout(),
+        _performHolidaySyncWithTimeout(),
       ]);
 
       debugPrint('✅ Background initialization completed');
     } catch (e, stackTrace) {
       debugPrint('❌ Background initialization error: $e');
       debugPrint('StackTrace: $stackTrace');
-      // Non-fatal — app proceeds to home with cached data
     }
   }
 
@@ -81,19 +65,11 @@ class AppInitializer {
     debugPrint('✅ Device orientation set');
   }
 
-  /// Initializes Hive, registers all adapters, then opens ONLY the settings
-  /// box. Providers read theme + locale from this box on first frame.
-  /// All other boxes open in Phase 2.
   static Future<void> _initializeHiveAndSettings() async {
     try {
       await Hive.initFlutter();
-
-      // Register all adapters upfront — cheap, pure Dart
       _registerHiveAdapters();
-
-      // Only open settings — the only box needed before first frame
       await Hive.openBox('settings');
-
       debugPrint('✅ Hive + settings box ready');
     } catch (e) {
       debugPrint('❌ Hive initialization failed: $e');
@@ -103,7 +79,8 @@ class AppInitializer {
 
   static void _registerHiveAdapters() {
     Hive.registerAdapter(HolidayAdapter());
-    Hive.registerAdapter(HolidayTypeAdapter());
+    Hive.registerAdapter(GazetteTypeAdapter());
+    Hive.registerAdapter(HolidayCategoryAdapter());
     Hive.registerAdapter(QuoteModelAdapter());
     Hive.registerAdapter(WordModelAdapter());
     debugPrint('✅ Hive adapters registered');
@@ -111,7 +88,6 @@ class AppInitializer {
 
   // ── Phase 2 Steps ─────────────────────────────────────────────────────────
 
-  /// Opens all boxes not needed at first frame
   static Future<void> _openSecondaryHiveBoxes() async {
     try {
       await Future.wait([
@@ -137,7 +113,6 @@ class AppInitializer {
 
   static Future<void> _initializeSharedPreferences() async {
     try {
-      // Warms up the SharedPreferences singleton so first read is instant
       await SharedPreferences.getInstance();
       debugPrint('✅ SharedPreferences warmed up');
     } catch (e) {
@@ -173,25 +148,18 @@ class AppInitializer {
     }
   }
 
-  /// Holiday sync with a hard 5-second timeout.
-  /// If network is slow or offline, app proceeds immediately.
-  /// Sync will retry next launch or via background task.
-  static Future<void> _performInitialSyncWithTimeout() async {
+  /// Seeds bundled assets on first launch, then checks GitHub for updates.
+  /// Hard 8-second timeout — app proceeds normally if slow/offline.
+  static Future<void> _performHolidaySyncWithTimeout() async {
     try {
-      debugPrint('🔄 Starting holiday sync...');
-      final syncService = SyncService();
-      final success = await syncService
-          .syncHolidays()
-          .timeout(
-            const Duration(seconds: 5),
-            onTimeout: () {
-              debugPrint('⏱️ Holiday sync timed out — using cached data');
-              return false;
-            },
-          );
-      debugPrint(success
-          ? '✅ Holiday sync completed'
-          : '⚠️ Holiday sync failed — using cached data');
+      debugPrint('🌱 Starting holiday seed + sync...');
+      final service = HolidaySyncService();
+      await service.initialize().timeout(
+        const Duration(seconds: 8),
+        onTimeout: () {
+          debugPrint('⏱️ Holiday sync timed out — using cached/bundled data');
+        },
+      );
     } catch (e) {
       debugPrint('⚠️ Holiday sync error: $e');
     }
@@ -214,7 +182,8 @@ class AppInitializer {
 
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+      statusBarIconBrightness:
+          isDark ? Brightness.light : Brightness.dark,
       systemNavigationBarColor: colorScheme.surface,
       systemNavigationBarIconBrightness:
           isDark ? Brightness.light : Brightness.dark,

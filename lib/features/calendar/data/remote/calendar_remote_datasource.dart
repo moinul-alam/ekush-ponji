@@ -1,145 +1,89 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+// lib/features/calendar/data/remote/calendar_remote_datasource.dart
+
+import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:ekush_ponji/features/home/models/holiday.dart';
 
-/// Remote datasource for calendar data using Firebase Firestore
-/// Fetches government holidays from Firebase
+/// Remote datasource for calendar data
+/// Fetches government holidays from GitHub raw JSON
+/// Sync logic (versioning, throttle, seeding) is handled by HolidaySyncService.
+/// This datasource is a thin HTTP client — fetch only, no caching.
 class CalendarRemoteDatasource {
-  final FirebaseFirestore _firestore;
+  final Dio _dio;
 
-  CalendarRemoteDatasource({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+  // ── GitHub raw base URL ───────────────────────────────
+  static const String _baseUrl =
+      'https://raw.githubusercontent.com/moinul-alam/ekush-ponji-data/main';
 
-  // Collection name
-  static const String _holidaysCollection = 'holidays';
+  CalendarRemoteDatasource({Dio? dio})
+      : _dio = dio ??
+            Dio(BaseOptions(
+              connectTimeout: const Duration(seconds: 10),
+              receiveTimeout: const Duration(seconds: 15),
+            ));
 
-  // ------------------- Fetch Government Holidays -------------------
+  // ── Public API ────────────────────────────────────────
 
-  /// Fetch government holidays for a specific year from Firebase
+  /// Fetch government holidays for a specific year from GitHub.
+  /// Returns empty list on any network or parse failure.
   Future<List<Holiday>> fetchGovtHolidays(int year) async {
+    final url = '$_baseUrl/holidays_$year.json';
     try {
-      debugPrint('🔄 Fetching govt holidays for $year from Firebase...');
+      debugPrint('🌐 Fetching holidays for $year from GitHub: $url');
 
-      // Document ID is the year (e.g., "2025", "2026")
-      final docSnapshot = await _firestore
-          .collection(_holidaysCollection)
-          .doc(year.toString())
-          .get();
+      final response = await _dio.get<String>(url);
 
-      if (!docSnapshot.exists) {
-        debugPrint('ℹ️ No holidays found in Firebase for $year');
+      if (response.statusCode != 200 || response.data == null) {
+        debugPrint('⚠️ Unexpected response for $year: ${response.statusCode}');
         return [];
       }
 
-      final data = docSnapshot.data();
-      if (data == null || !data.containsKey('holidays')) {
-        debugPrint('ℹ️ No holidays array found for $year');
-        return [];
-      }
-
-      // Parse holidays array
-      final holidaysArray = data['holidays'] as List<dynamic>;
-      final holidays = holidaysArray
-          .map((json) => Holiday.fromJson(Map<String, dynamic>.from(json)))
-          .toList();
-
-      debugPrint('✅ Fetched ${holidays.length} govt holidays for $year from Firebase');
+      final holidays = _parseHolidayJson(response.data!);
+      debugPrint('✅ Fetched ${holidays.length} holidays for $year');
       return holidays;
-    } on FirebaseException catch (e) {
-      debugPrint('❌ Firebase error fetching holidays: ${e.message}');
-      rethrow;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) {
+        debugPrint('ℹ️ No remote holiday file found for $year (404)');
+        return [];
+      }
+      debugPrint('⚠️ Network error fetching holidays for $year: ${e.message}');
+      return [];
     } catch (e) {
-      debugPrint('❌ Error fetching govt holidays: $e');
-      rethrow;
+      debugPrint('❌ Error fetching holidays for $year: $e');
+      return [];
     }
   }
 
-  /// Fetch holidays for multiple years
+  /// Fetch holidays for multiple years.
+  /// Failures per year are non-fatal — returns empty list for that year.
   Future<Map<int, List<Holiday>>> fetchGovtHolidaysForYears(
       List<int> years) async {
     final Map<int, List<Holiday>> result = {};
-
     for (final year in years) {
-      try {
-        result[year] = await fetchGovtHolidays(year);
-      } catch (e) {
-        debugPrint('❌ Failed to fetch holidays for $year: $e');
-        result[year] = []; // Empty list on error
-      }
+      result[year] = await fetchGovtHolidays(year);
     }
-
     return result;
   }
 
-  /// Check if holidays exist for a year (without fetching full data)
+  /// Check if a holiday file exists for a year on GitHub (HEAD request).
   Future<bool> hasHolidaysForYear(int year) async {
+    final url = '$_baseUrl/holidays_$year.json';
     try {
-      final docSnapshot = await _firestore
-          .collection(_holidaysCollection)
-          .doc(year.toString())
-          .get();
-
-      return docSnapshot.exists;
-    } catch (e) {
-      debugPrint('❌ Error checking holidays existence: $e');
+      final response = await _dio.head<void>(url);
+      return response.statusCode == 200;
+    } catch (_) {
       return false;
     }
   }
 
-  /// Get last updated timestamp for a year (if stored in Firebase)
-  Future<DateTime?> getLastUpdatedTimestamp(int year) async {
-    try {
-      final docSnapshot = await _firestore
-          .collection(_holidaysCollection)
-          .doc(year.toString())
-          .get();
+  // ── Private helpers ───────────────────────────────────
 
-      if (!docSnapshot.exists) return null;
-
-      final data = docSnapshot.data();
-      if (data == null || !data.containsKey('lastUpdated')) return null;
-
-      final timestamp = data['lastUpdated'] as Timestamp;
-      return timestamp.toDate();
-    } catch (e) {
-      debugPrint('❌ Error getting last updated timestamp: $e');
-      return null;
-    }
-  }
-
-  // ------------------- Admin Methods (Optional - for future admin panel) -------------------
-
-  /// Upload holidays to Firebase (admin use)
-  Future<void> uploadGovtHolidays(int year, List<Holiday> holidays) async {
-    try {
-      final holidaysJson = holidays.map((h) => h.toJson()).toList();
-
-      await _firestore.collection(_holidaysCollection).doc(year.toString()).set({
-        'holidays': holidaysJson,
-        'lastUpdated': FieldValue.serverTimestamp(),
-        'year': year,
-        'count': holidays.length,
-      });
-
-      debugPrint('✅ Uploaded ${holidays.length} holidays for $year to Firebase');
-    } catch (e) {
-      debugPrint('❌ Error uploading holidays: $e');
-      rethrow;
-    }
-  }
-
-  /// Delete holidays for a year (admin use)
-  Future<void> deleteGovtHolidays(int year) async {
-    try {
-      await _firestore
-          .collection(_holidaysCollection)
-          .doc(year.toString())
-          .delete();
-
-      debugPrint('✅ Deleted holidays for $year from Firebase');
-    } catch (e) {
-      debugPrint('❌ Error deleting holidays: $e');
-      rethrow;
-    }
+  List<Holiday> _parseHolidayJson(String jsonString) {
+    final data = jsonDecode(jsonString) as Map<String, dynamic>;
+    final list = data['holidays'] as List<dynamic>;
+    return list
+        .map((h) => Holiday.fromJson(h as Map<String, dynamic>))
+        .toList();
   }
 }

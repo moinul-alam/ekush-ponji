@@ -239,6 +239,9 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get welcome => 'স্বাগতম!';
 
+  @override
+  String get allHolidays => 'সকল ছুটির দিন';
+
   // GPS
   @override
   String get updateLocation => 'লোকেশন আপডেট করুন';

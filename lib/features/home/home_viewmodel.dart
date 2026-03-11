@@ -1,4 +1,4 @@
-// features/home/home_viewmodel.dart
+// lib/features/home/home_viewmodel.dart
 
 import 'package:ekush_ponji/core/base/base_viewmodel.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
@@ -36,15 +36,11 @@ class HomeViewModel extends BaseViewModel {
     await executeAsync(
       operation: () async {
         final now = DateTime.now();
-
-        await _calendarRepository.syncHolidaysIfNeeded(now.year);
-
         final monthHolidays = await _calendarRepository.getHolidaysForMonth(
           now.year,
           now.month,
         );
         _holidays = monthHolidays.where((h) => h.daysUntil >= 0).toList();
-
         _events = await _eventRepository.getEventsForDate(now);
       },
       loadingMessage: 'Loading home data...',
@@ -59,15 +55,11 @@ class HomeViewModel extends BaseViewModel {
     return await executeAsync(
       operation: () async {
         final now = DateTime.now();
-
-        await _calendarRepository.syncHolidaysIfNeeded(now.year);
-
         final monthHolidays = await _calendarRepository.getHolidaysForMonth(
           now.year,
           now.month,
         );
         _holidays = monthHolidays.where((h) => h.daysUntil >= 0).toList();
-
         _events = await _eventRepository.getEventsForDate(now);
       },
       showLoading: false,

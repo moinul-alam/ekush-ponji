@@ -1,3 +1,5 @@
+// lib/features/calendar/data/repositories/calendar_repository.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ekush_ponji/features/home/models/holiday.dart';
@@ -7,54 +9,45 @@ import 'package:ekush_ponji/features/calendar/data/local/calendar_local_datasour
 import 'package:ekush_ponji/features/calendar/data/remote/calendar_remote_datasource.dart';
 import 'package:ekush_ponji/features/events/data/local/events_local_datasource.dart';
 import 'package:ekush_ponji/features/reminders/data/local/reminders_local_datasource.dart';
+import 'package:ekush_ponji/core/services/holiday_sync_service.dart';
 
-/// CalendarRepository provides holidays, events, and reminders
-/// Offline-first: reads from Hive, syncs from Firestore on startup
+/// CalendarRepository provides holidays, events, and reminders.
+/// Offline-first: always reads from Hive.
+/// Sync is fully delegated to HolidaySyncService (GitHub → Hive).
 class CalendarRepository {
   final CalendarLocalDatasource _localDatasource;
   final CalendarRemoteDatasource _remoteDatasource;
   final EventsLocalDatasource _eventsLocalDatasource;
   final RemindersLocalDatasource _remindersLocalDatasource;
+  final HolidaySyncService _syncService;
 
   CalendarRepository({
     CalendarLocalDatasource? localDatasource,
     CalendarRemoteDatasource? remoteDatasource,
     EventsLocalDatasource? eventsLocalDatasource,
     RemindersLocalDatasource? remindersLocalDatasource,
+    HolidaySyncService? syncService,
   })  : _localDatasource = localDatasource ?? CalendarLocalDatasource(),
-        _remoteDatasource = remoteDatasource ?? CalendarRemoteDatasource(),
+        _remoteDatasource =
+            remoteDatasource ?? CalendarRemoteDatasource(),
         _eventsLocalDatasource =
             eventsLocalDatasource ?? EventsLocalDatasource(),
         _remindersLocalDatasource =
-            remindersLocalDatasource ?? RemindersLocalDatasource();
+            remindersLocalDatasource ?? RemindersLocalDatasource(),
+        _syncService = syncService ?? HolidaySyncService();
 
   // ------------------- Sync -------------------
 
+  /// Delegates entirely to HolidaySyncService.
+  /// HolidaySyncService handles throttling, versioning,
+  /// GitHub fetch, and Hive writes internally.
   Future<void> syncHolidaysIfNeeded(int year) async {
     try {
-      final remoteLastUpdated =
-          await _remoteDatasource.getLastUpdatedTimestamp(year);
-
-      if (remoteLastUpdated == null) {
-        debugPrint('ℹ️ No remote holidays found for $year');
-        return;
-      }
-
-      final localLastUpdated = await _localDatasource.getLastUpdated(year);
-
-      if (localLastUpdated != null &&
-          remoteLastUpdated.isAtSameMomentAs(localLastUpdated)) {
-        debugPrint('✅ Holidays for $year are up to date, skipping sync');
-        return;
-      }
-
-      debugPrint('🔄 Syncing holidays for $year...');
-      final holidays = await _remoteDatasource.fetchGovtHolidays(year);
-      await _localDatasource.saveGovtHolidays(year, holidays);
-      await _localDatasource.saveLastUpdated(year, remoteLastUpdated);
-      debugPrint('✅ Synced ${holidays.length} holidays for $year');
+      debugPrint('🔄 CalendarRepository: triggering sync for $year...');
+      await _syncService.initialize();
+      debugPrint('✅ CalendarRepository: sync complete for $year');
     } catch (e) {
-      debugPrint('⚠️ Sync failed, serving cache: $e');
+      debugPrint('⚠️ CalendarRepository: sync failed, serving cache: $e');
     }
   }
 
@@ -62,21 +55,24 @@ class CalendarRepository {
 
   Future<List<Holiday>> getHolidaysForMonth(int year, int month) async {
     try {
-      final yearHolidays = await _localDatasource.getAllHolidaysForYear(year);
+      final yearHolidays =
+          await _localDatasource.getAllHolidaysForYear(year);
 
       final monthHolidays = yearHolidays.where((h) {
         if (!h.isMultiDay) {
-          return h.date.year == year && h.date.month == month;
+          return h.startDate.year == year && h.startDate.month == month;
         }
         final monthStart = DateTime(year, month, 1);
         final monthEnd = DateTime(year, month + 1, 0);
-        final startDay = DateTime(h.date.year, h.date.month, h.date.day);
-        final endDay =
-            DateTime(h.endDate!.year, h.endDate!.month, h.endDate!.day);
+        final startDay = DateTime(
+            h.startDate.year, h.startDate.month, h.startDate.day);
+        final endDay = DateTime(
+            h.endDate!.year, h.endDate!.month, h.endDate!.day);
         return !endDay.isBefore(monthStart) && !startDay.isAfter(monthEnd);
       }).toList();
 
-      debugPrint('📅 Found ${monthHolidays.length} holidays for $year-$month');
+      debugPrint(
+          '📅 Found ${monthHolidays.length} holidays for $year-$month');
       return monthHolidays;
     } catch (e) {
       debugPrint('❌ Error getting holidays for month: $e');
@@ -144,7 +140,7 @@ class CalendarRepository {
         return daysUntil >= 0 && daysUntil <= days;
       }).toList();
 
-      upcoming.sort((a, b) => a.date.compareTo(b.date));
+      upcoming.sort((a, b) => a.startDate.compareTo(b.startDate));
       debugPrint('📅 Found ${upcoming.length} upcoming holidays');
       return upcoming;
     } catch (e) {
@@ -177,12 +173,13 @@ class CalendarRepository {
 
   Future<void> editHoliday(Holiday holiday) async {
     try {
-      if (holiday.isGovtHoliday) {
+      if (holiday.isMandatory) {
         await _localDatasource.saveModifiedHoliday(holiday);
         debugPrint('✅ Modified govt holiday: ${holiday.name}');
       } else {
         final customHolidays = await _localDatasource.getCustomHolidays();
-        final index = customHolidays.indexWhere((h) => h.id == holiday.id);
+        final index =
+            customHolidays.indexWhere((h) => h.id == holiday.id);
         if (index != -1) {
           customHolidays[index] = holiday;
           await _localDatasource.saveCustomHolidays(customHolidays);
@@ -221,7 +218,8 @@ class CalendarRepository {
     try {
       return await _eventsLocalDatasource.getEventsForMonth(year, month);
     } catch (e) {
-      debugPrint('❌ CalendarRepository: Error getting events for month: $e');
+      debugPrint(
+          '❌ CalendarRepository: Error getting events for month: $e');
       return [];
     }
   }
@@ -230,7 +228,8 @@ class CalendarRepository {
     try {
       return await _eventsLocalDatasource.getEventsForDate(date);
     } catch (e) {
-      debugPrint('❌ CalendarRepository: Error getting events for date: $e');
+      debugPrint(
+          '❌ CalendarRepository: Error getting events for date: $e');
       return [];
     }
   }
@@ -240,7 +239,8 @@ class CalendarRepository {
     try {
       return await _eventsLocalDatasource.getEventsForDates(dates);
     } catch (e) {
-      debugPrint('❌ CalendarRepository: Error getting events for dates: $e');
+      debugPrint(
+          '❌ CalendarRepository: Error getting events for dates: $e');
       return {for (final date in dates) date: []};
     }
   }

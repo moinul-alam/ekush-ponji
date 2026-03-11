@@ -56,21 +56,21 @@ class PrayerTimelineWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── Header ─────────────────────────────────────
-            Row(
-              children: [
-                Icon(Icons.linear_scale_rounded,
-                    size: 14, color: cs.primary.withOpacity(0.7)),
-                const SizedBox(width: 6),
-                Text(
-                  l10n.dayProgressTitle,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: cs.primary.withOpacity(0.8),
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.8,
-                  ),
-                ),
-              ],
-            ),
+            // Row(
+            //   children: [
+            //     Icon(Icons.linear_scale_rounded,
+            //         size: 14, color: cs.primary.withOpacity(0.7)),
+            //     const SizedBox(width: 6),
+            //     Text(
+            //       l10n.dayProgressTitle,
+            //       style: theme.textTheme.labelSmall?.copyWith(
+            //         color: cs.primary.withOpacity(0.8),
+            //         fontWeight: FontWeight.w700,
+            //         letterSpacing: 0.8,
+            //       ),
+            //     ),
+            //   ],
+            // ),
 
             const SizedBox(height: 20),
 

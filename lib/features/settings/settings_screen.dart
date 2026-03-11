@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:ekush_ponji/core/base/base_screen.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
 import 'package:ekush_ponji/features/settings/settings_viewmodel.dart';
@@ -44,7 +45,7 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
   Widget buildBody(BuildContext context, WidgetRef ref) {
     final viewState = ref.watch(settingsViewModelProvider);
 
-    if (viewState is ViewStateLoading) {
+    if (viewState is ViewStateLoading && viewState.message == 'Loading settings...') {
       return const Center(child: CircularProgressIndicator());
     }
 
@@ -59,6 +60,10 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
     final currentTheme = ref.watch(themeModeProvider);
     final currentLocale = ref.watch(localeProvider);
     final currentLanguage = currentLocale.languageCode;
+
+    // True only when the sync operation specifically is running
+    final isSyncing = viewState is ViewStateLoading &&
+        viewState.message == 'Checking for updates...';
 
     return ListView(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -82,8 +87,41 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
 
         const Divider(height: 32),
 
+        // ── Data Sync ────────────────────────────────────────────────
+        _SectionHeader(title: l10n.languageCode == 'bn' ? 'ডেটা সিঙ্ক' : 'Data Sync'),
+        ListTile(
+          leading: Icon(Icons.sync_rounded, color: colorScheme.primary),
+          title: Text(
+            l10n.languageCode == 'bn' ? 'ছুটির তালিকা আপডেট করুন' : 'Sync Holiday Data',
+            style: theme.textTheme.bodyLarge,
+          ),
+          subtitle: Text(
+            _formatLastCheck(l10n),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+          trailing: isSyncing
+              ? SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: colorScheme.primary,
+                  ),
+                )
+              : const Icon(Icons.chevron_right),
+          onTap: isSyncing
+              ? null
+              : () => ref
+                  .read(settingsViewModelProvider.notifier)
+                  .syncHolidaysNow(widgetRef: ref),
+
+        ),
+
+        const Divider(height: 32),
+
         // ── Notifications ────────────────────────────────────────────
-        // Sound and vibration are intentionally omitted — the OS handles them.
         _SectionHeader(title: l10n.notifications),
         _SettingsSwitchTile(
           icon: Icons.notifications_outlined,
@@ -97,14 +135,6 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
 
         // ── Data & Storage ───────────────────────────────────────────
         _SectionHeader(title: l10n.dataAndStorage),
-        _SettingsSwitchTile(
-          icon: Icons.backup_outlined,
-          title: l10n.autoBackup,
-          subtitle: l10n.autoBackupSubtitle,
-          // Always forced off; tapping shows "coming soon"
-          value: false,
-          onChanged: (_) => _showComingSoonSnackBar(context, l10n),
-        ),
         _SettingsTile(
           icon: Icons.restore_outlined,
           title: l10n.resetSettings,
@@ -177,14 +207,53 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
     }
   }
 
+  /// Reads the last-check timestamp from Hive settings box and formats it
+  /// for display. Falls back to "Never" if not yet synced.
+  String _formatLastCheck(AppLocalizations l10n) {
+    try {
+      final box = Hive.box('settings');
+      final lastCheckStr = box.get('holidays_last_check') as String?;
+      final isBn = l10n.languageCode == 'bn';
+
+      if (lastCheckStr == null) {
+        return isBn ? 'কখনো চেক করা হয়নি' : 'Never checked';
+      }
+
+      final lastCheck = DateTime.tryParse(lastCheckStr);
+      if (lastCheck == null) {
+        return isBn ? 'কখনো চেক করা হয়নি' : 'Never checked';
+      }
+
+      final now = DateTime.now();
+      final diff = now.difference(lastCheck);
+
+      if (diff.inMinutes < 1) {
+        return isBn ? 'এইমাত্র' : 'Just now';
+      }
+      if (diff.inHours < 1) {
+        final mins = l10n.localizeNumber(diff.inMinutes);
+        return isBn ? '$mins মিনিট আগে' : '$mins minutes ago';
+      }
+      if (diff.inDays < 1) {
+        final hours = l10n.localizeNumber(diff.inHours);
+        return isBn ? '$hours ঘণ্টা আগে' : '$hours hours ago';
+      }
+      if (diff.inDays == 1) {
+        return isBn ? 'গতকাল' : 'Yesterday';
+      }
+      final days = l10n.localizeNumber(diff.inDays);
+      return isBn ? '$days দিন আগে' : '$days days ago';
+    } catch (_) {
+      return l10n.languageCode == 'bn' ? 'অজানা' : 'Unknown';
+    }
+  }
+
   void _showComingSoonSnackBar(BuildContext context, AppLocalizations l10n) {
     final isBn = l10n.languageCode == 'bn';
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          isBn
-              ? 'এই ফিচারটি শীঘ্রই আসছে…'
-              : l10n.featureComingSoon,
+          isBn ? 'এই ফিচারটি শীঘ্রই আসছে…' : l10n.featureComingSoon,
         ),
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),

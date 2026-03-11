@@ -313,7 +313,9 @@ class _HolidayCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
-                    holiday.type.displayName,
+                    isBn
+                        ? holiday.gazetteType.displayNameBn
+                        : holiday.gazetteType.displayName,
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: Colors.red,
                       fontWeight: FontWeight.w600,

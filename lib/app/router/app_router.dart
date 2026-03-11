@@ -20,6 +20,8 @@ import 'package:ekush_ponji/core/widgets/navigation/app_bottom_nav.dart';
 import 'package:ekush_ponji/features/home/models/event.dart';
 import 'package:ekush_ponji/features/home/models/reminder.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
+import 'package:ekush_ponji/features/holidays/holidays_screen.dart';
+
 
 class AppRouter {
   AppRouter._();
@@ -200,6 +202,13 @@ class AppRouter {
         path: RouteNames.settings,
         name: 'settings',
         builder: (context, state) => const SettingsScreen(),
+      ),
+
+      // Holidays
+      GoRoute(
+        path: RouteNames.holidays,
+        name: 'holidays',
+        builder: (context, state) => const HolidaysScreen(),
       ),
     ],
 
