@@ -1,12 +1,13 @@
 // lib/features/words/words_viewmodel.dart
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:ekush_ponji/core/base/base_viewmodel.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
+import 'package:ekush_ponji/app/providers/app_providers.dart';
 import 'package:ekush_ponji/features/words/data/datasources/local/words_local_datasource.dart';
 import 'package:ekush_ponji/features/words/models/word.dart';
 import 'package:ekush_ponji/features/words/data/repositories/words_repository.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class WordsViewModel extends BaseViewModel {
   late final WordsRepository _repository;
@@ -24,6 +25,7 @@ class WordsViewModel extends BaseViewModel {
     _repository = WordsRepository(
       localDatasource: WordsLocalDatasource(
         savedBox: Hive.box<WordModel>(savedWordsBoxName),
+        settingsBox: Hive.box(settingsBoxName),
       ),
     );
     loadWords();
@@ -32,6 +34,7 @@ class WordsViewModel extends BaseViewModel {
   Future<void> loadWords() async {
     await executeAsync(
       operation: () async {
+        await _repository.init();
         _dailyWord = _repository.getDailyWord();
         _allWords = _repository.getAllWords();
         _savedWords = _repository.getSavedWords();
@@ -45,19 +48,13 @@ class WordsViewModel extends BaseViewModel {
     await executeAsync(
       operation: () async {
         await _repository.toggleSave(word);
-
-        // Update saved state in allWords list
         final isSaved = _repository.isWordSaved(word);
         _allWords = _allWords.map((w) {
           return w == word ? w.copyWith(isSaved: isSaved) : w;
         }).toList();
-
-        // Update daily word saved state if it matches
         if (_dailyWord == word) {
           _dailyWord = _dailyWord!.copyWith(isSaved: isSaved);
         }
-
-        // Refresh saved words list
         _savedWords = _repository.getSavedWords();
       },
       showLoading: false,

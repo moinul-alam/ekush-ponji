@@ -2,6 +2,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:ekush_ponji/app/providers/app_providers.dart';
+import 'package:ekush_ponji/core/services/data_sync_service.dart';
 import 'package:ekush_ponji/features/holidays/models/holiday.dart';
 import 'package:ekush_ponji/features/events/models/event.dart';
 import 'package:ekush_ponji/features/reminders/models/reminder.dart';
@@ -9,48 +12,46 @@ import 'package:ekush_ponji/features/calendar/data/local/calendar_local_datasour
 import 'package:ekush_ponji/features/calendar/data/remote/calendar_remote_datasource.dart';
 import 'package:ekush_ponji/features/events/data/local/events_local_datasource.dart';
 import 'package:ekush_ponji/features/reminders/data/local/reminders_local_datasource.dart';
-import 'package:ekush_ponji/features/holidays/services/holiday_sync_service.dart';
 
 /// CalendarRepository provides holidays, events, and reminders.
 /// Offline-first: always reads from Hive.
-/// Sync is fully delegated to HolidaySyncService (GitHub → Hive).
+/// Sync is fully delegated to DataSyncService (GitHub → Hive).
 class CalendarRepository {
   final CalendarLocalDatasource _localDatasource;
   final CalendarRemoteDatasource _remoteDatasource;
   final EventsLocalDatasource _eventsLocalDatasource;
   final RemindersLocalDatasource _remindersLocalDatasource;
-  final HolidaySyncService _syncService;
+  final DataSyncService _syncService;
 
   CalendarRepository({
     CalendarLocalDatasource? localDatasource,
     CalendarRemoteDatasource? remoteDatasource,
     EventsLocalDatasource? eventsLocalDatasource,
     RemindersLocalDatasource? remindersLocalDatasource,
-    HolidaySyncService? syncService,
+    DataSyncService? syncService,
   })  : _localDatasource = localDatasource ?? CalendarLocalDatasource(),
         _remoteDatasource = remoteDatasource ?? CalendarRemoteDatasource(),
         _eventsLocalDatasource =
             eventsLocalDatasource ?? EventsLocalDatasource(),
         _remindersLocalDatasource =
             remindersLocalDatasource ?? RemindersLocalDatasource(),
-        _syncService = syncService ?? HolidaySyncService();
+        _syncService = syncService ?? DataSyncService();
 
-  // ------------------- Sync -------------------
+  // ── Sync ───────────────────────────────────────────────────
 
-  /// Delegates entirely to HolidaySyncService.
-  /// HolidaySyncService handles throttling, versioning,
-  /// GitHub fetch, and Hive writes internally.
+  /// Triggers a holiday-only force sync (e.g. on manual refresh).
+  /// For scheduled startup sync, DataSyncService.initialize() handles it.
   Future<void> syncHolidaysIfNeeded(int year) async {
     try {
-      debugPrint('🔄 CalendarRepository: triggering sync for $year...');
-      await _syncService.initialize();
-      debugPrint('✅ CalendarRepository: sync complete for $year');
+      debugPrint('🔄 CalendarRepository: triggering holiday sync...');
+      await _syncService.forceHolidaySync();
+      debugPrint('✅ CalendarRepository: holiday sync complete');
     } catch (e) {
       debugPrint('⚠️ CalendarRepository: sync failed, serving cache: $e');
     }
   }
 
-  // ------------------- Holiday Methods -------------------
+  // ── Holiday Methods ────────────────────────────────────────
 
   Future<List<Holiday>> getHolidaysForMonth(int year, int month) async {
     try {
@@ -144,7 +145,7 @@ class CalendarRepository {
     }
   }
 
-  // ------------------- Custom Holiday Management -------------------
+  // ── Custom Holiday Management ──────────────────────────────
 
   Future<void> addCustomHoliday(Holiday holiday) async {
     try {
@@ -206,7 +207,7 @@ class CalendarRepository {
     }
   }
 
-  // ------------------- Event Methods -------------------
+  // ── Event Methods ──────────────────────────────────────────
 
   Future<List<Event>> getEventsForMonth(int year, int month) async {
     try {
@@ -236,7 +237,7 @@ class CalendarRepository {
     }
   }
 
-  // ------------------- Reminder Methods -------------------
+  // ── Reminder Methods ───────────────────────────────────────
 
   Future<List<Reminder>> getRemindersForMonth(int year, int month) async {
     try {
@@ -267,7 +268,8 @@ class CalendarRepository {
   }
 }
 
-/// Provider for CalendarRepository
 final calendarRepositoryProvider = Provider<CalendarRepository>((ref) {
-  return CalendarRepository();
+  return CalendarRepository(
+    syncService: ref.watch(dataSyncServiceProvider),
+  );
 });

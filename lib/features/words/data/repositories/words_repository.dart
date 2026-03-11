@@ -1,4 +1,4 @@
-// lib/data/repositories/words_repository.dart
+// lib/features/words/data/repositories/words_repository.dart
 
 import 'package:ekush_ponji/features/words/data/datasources/local/words_local_datasource.dart';
 import 'package:ekush_ponji/features/words/models/word.dart';
@@ -11,6 +11,9 @@ class WordsRepository {
 
   /// Must be called once before any other method.
   Future<void> init() => _localDatasource.init();
+
+  /// Reload words from Hive after a sync — call when sync returns true.
+  Future<void> reload() => _localDatasource.reload();
 
   WordModel getDailyWord() => _localDatasource.getDailyWord();
 

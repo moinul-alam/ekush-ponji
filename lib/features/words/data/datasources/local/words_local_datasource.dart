@@ -1,31 +1,56 @@
-// lib/data/datasources/local/words_local_datasource.dart
+// lib/features/words/data/datasources/local/words_local_datasource.dart
 
 import 'dart:convert';
 
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+
 import 'package:ekush_ponji/features/words/models/word.dart';
+import 'package:ekush_ponji/features/words/services/words_sync_service.dart';
 
 const String savedWordsBoxName = 'saved_words';
 
 class WordsLocalDatasource {
   final Box<WordModel> _savedBox;
+  final Box _settingsBox;
 
   List<WordModel>? _cachedWords;
 
-  WordsLocalDatasource({required Box<WordModel> savedBox})
-      : _savedBox = savedBox;
+  WordsLocalDatasource({
+    required Box<WordModel> savedBox,
+    required Box settingsBox,
+  })  : _savedBox = savedBox,
+        _settingsBox = settingsBox;
 
-  // ── Asset loading ──────────────────────────────────────────
+  // ── Initialisation ─────────────────────────────────────────
 
+  /// Loads and caches all words. Prefers synced Hive data,
+  /// falls back to bundled asset on first launch.
   Future<void> init() async {
     if (_cachedWords != null) return;
     await _loadWords();
   }
 
+  /// Call after a successful sync to reload from updated Hive data.
+  Future<void> reload() async {
+    _cachedWords = null;
+    await _loadWords();
+  }
+
   Future<void> _loadWords() async {
-    final jsonString =
-        await rootBundle.loadString('assets/data/words/words_en.json');
+    final String jsonString;
+
+    // Prefer synced data written by WordsSyncService
+    final hiveCached = _settingsBox.get(WordsSyncService.wordsEnKey) as String?;
+
+    if (hiveCached != null && hiveCached.isNotEmpty) {
+      jsonString = hiveCached;
+    } else {
+      // First launch — fall back to bundled asset
+      jsonString =
+          await rootBundle.loadString('assets/data/words/words_en.json');
+    }
+
     final Map<String, dynamic> jsonMap = json.decode(jsonString);
     final List<dynamic> rawList = jsonMap['words'] as List<dynamic>;
 
@@ -46,8 +71,6 @@ class WordsLocalDatasource {
 
   // ── Daily word ─────────────────────────────────────────────
 
-  /// Returns the word assigned to today's month + day.
-  /// Falls back to the first word if no match is found.
   WordModel getDailyWord() {
     final today = DateTime.now();
     final word = _words.firstWhere(
@@ -67,20 +90,15 @@ class WordsLocalDatasource {
 
   // ── Saved words ────────────────────────────────────────────
 
-  List<WordModel> getSavedWords() {
-    return _savedBox.values.toList();
-  }
+  List<WordModel> getSavedWords() => _savedBox.values.toList();
 
   Future<void> saveWord(WordModel word) async {
-    final saved = word.copyWith(isSaved: true);
-    await _savedBox.put(saved.storageKey, saved);
+    await _savedBox.put(word.storageKey, word.copyWith(isSaved: true));
   }
 
   Future<void> unsaveWord(WordModel word) async {
     await _savedBox.delete(word.storageKey);
   }
 
-  bool isWordSaved(WordModel word) {
-    return _savedBox.containsKey(word.storageKey);
-  }
+  bool isWordSaved(WordModel word) => _savedBox.containsKey(word.storageKey);
 }

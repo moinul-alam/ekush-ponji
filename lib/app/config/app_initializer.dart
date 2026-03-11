@@ -2,12 +2,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
+
+import 'package:ekush_ponji/app/providers/app_providers.dart';
 import 'package:ekush_ponji/core/themes/app_theme.dart';
 import 'package:ekush_ponji/features/holidays/models/holiday.dart';
-import 'package:ekush_ponji/features/holidays/services/holiday_sync_service.dart';
 import 'package:ekush_ponji/features/quotes/models/quote.dart';
 import 'package:ekush_ponji/features/words/models/word.dart';
 import 'package:ekush_ponji/features/quotes/data/datasources/local/quotes_local_datasource.dart';
@@ -17,7 +19,7 @@ import 'package:ekush_ponji/core/services/background_task_dispatcher.dart';
 import 'package:workmanager/workmanager.dart';
 
 class AppInitializer {
-  // ── Phase 1: Critical path ────────────────────────────────────────────────
+  // ── Phase 1: Critical path ─────────────────────────────────
   static Future<void> initializeCore() async {
     try {
       await Future.wait([
@@ -32,8 +34,10 @@ class AppInitializer {
     }
   }
 
-  // ── Phase 2: Background ───────────────────────────────────────────────────
-  static Future<void> initializeBackground() async {
+  // ── Phase 2: Background ────────────────────────────────────
+  /// [container] is passed in so we read the singleton DataSyncService
+  /// from the provider graph rather than creating a second instance.
+  static Future<void> initializeBackground(ProviderContainer container) async {
     try {
       await Future.wait([
         _openSecondaryHiveBoxes(),
@@ -44,7 +48,7 @@ class AppInitializer {
 
       await Future.wait([
         _initializeNotifications(),
-        _performHolidaySyncWithTimeout(),
+        _performDataSyncWithTimeout(container),
       ]);
 
       debugPrint('✅ Background initialization completed');
@@ -54,7 +58,7 @@ class AppInitializer {
     }
   }
 
-  // ── Phase 1 Steps ─────────────────────────────────────────────────────────
+  // ── Phase 1 Steps ──────────────────────────────────────────
 
   static Future<void> _setDeviceOrientation() async {
     await SystemChrome.setPreferredOrientations([
@@ -85,7 +89,7 @@ class AppInitializer {
     debugPrint('✅ Hive adapters registered');
   }
 
-  // ── Phase 2 Steps ─────────────────────────────────────────────────────────
+  // ── Phase 2 Steps ──────────────────────────────────────────
 
   static Future<void> _openSecondaryHiveBoxes() async {
     try {
@@ -147,24 +151,27 @@ class AppInitializer {
     }
   }
 
-  /// Seeds bundled assets on first launch, then checks GitHub for updates.
+  /// Seeds all bundled assets on first launch, then checks GitHub
+  /// for updates across holidays, quotes, and words.
   /// Hard 8-second timeout — app proceeds normally if slow/offline.
-  static Future<void> _performHolidaySyncWithTimeout() async {
+  static Future<void> _performDataSyncWithTimeout(
+    ProviderContainer container,
+  ) async {
     try {
-      debugPrint('🌱 Starting holiday seed + sync...');
-      final service = HolidaySyncService();
-      await service.initialize().timeout(
+      debugPrint('🌱 Starting data seed + sync...');
+      final syncService = container.read(dataSyncServiceProvider);
+      await syncService.initialize().timeout(
         const Duration(seconds: 8),
         onTimeout: () {
-          debugPrint('⏱️ Holiday sync timed out — using cached/bundled data');
+          debugPrint('⏱️ Data sync timed out — using cached/bundled data');
         },
       );
     } catch (e) {
-      debugPrint('⚠️ Holiday sync error: $e');
+      debugPrint('⚠️ Data sync error: $e');
     }
   }
 
-  // ── System UI ─────────────────────────────────────────────────────────────
+  // ── System UI ──────────────────────────────────────────────
 
   static void updateSystemUIFromTheme(
     BuildContext context,
@@ -188,7 +195,7 @@ class AppInitializer {
     ));
   }
 
-  // ── Cleanup ───────────────────────────────────────────────────────────────
+  // ── Cleanup ────────────────────────────────────────────────
 
   static Future<void> dispose() async {
     try {

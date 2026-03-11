@@ -1,34 +1,57 @@
-// lib/data/datasources/local/quotes_local_datasource.dart
+// lib/features/quotes/data/datasources/local/quotes_local_datasource.dart
 
 import 'dart:convert';
 
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+
 import 'package:ekush_ponji/features/quotes/models/quote.dart';
+import 'package:ekush_ponji/features/quotes/services/quotes_sync_service.dart';
 
 const String savedQuotesBoxName = 'saved_quotes';
 
 class QuotesLocalDatasource {
   final Box<QuoteModel> _savedBox;
+  final Box _settingsBox;
 
-  // In-memory cache so we only parse the JSON once per session
   List<QuoteModel>? _cachedQuotes;
 
-  QuotesLocalDatasource({required Box<QuoteModel> savedBox})
-      : _savedBox = savedBox;
+  QuotesLocalDatasource({
+    required Box<QuoteModel> savedBox,
+    required Box settingsBox,
+  })  : _savedBox = savedBox,
+        _settingsBox = settingsBox;
 
-  // ── Asset loading ──────────────────────────────────────────
+  // ── Initialisation ─────────────────────────────────────────
 
-  /// Loads and caches all quotes from the JSON asset.
-  /// Call this once at startup (e.g. in your provider/repository init).
+  /// Loads and caches all quotes. Prefers synced Hive data,
+  /// falls back to bundled asset on first launch.
   Future<void> init() async {
     if (_cachedQuotes != null) return;
     await _loadQuotes();
   }
 
+  /// Call after a successful sync to reload from updated Hive data.
+  Future<void> reload() async {
+    _cachedQuotes = null;
+    await _loadQuotes();
+  }
+
   Future<void> _loadQuotes() async {
-    final jsonString =
-        await rootBundle.loadString('assets/data/quotes/quotes_en.json');
+    final String jsonString;
+
+    // Prefer synced data written by QuotesSyncService
+    final hiveCached =
+        _settingsBox.get(QuotesSyncService.quotesEnKey) as String?;
+
+    if (hiveCached != null && hiveCached.isNotEmpty) {
+      jsonString = hiveCached;
+    } else {
+      // First launch — fall back to bundled asset
+      jsonString =
+          await rootBundle.loadString('assets/data/quotes/quotes_en.json');
+    }
+
     final Map<String, dynamic> jsonMap = json.decode(jsonString);
     final List<dynamic> rawList = jsonMap['quotes'] as List<dynamic>;
 
@@ -49,21 +72,17 @@ class QuotesLocalDatasource {
 
   // ── Daily quote ────────────────────────────────────────────
 
-  /// Returns the quote assigned to today's month + day.
-  /// Falls back to the first quote if no match is found.
   QuoteModel getDailyQuote() {
     final today = DateTime.now();
     final quote = _quotes.firstWhere(
       (q) => q.month == today.month && q.day == today.day,
       orElse: () => _quotes.first,
     );
-    final key = quote.storageKey;
-    return quote.copyWith(isSaved: _savedBox.containsKey(key));
+    return quote.copyWith(isSaved: _savedBox.containsKey(quote.storageKey));
   }
 
   // ── All quotes ─────────────────────────────────────────────
 
-  /// Returns all quotes with saved state resolved.
   List<QuoteModel> getAllQuotes() {
     return _quotes.map((q) {
       return q.copyWith(isSaved: _savedBox.containsKey(q.storageKey));
@@ -72,24 +91,16 @@ class QuotesLocalDatasource {
 
   // ── Saved quotes ───────────────────────────────────────────
 
-  /// Returns all saved quotes from Hive.
-  List<QuoteModel> getSavedQuotes() {
-    return _savedBox.values.toList();
-  }
+  List<QuoteModel> getSavedQuotes() => _savedBox.values.toList();
 
-  /// Save a quote to Hive.
   Future<void> saveQuote(QuoteModel quote) async {
-    final saved = quote.copyWith(isSaved: true);
-    await _savedBox.put(saved.storageKey, saved);
+    await _savedBox.put(quote.storageKey, quote.copyWith(isSaved: true));
   }
 
-  /// Remove a quote from saved.
   Future<void> unsaveQuote(QuoteModel quote) async {
     await _savedBox.delete(quote.storageKey);
   }
 
-  /// Check if a quote is saved.
-  bool isQuoteSaved(QuoteModel quote) {
-    return _savedBox.containsKey(quote.storageKey);
-  }
+  bool isQuoteSaved(QuoteModel quote) =>
+      _savedBox.containsKey(quote.storageKey);
 }

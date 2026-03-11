@@ -1,93 +1,43 @@
+// lib/features/holidays/services/holiday_sync_service.dart
+
 import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+
+import 'package:ekush_ponji/core/models/app_manifest.dart';
+import 'package:ekush_ponji/core/services/base_sync_service.dart';
 import 'package:ekush_ponji/features/holidays/models/holiday.dart';
-import 'package:ekush_ponji/core/models/holiday_manifest.dart';
 
-class HolidaySyncService {
-  static const String _manifestUrl =
-      'https://raw.githubusercontent.com/moinul-alam/ekush-ponji-data/main/manifest.json';
-
-  static const String _boxName = 'settings';
-  static const String _seededKey = 'holidays_seeded_v1';
-  static const String _localVersionKey = 'holidays_version';
-  static const String _lastCheckKey = 'holidays_last_check';
+class HolidaySyncService implements BaseSyncService {
+  // ── Hive keys ──────────────────────────────────────────────
+  static const String _settingsBoxName = 'settings';
   static const String _holidaysBoxName = 'holidays';
+  static const String _seededKey = 'holidays_seeded_v1';
+  static const String _versionKey = 'holidays_version';
+  static const String _lastCheckKey = 'holidays_last_check';
   static const String _govtHolidaysPrefix = 'govt_holidays_';
+
+  // ── Config ─────────────────────────────────────────────────
   static const int _checkIntervalDays = 3;
   static const List<int> _bundledYears = [2022, 2023, 2024, 2025, 2026];
 
   final Dio _dio;
 
-  HolidaySyncService({Dio? dio})
-      : _dio = dio ??
-            Dio(BaseOptions(
-              connectTimeout: const Duration(seconds: 10),
-              receiveTimeout: const Duration(seconds: 15),
-            ));
+  HolidaySyncService({Dio? dio}) : _dio = dio ?? Dio();
 
-  Box get _settingsBox => Hive.box(_boxName);
+  Box get _settingsBox => Hive.box(_settingsBoxName);
   Box get _holidaysBox => Hive.box(_holidaysBoxName);
 
-  int get localVersion =>
-      _settingsBox.get(_localVersionKey, defaultValue: 0) as int;
+  // ── BaseSyncService contract ───────────────────────────────
 
-  bool get isSeeded =>
-      _settingsBox.get(_seededKey, defaultValue: false) as bool;
+  @override
+  int get localVersion => _settingsBox.get(_versionKey, defaultValue: 0) as int;
 
-  Future<void> initialize() async {
-    await _seedBundledAssetsIfNeeded();
-    await _syncFromGitHubIfDue();
-  }
-
-  Future<bool> forceSync() async {
-    return await _syncFromGitHub(force: true);
-  }
-
-  Future<void> _seedBundledAssetsIfNeeded() async {
-    if (isSeeded) {
-      debugPrint('ℹ️ Holiday seed already done — skipping');
-      return;
-    }
-
-    debugPrint('🌱 Seeding bundled holiday assets...');
-    int seededCount = 0;
-
-    for (final year in _bundledYears) {
-      try {
-        final holidays = await _loadFromAsset(year);
-        if (holidays.isNotEmpty) {
-          await _saveHolidaysToHive(year, holidays);
-          seededCount++;
-          debugPrint('✅ Seeded $year: ${holidays.length} holidays');
-        }
-      } catch (e) {
-        debugPrint('⚠️ Failed to seed $year from asset: $e');
-      }
-    }
-
-    if (seededCount > 0) {
-      await _settingsBox.put(_seededKey, true);
-      if (localVersion == 0) {
-        await _settingsBox.put(_localVersionKey, 1);
-      }
-      debugPrint('✅ Seeding complete: $seededCount years loaded');
-    } else {
-      debugPrint('⚠️ No years could be seeded — app may have no holiday data');
-    }
-  }
-
-  Future<void> _syncFromGitHubIfDue() async {
-    if (!_isSyncDue()) {
-      debugPrint('ℹ️ Holiday sync not due yet — skipping');
-      return;
-    }
-    await _syncFromGitHub();
-  }
-
-  bool _isSyncDue() {
+  @override
+  bool get isSyncDue {
     final lastCheckStr =
         _settingsBox.get(_lastCheckKey, defaultValue: null) as String?;
     if (lastCheckStr == null) return true;
@@ -96,82 +46,96 @@ class HolidaySyncService {
     return DateTime.now().difference(lastCheck).inDays >= _checkIntervalDays;
   }
 
-  Future<bool> _syncFromGitHub({bool force = false}) async {
-    debugPrint('🔄 Checking GitHub for holiday updates...');
+  @override
+  Future<void> seed() async {
+    final seeded = _settingsBox.get(_seededKey, defaultValue: false) as bool;
+    if (seeded) {
+      debugPrint('ℹ️ Holidays already seeded — skipping');
+      return;
+    }
+
+    debugPrint('🌱 Seeding bundled holiday assets...');
+    int count = 0;
+
+    for (final year in _bundledYears) {
+      try {
+        final jsonString = await rootBundle
+            .loadString('assets/data/holidays/holidays_$year.json');
+        final holidays = _parseHolidayJson(jsonString);
+        if (holidays.isNotEmpty) {
+          await _saveToHive(year, holidays);
+          count++;
+          debugPrint('✅ Seeded holidays $year: ${holidays.length} entries');
+        }
+      } catch (e) {
+        debugPrint('⚠️ Failed to seed holidays $year: $e');
+      }
+    }
+
+    if (count > 0) {
+      await _settingsBox.put(_seededKey, true);
+      if (localVersion == 0) {
+        await _settingsBox.put(_versionKey, 1);
+      }
+      debugPrint('✅ Holiday seeding complete: $count years loaded');
+    } else {
+      debugPrint('⚠️ Holiday seeding failed — no years loaded');
+    }
+  }
+
+  @override
+  Future<bool> syncWithManifest(
+    AppManifest manifest, {
+    bool force = false,
+  }) async {
+    if (!force && !isSyncDue) {
+      debugPrint('ℹ️ Holiday sync not due yet');
+      return false;
+    }
 
     await _settingsBox.put(_lastCheckKey, DateTime.now().toIso8601String());
 
-    try {
-      final manifest = await _fetchManifest();
-      if (manifest == null) return false;
+    final remote = manifest.holidays;
+    debugPrint('📋 Holidays: remote v${remote.version} / local v$localVersion');
 
-      debugPrint(
-          '📋 Manifest: remote v${manifest.holidaysVersion} / local v$localVersion');
+    if (!force && remote.version <= localVersion) {
+      debugPrint('✅ Holidays up to date');
+      return false;
+    }
 
-      if (!force && manifest.holidaysVersion <= localVersion) {
-        debugPrint('✅ Holiday data is up to date');
-        return false;
-      }
+    int updatedCount = 0;
+    for (final year in remote.availableYears) {
+      final url = remote.urlForYear(year);
+      if (url == null) continue;
 
-      debugPrint('🆕 Fetching holiday data (v${manifest.holidaysVersion})...');
-
-      int updatedCount = 0;
-      for (final year in manifest.availableYears) {
-        final url = manifest.urlForYear(year);
-        if (url == null) continue;
-
-        try {
-          final holidays = await _fetchHolidaysFromUrl(url);
+      try {
+        final response = await _dio.get<String>(url);
+        if (response.statusCode == 200 && response.data != null) {
+          final holidays = _parseHolidayJson(response.data!);
           if (holidays.isNotEmpty) {
-            await _saveHolidaysToHive(year, holidays);
+            await _saveToHive(year, holidays);
             updatedCount++;
-            debugPrint('✅ Updated $year: ${holidays.length} holidays');
+            debugPrint('✅ Updated holidays $year: ${holidays.length} entries');
           }
-        } catch (e) {
-          debugPrint('⚠️ Failed to update year $year: $e');
         }
+      } on DioException catch (e) {
+        debugPrint('⚠️ Network error for holidays $year: ${e.message}');
+      } catch (e) {
+        debugPrint('⚠️ Failed to update holidays $year: $e');
       }
-
-      if (updatedCount > 0) {
-        await _settingsBox.put(_localVersionKey, manifest.holidaysVersion);
-        debugPrint(
-            '✅ Sync complete: $updatedCount years updated to v${manifest.holidaysVersion}');
-        return true;
-      }
-
-      return false;
-    } on DioException catch (e) {
-      debugPrint('⚠️ GitHub sync failed (network): ${e.message}');
-      return false;
-    } catch (e) {
-      debugPrint('⚠️ GitHub sync failed: $e');
-      return false;
     }
-  }
 
-  Future<HolidayManifest?> _fetchManifest() async {
-    try {
-      final response = await _dio.get<String>(_manifestUrl);
-      if (response.statusCode != 200 || response.data == null) return null;
-      final json = jsonDecode(response.data!) as Map<String, dynamic>;
-      return HolidayManifest.fromJson(json);
-    } catch (e) {
-      debugPrint('⚠️ Failed to fetch manifest: $e');
-      return null;
+    if (updatedCount > 0) {
+      await _settingsBox.put(_versionKey, remote.version);
+      debugPrint(
+          '✅ Holidays sync complete: $updatedCount years → v${remote.version}');
+      return true;
     }
+
+    return false;
   }
 
-  Future<List<Holiday>> _fetchHolidaysFromUrl(String url) async {
-    final response = await _dio.get<String>(url);
-    if (response.statusCode != 200 || response.data == null) return [];
-    return _parseHolidayJson(response.data!);
-  }
-
-  Future<List<Holiday>> _loadFromAsset(int year) async {
-    final jsonString =
-        await rootBundle.loadString('assets/data/holidays_$year.json');
-    return _parseHolidayJson(jsonString);
-  }
+  // ── Private helpers ────────────────────────────────────────
 
   List<Holiday> _parseHolidayJson(String jsonString) {
     final data = jsonDecode(jsonString) as Map<String, dynamic>;
@@ -181,7 +145,7 @@ class HolidaySyncService {
         .toList();
   }
 
-  Future<void> _saveHolidaysToHive(int year, List<Holiday> holidays) async {
+  Future<void> _saveToHive(int year, List<Holiday> holidays) async {
     final key = '$_govtHolidaysPrefix$year';
     final jsonList = holidays.map((h) => h.toJson()).toList();
     await _holidaysBox.put(key, jsonList);

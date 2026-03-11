@@ -1,8 +1,12 @@
+// lib/app/providers/app_providers.dart
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-// Box and key constants
+import 'package:ekush_ponji/core/services/data_sync_service.dart';
+
+// ── Box and key constants ──────────────────────────────────
 const String settingsBoxName = 'settings';
 const String _themeKey = 'themeMode';
 const String _localeKey = 'languageCode';
@@ -166,7 +170,9 @@ class LocaleNotifier extends Notifier<Locale> {
 
   void _showFeedback(BuildContext context, bool success) {
     final message = success
-        ? (state.languageCode == 'bn' ? 'ভাষা পরিবর্তিত হয়েছে' : 'Language changed')
+        ? (state.languageCode == 'bn'
+            ? 'ভাষা পরিবর্তিত হয়েছে'
+            : 'Language changed')
         : (state.languageCode == 'bn'
             ? 'ভাষা পরিবর্তন ব্যর্থ হয়েছে'
             : 'Failed to change language');
@@ -190,7 +196,8 @@ class AppReadyNotifier extends Notifier<bool> {
   void setReady() => state = true;
 }
 
-/// Providers
+// ── Providers ──────────────────────────────────────────────
+
 final appReadyProvider = NotifierProvider<AppReadyNotifier, bool>(
   AppReadyNotifier.new,
 );
@@ -200,3 +207,10 @@ final themeModeProvider =
 
 final localeProvider =
     NotifierProvider<LocaleNotifier, Locale>(LocaleNotifier.new);
+
+/// Singleton DataSyncService — shared across the entire app.
+/// CalendarRepository, SettingsViewModel, and any future
+/// consumers all read from this one instance.
+final dataSyncServiceProvider = Provider<DataSyncService>((ref) {
+  return DataSyncService();
+});

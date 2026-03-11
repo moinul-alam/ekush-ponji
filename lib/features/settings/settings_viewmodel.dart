@@ -2,11 +2,11 @@
 
 import 'package:ekush_ponji/core/base/base_viewmodel.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
+import 'package:ekush_ponji/core/services/data_sync_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ekush_ponji/app/providers/app_providers.dart';
-import 'package:ekush_ponji/features/holidays/services/holiday_sync_service.dart';
 import 'package:ekush_ponji/features/home/home_viewmodel.dart';
 
 class SettingsViewModel extends BaseViewModel {
@@ -110,14 +110,13 @@ class SettingsViewModel extends BaseViewModel {
   }
 
   /// Manual sync triggered from Settings screen.
-  /// Uses named parameter [widgetRef] to avoid clashing with
-  /// Notifier's built-in [ref] field.
+  /// Uses the shared DataSyncService singleton via [widgetRef].
   Future<void> syncHolidaysNow({required WidgetRef widgetRef}) async {
     _lastSyncHadUpdate = false;
     setLoading(message: 'Checking for updates...');
     try {
-      final service = HolidaySyncService();
-      _lastSyncHadUpdate = await service.forceSync().timeout(
+      final syncService = widgetRef.read(dataSyncServiceProvider);
+      _lastSyncHadUpdate = await syncService.forceHolidaySync().timeout(
             const Duration(seconds: 15),
             onTimeout: () => false,
           );
