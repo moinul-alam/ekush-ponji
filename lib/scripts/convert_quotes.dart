@@ -1,5 +1,13 @@
-// lib/core/data/daily_quotes.dart
+// convert_quotes.dart
+// Run with: dart run convert_quotes.dart
+//
+// Place this file next to daily_quotes.dart and run from that directory.
+// It will output quotes_en.json in the same folder.
 
+import 'dart:convert';
+import 'dart:io';
+
+// ── Paste your EnQuote class here ──────────────────────────
 class EnQuote {
   final String text;
   final String author;
@@ -12,6 +20,89 @@ class EnQuote {
   });
 }
 
+// ── Paste your dailyQuotesEn list here ─────────────────────
+// (copy everything from `const List<EnQuote> dailyQuotesEn = [ ... ];`)
+
+// ── Month boundary indices (0-based) ───────────────────────
+// Adjust these if your list has different counts per month.
+const List<String> _monthNames = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+
+// Days per month — matches how many quotes you assigned per month.
+// Edit these counts to match your actual list sections.
+const List<int> _quotesPerMonth = [
+  31, // January
+  29, // February  (you have 29 quotes in that section)
+  31, // March
+  31, // April
+  31, // May
+  31, // June
+  31, // July
+  31, // August
+  30, // September
+  30, // October
+  30, // November
+  31, // December
+];
+
+void main() {
+  // ── Build the list with month + day ──────────────────────
+  final List<Map<String, dynamic>> output = [];
+
+  int index = 0;
+  for (int m = 0; m < 12; m++) {
+    final int daysInMonth = _quotesPerMonth[m];
+    for (int d = 1; d <= daysInMonth; d++) {
+      if (index >= dailyQuotesEn.length) {
+        print('⚠️  Ran out of quotes at month ${m + 1}, day $d (index $index)');
+        break;
+      }
+      final q = dailyQuotesEn[index];
+      output.add({
+        'month': m + 1,
+        'day': d,
+        'text': q.text,
+        'author': q.author,
+        'category': q.category,
+      });
+      index++;
+    }
+  }
+
+  if (index < dailyQuotesEn.length) {
+    print(
+        '⚠️  ${dailyQuotesEn.length - index} quotes were not assigned a date.');
+  }
+
+  // ── Write JSON ────────────────────────────────────────────
+  final Map<String, dynamic> json = {
+    'version': '1.0.0',
+    'language': 'en',
+    'count': output.length,
+    'quotes': output,
+  };
+
+  final file = File('quotes_en.json');
+  file.writeAsStringSync(
+    const JsonEncoder.withIndent('  ').convert(json),
+  );
+
+  print('✅ Written ${output.length} quotes → quotes_en.json');
+}
+
+// ── PASTE YOUR LIST BELOW THIS LINE ────────────────────────
 const List<EnQuote> dailyQuotesEn = [
   // ── January ───────────────────────────────────────────────
   EnQuote(

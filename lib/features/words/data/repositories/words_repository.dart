@@ -9,6 +9,9 @@ class WordsRepository {
   WordsRepository({required WordsLocalDatasource localDatasource})
       : _localDatasource = localDatasource;
 
+  /// Must be called once before any other method.
+  Future<void> init() => _localDatasource.init();
+
   WordModel getDailyWord() => _localDatasource.getDailyWord();
 
   List<WordModel> getAllWords() => _localDatasource.getAllWords();

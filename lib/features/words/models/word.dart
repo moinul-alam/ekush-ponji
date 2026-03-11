@@ -10,6 +10,8 @@ class WordModel extends HiveObject {
   final String synonym;
   final String example;
   final String pronunciation;
+  final int month;
+  final int day;
   final bool isSaved;
 
   WordModel({
@@ -20,8 +22,26 @@ class WordModel extends HiveObject {
     required this.synonym,
     required this.example,
     required this.pronunciation,
+    required this.month,
+    required this.day,
     this.isSaved = false,
   });
+
+  factory WordModel.fromJson(Map<String, dynamic> json,
+      {bool isSaved = false}) {
+    return WordModel(
+      word: json['word'] as String,
+      partOfSpeech: json['partOfSpeech'] as String,
+      meaningEn: json['meaningEn'] as String,
+      meaningBn: json['meaningBn'] as String,
+      synonym: json['synonym'] as String,
+      example: json['example'] as String,
+      pronunciation: json['pronunciation'] as String,
+      month: json['month'] as int,
+      day: json['day'] as int,
+      isSaved: isSaved,
+    );
+  }
 
   WordModel copyWith({
     String? word,
@@ -31,6 +51,8 @@ class WordModel extends HiveObject {
     String? synonym,
     String? example,
     String? pronunciation,
+    int? month,
+    int? day,
     bool? isSaved,
   }) {
     return WordModel(
@@ -41,6 +63,8 @@ class WordModel extends HiveObject {
       synonym: synonym ?? this.synonym,
       example: example ?? this.example,
       pronunciation: pronunciation ?? this.pronunciation,
+      month: month ?? this.month,
+      day: day ?? this.day,
       isSaved: isSaved ?? this.isSaved,
     );
   }
@@ -72,6 +96,8 @@ class WordModelAdapter extends TypeAdapter<WordModel> {
       synonym: reader.readString(),
       example: reader.readString(),
       pronunciation: reader.readString(),
+      month: reader.readInt(),
+      day: reader.readInt(),
       isSaved: reader.readBool(),
     );
   }
@@ -85,6 +111,8 @@ class WordModelAdapter extends TypeAdapter<WordModel> {
     writer.writeString(obj.synonym);
     writer.writeString(obj.example);
     writer.writeString(obj.pronunciation);
+    writer.writeInt(obj.month);
+    writer.writeInt(obj.day);
     writer.writeBool(obj.isSaved);
   }
 }

@@ -1,0 +1,2576 @@
+{
+  "version": "1.0.0",
+  "language": "en",
+  "count": 367,
+  "quotes": [
+    {
+      "month": 1,
+      "day": 1,
+      "text": "The only way to do great work is to love what you do.",
+      "author": "Steve Jobs",
+      "category": "Motivation"
+    },
+    {
+      "month": 1,
+      "day": 2,
+      "text": "In the middle of every difficulty lies opportunity.",
+      "author": "Albert Einstein",
+      "category": "Philosophy"
+    },
+    {
+      "month": 1,
+      "day": 3,
+      "text": "It does not matter how slowly you go as long as you do not stop.",
+      "author": "Confucius",
+      "category": "Perseverance"
+    },
+    {
+      "month": 1,
+      "day": 4,
+      "text": "Success is not final, failure is not fatal: it is the courage to continue that counts.",
+      "author": "Winston Churchill",
+      "category": "Success"
+    },
+    {
+      "month": 1,
+      "day": 5,
+      "text": "Believe you can and you are halfway there.",
+      "author": "Theodore Roosevelt",
+      "category": "Motivation"
+    },
+    {
+      "month": 1,
+      "day": 6,
+      "text": "The future belongs to those who believe in the beauty of their dreams.",
+      "author": "Eleanor Roosevelt",
+      "category": "Dreams"
+    },
+    {
+      "month": 1,
+      "day": 7,
+      "text": "You miss 100% of the shots you do not take.",
+      "author": "Wayne Gretzky",
+      "category": "Motivation"
+    },
+    {
+      "month": 1,
+      "day": 8,
+      "text": "Whether you think you can or you think you cannot, you are right.",
+      "author": "Henry Ford",
+      "category": "Mindset"
+    },
+    {
+      "month": 1,
+      "day": 9,
+      "text": "The only limit to our realization of tomorrow is our doubts of today.",
+      "author": "Franklin D. Roosevelt",
+      "category": "Motivation"
+    },
+    {
+      "month": 1,
+      "day": 10,
+      "text": "The purpose of our lives is to be happy.",
+      "author": "Dalai Lama",
+      "category": "Philosophy"
+    },
+    {
+      "month": 1,
+      "day": 11,
+      "text": "Life is what happens when you are busy making other plans.",
+      "author": "John Lennon",
+      "category": "Philosophy"
+    },
+    {
+      "month": 1,
+      "day": 12,
+      "text": "You only live once, but if you do it right, once is enough.",
+      "author": "Mae West",
+      "category": "Philosophy"
+    },
+    {
+      "month": 1,
+      "day": 13,
+      "text": "Many of life's failures are people who did not realize how close they were to success when they gave up.",
+      "author": "Thomas Edison",
+      "category": "Perseverance"
+    },
+    {
+      "month": 1,
+      "day": 14,
+      "text": "If you want to live a happy life, tie it to a goal, not to people or things.",
+      "author": "Albert Einstein",
+      "category": "Philosophy"
+    },
+    {
+      "month": 1,
+      "day": 15,
+      "text": "If you look at what you have in life, you will always have more.",
+      "author": "Oprah Winfrey",
+      "category": "Gratitude"
+    },
+    {
+      "month": 1,
+      "day": 16,
+      "text": "Never let the fear of striking out keep you from playing the game.",
+      "author": "Babe Ruth",
+      "category": "Courage"
+    },
+    {
+      "month": 1,
+      "day": 17,
+      "text": "Your time is limited, so do not waste it living someone else's life.",
+      "author": "Steve Jobs",
+      "category": "Philosophy"
+    },
+    {
+      "month": 1,
+      "day": 18,
+      "text": "Not how long, but how well you have lived is the main thing.",
+      "author": "Seneca",
+      "category": "Philosophy"
+    },
+    {
+      "month": 1,
+      "day": 19,
+      "text": "Take up one idea. Make that one idea your life — think of it, dream of it, live on that idea.",
+      "author": "Swami Vivekananda",
+      "category": "Focus"
+    },
+    {
+      "month": 1,
+      "day": 20,
+      "text": "All our dreams can come true if we have the courage to pursue them.",
+      "author": "Walt Disney",
+      "category": "Dreams"
+    },
+    {
+      "month": 1,
+      "day": 21,
+      "text": "I find that the harder I work, the more luck I seem to have.",
+      "author": "Thomas Jefferson",
+      "category": "Work"
+    },
+    {
+      "month": 1,
+      "day": 22,
+      "text": "Success usually comes to those who are too busy to be looking for it.",
+      "author": "Henry David Thoreau",
+      "category": "Success"
+    },
+    {
+      "month": 1,
+      "day": 23,
+      "text": "Opportunities do not happen. You create them.",
+      "author": "Chris Grosser",
+      "category": "Motivation"
+    },
+    {
+      "month": 1,
+      "day": 24,
+      "text": "Do not be afraid to give up the good to go for the great.",
+      "author": "John D. Rockefeller",
+      "category": "Ambition"
+    },
+    {
+      "month": 1,
+      "day": 25,
+      "text": "A successful man is one who can lay a firm foundation with the bricks others have thrown at him.",
+      "author": "David Brinkley",
+      "category": "Resilience"
+    },
+    {
+      "month": 1,
+      "day": 26,
+      "text": "No one can make you feel inferior without your consent.",
+      "author": "Eleanor Roosevelt",
+      "category": "Self-worth"
+    },
+    {
+      "month": 1,
+      "day": 27,
+      "text": "If you are going through hell, keep going.",
+      "author": "Winston Churchill",
+      "category": "Perseverance"
+    },
+    {
+      "month": 1,
+      "day": 28,
+      "text": "The ones who are crazy enough to think they can change the world are the ones that do.",
+      "author": "Steve Jobs",
+      "category": "Vision"
+    },
+    {
+      "month": 1,
+      "day": 29,
+      "text": "Do what you can, with what you have, where you are.",
+      "author": "Theodore Roosevelt",
+      "category": "Action"
+    },
+    {
+      "month": 1,
+      "day": 30,
+      "text": "It is not the mountain we conquer, but ourselves.",
+      "author": "Edmund Hillary",
+      "category": "Self-mastery"
+    },
+    {
+      "month": 1,
+      "day": 31,
+      "text": "Happiness is not something readymade. It comes from your own actions.",
+      "author": "Dalai Lama",
+      "category": "Happiness"
+    },
+    {
+      "month": 2,
+      "day": 1,
+      "text": "If you want to go fast, go alone. If you want to go far, go together.",
+      "author": "African Proverb",
+      "category": "Teamwork"
+    },
+    {
+      "month": 2,
+      "day": 2,
+      "text": "Keep your eyes on the stars and your feet on the ground.",
+      "author": "Theodore Roosevelt",
+      "category": "Balance"
+    },
+    {
+      "month": 2,
+      "day": 3,
+      "text": "You are never too old to set another goal or to dream a new dream.",
+      "author": "C. S. Lewis",
+      "category": "Dreams"
+    },
+    {
+      "month": 2,
+      "day": 4,
+      "text": "Too many of us are not living our dreams because we are living our fears.",
+      "author": "Les Brown",
+      "category": "Courage"
+    },
+    {
+      "month": 2,
+      "day": 5,
+      "text": "I have not failed. I have just found 10,000 ways that will not work.",
+      "author": "Thomas Edison",
+      "category": "Perseverance"
+    },
+    {
+      "month": 2,
+      "day": 6,
+      "text": "Remember that not getting what you want is sometimes a wonderful stroke of luck.",
+      "author": "Dalai Lama",
+      "category": "Philosophy"
+    },
+    {
+      "month": 2,
+      "day": 7,
+      "text": "Dream big and dare to fail.",
+      "author": "Norman Vaughan",
+      "category": "Ambition"
+    },
+    {
+      "month": 2,
+      "day": 8,
+      "text": "Our greatest glory is not in never falling, but in rising every time we fall.",
+      "author": "Confucius",
+      "category": "Resilience"
+    },
+    {
+      "month": 2,
+      "day": 9,
+      "text": "Life is 10% what happens to us and 90% how we react to it.",
+      "author": "Charles R. Swindoll",
+      "category": "Mindset"
+    },
+    {
+      "month": 2,
+      "day": 10,
+      "text": "An unexamined life is not worth living.",
+      "author": "Socrates",
+      "category": "Philosophy"
+    },
+    {
+      "month": 2,
+      "day": 11,
+      "text": "Spread love everywhere you go. Let no one ever come to you without leaving happier.",
+      "author": "Mother Teresa",
+      "category": "Kindness"
+    },
+    {
+      "month": 2,
+      "day": 12,
+      "text": "Do not judge each day by the harvest you reap but by the seeds that you plant.",
+      "author": "Robert Louis Stevenson",
+      "category": "Patience"
+    },
+    {
+      "month": 2,
+      "day": 13,
+      "text": "The best time to plant a tree was 20 years ago. The second best time is now.",
+      "author": "Chinese Proverb",
+      "category": "Action"
+    },
+    {
+      "month": 2,
+      "day": 14,
+      "text": "It is during our darkest moments that we must focus to see the light.",
+      "author": "Aristotle",
+      "category": "Hope"
+    },
+    {
+      "month": 2,
+      "day": 15,
+      "text": "Whoever is happy will make others happy too.",
+      "author": "Anne Frank",
+      "category": "Happiness"
+    },
+    {
+      "month": 2,
+      "day": 16,
+      "text": "Do not go where the path may lead; go instead where there is no path and leave a trail.",
+      "author": "Ralph Waldo Emerson",
+      "category": "Leadership"
+    },
+    {
+      "month": 2,
+      "day": 17,
+      "text": "You will face many defeats in life, but never let yourself be defeated.",
+      "author": "Maya Angelou",
+      "category": "Resilience"
+    },
+    {
+      "month": 2,
+      "day": 18,
+      "text": "In the end, it is not the years in your life that count. It is the life in your years.",
+      "author": "Abraham Lincoln",
+      "category": "Philosophy"
+    },
+    {
+      "month": 2,
+      "day": 19,
+      "text": "Life is either a daring adventure or nothing at all.",
+      "author": "Helen Keller",
+      "category": "Adventure"
+    },
+    {
+      "month": 2,
+      "day": 20,
+      "text": "You have power over your mind, not outside events. Realize this, and you will find strength.",
+      "author": "Marcus Aurelius",
+      "category": "Stoicism"
+    },
+    {
+      "month": 2,
+      "day": 21,
+      "text": "The impediment to action advances action. What stands in the way becomes the way.",
+      "author": "Marcus Aurelius",
+      "category": "Stoicism"
+    },
+    {
+      "month": 2,
+      "day": 22,
+      "text": "Very little is needed to make a happy life; it is all within yourself, in your way of thinking.",
+      "author": "Marcus Aurelius",
+      "category": "Stoicism"
+    },
+    {
+      "month": 2,
+      "day": 23,
+      "text": "Waste no more time arguing about what a good man should be. Be one.",
+      "author": "Marcus Aurelius",
+      "category": "Stoicism"
+    },
+    {
+      "month": 2,
+      "day": 24,
+      "text": "Begin at once to live, and count each separate day as a separate life.",
+      "author": "Seneca",
+      "category": "Philosophy"
+    },
+    {
+      "month": 2,
+      "day": 25,
+      "text": "Luck is what happens when preparation meets opportunity.",
+      "author": "Seneca",
+      "category": "Success"
+    },
+    {
+      "month": 2,
+      "day": 26,
+      "text": "We suffer more in imagination than in reality.",
+      "author": "Seneca",
+      "category": "Stoicism"
+    },
+    {
+      "month": 2,
+      "day": 27,
+      "text": "Difficulties strengthen the mind, as labor does the body.",
+      "author": "Seneca",
+      "category": "Growth"
+    },
+    {
+      "month": 2,
+      "day": 28,
+      "text": "He who fears death will never do anything worthy of a living man.",
+      "author": "Seneca",
+      "category": "Courage"
+    },
+    {
+      "month": 2,
+      "day": 29,
+      "text": "The key is not to prioritize what is on your schedule, but to schedule your priorities.",
+      "author": "Stephen Covey",
+      "category": "Productivity"
+    },
+    {
+      "month": 3,
+      "day": 1,
+      "text": "The secret of getting ahead is getting started.",
+      "author": "Mark Twain",
+      "category": "Action"
+    },
+    {
+      "month": 3,
+      "day": 2,
+      "text": "Twenty years from now you will be more disappointed by the things you did not do than by the ones you did.",
+      "author": "Mark Twain",
+      "category": "Action"
+    },
+    {
+      "month": 3,
+      "day": 3,
+      "text": "Courage is resistance to fear, mastery of fear — not absence of fear.",
+      "author": "Mark Twain",
+      "category": "Courage"
+    },
+    {
+      "month": 3,
+      "day": 4,
+      "text": "The two most important days in your life are the day you are born and the day you find out why.",
+      "author": "Mark Twain",
+      "category": "Purpose"
+    },
+    {
+      "month": 3,
+      "day": 5,
+      "text": "Keep away from people who try to belittle your ambitions.",
+      "author": "Mark Twain",
+      "category": "Motivation"
+    },
+    {
+      "month": 3,
+      "day": 6,
+      "text": "It always seems impossible until it is done.",
+      "author": "Nelson Mandela",
+      "category": "Motivation"
+    },
+    {
+      "month": 3,
+      "day": 7,
+      "text": "Education is the most powerful weapon which you can use to change the world.",
+      "author": "Nelson Mandela",
+      "category": "Education"
+    },
+    {
+      "month": 3,
+      "day": 8,
+      "text": "I am not a product of my circumstances. I am a product of my decisions.",
+      "author": "Stephen Covey",
+      "category": "Responsibility"
+    },
+    {
+      "month": 3,
+      "day": 9,
+      "text": "Act as if what you do makes a difference. It does.",
+      "author": "William James",
+      "category": "Purpose"
+    },
+    {
+      "month": 3,
+      "day": 10,
+      "text": "Success is stumbling from failure to failure with no loss of enthusiasm.",
+      "author": "Winston Churchill",
+      "category": "Resilience"
+    },
+    {
+      "month": 3,
+      "day": 11,
+      "text": "You must be the change you wish to see in the world.",
+      "author": "Mahatma Gandhi",
+      "category": "Leadership"
+    },
+    {
+      "month": 3,
+      "day": 12,
+      "text": "The weak can never forgive. Forgiveness is the attribute of the strong.",
+      "author": "Mahatma Gandhi",
+      "category": "Wisdom"
+    },
+    {
+      "month": 3,
+      "day": 13,
+      "text": "First they ignore you, then they laugh at you, then they fight you, then you win.",
+      "author": "Mahatma Gandhi",
+      "category": "Perseverance"
+    },
+    {
+      "month": 3,
+      "day": 14,
+      "text": "Strength does not come from physical capacity. It comes from an indomitable will.",
+      "author": "Mahatma Gandhi",
+      "category": "Willpower"
+    },
+    {
+      "month": 3,
+      "day": 15,
+      "text": "The best way to find yourself is to lose yourself in the service of others.",
+      "author": "Mahatma Gandhi",
+      "category": "Service"
+    },
+    {
+      "month": 3,
+      "day": 16,
+      "text": "Imagination is more important than knowledge.",
+      "author": "Albert Einstein",
+      "category": "Creativity"
+    },
+    {
+      "month": 3,
+      "day": 17,
+      "text": "A person who never made a mistake never tried anything new.",
+      "author": "Albert Einstein",
+      "category": "Growth"
+    },
+    {
+      "month": 3,
+      "day": 18,
+      "text": "Logic will get you from A to Z; imagination will get you everywhere.",
+      "author": "Albert Einstein",
+      "category": "Creativity"
+    },
+    {
+      "month": 3,
+      "day": 19,
+      "text": "Life is like riding a bicycle. To keep your balance you must keep moving.",
+      "author": "Albert Einstein",
+      "category": "Philosophy"
+    },
+    {
+      "month": 3,
+      "day": 20,
+      "text": "Strive not to be a success, but rather to be of value.",
+      "author": "Albert Einstein",
+      "category": "Purpose"
+    },
+    {
+      "month": 3,
+      "day": 21,
+      "text": "Darkness cannot drive out darkness; only light can do that.",
+      "author": "Martin Luther King Jr.",
+      "category": "Philosophy"
+    },
+    {
+      "month": 3,
+      "day": 22,
+      "text": "The time is always right to do what is right.",
+      "author": "Martin Luther King Jr.",
+      "category": "Ethics"
+    },
+    {
+      "month": 3,
+      "day": 23,
+      "text": "Faith is taking the first step even when you do not see the whole staircase.",
+      "author": "Martin Luther King Jr.",
+      "category": "Faith"
+    },
+    {
+      "month": 3,
+      "day": 24,
+      "text": "If you cannot fly then run; if you cannot run then walk; if you cannot walk then crawl — but whatever you do, keep moving.",
+      "author": "Martin Luther King Jr.",
+      "category": "Perseverance"
+    },
+    {
+      "month": 3,
+      "day": 25,
+      "text": "I have learned that people will forget what you said, but never how you made them feel.",
+      "author": "Maya Angelou",
+      "category": "Wisdom"
+    },
+    {
+      "month": 3,
+      "day": 26,
+      "text": "Nothing will work unless you do.",
+      "author": "Maya Angelou",
+      "category": "Work"
+    },
+    {
+      "month": 3,
+      "day": 27,
+      "text": "My mission in life is not merely to survive, but to thrive.",
+      "author": "Maya Angelou",
+      "category": "Purpose"
+    },
+    {
+      "month": 3,
+      "day": 28,
+      "text": "To know what you know and what you do not know, that is true knowledge.",
+      "author": "Confucius",
+      "category": "Wisdom"
+    },
+    {
+      "month": 3,
+      "day": 29,
+      "text": "Everything has beauty, but not everyone sees it.",
+      "author": "Confucius",
+      "category": "Philosophy"
+    },
+    {
+      "month": 3,
+      "day": 30,
+      "text": "He who learns but does not think is lost. He who thinks but does not learn is in great danger.",
+      "author": "Confucius",
+      "category": "Learning"
+    },
+    {
+      "month": 3,
+      "day": 31,
+      "text": "The man who moves a mountain begins by carrying away small stones.",
+      "author": "Confucius",
+      "category": "Perseverance"
+    },
+    {
+      "month": 4,
+      "day": 1,
+      "text": "When you reach the end of your rope, tie a knot in it and hang on.",
+      "author": "Franklin D. Roosevelt",
+      "category": "Resilience"
+    },
+    {
+      "month": 4,
+      "day": 2,
+      "text": "In three words I can sum up everything I have learned about life: it goes on.",
+      "author": "Robert Frost",
+      "category": "Philosophy"
+    },
+    {
+      "month": 4,
+      "day": 3,
+      "text": "No road is long with good company.",
+      "author": "Turkish Proverb",
+      "category": "Friendship"
+    },
+    {
+      "month": 4,
+      "day": 4,
+      "text": "The mind is everything. What you think you become.",
+      "author": "Buddha",
+      "category": "Mindset"
+    },
+    {
+      "month": 4,
+      "day": 5,
+      "text": "Three things cannot be long hidden: the sun, the moon, and the truth.",
+      "author": "Buddha",
+      "category": "Truth"
+    },
+    {
+      "month": 4,
+      "day": 6,
+      "text": "Peace comes from within. Do not seek it without.",
+      "author": "Buddha",
+      "category": "Inner Peace"
+    },
+    {
+      "month": 4,
+      "day": 7,
+      "text": "Do not dwell in the past, do not dream of the future, concentrate the mind on the present moment.",
+      "author": "Buddha",
+      "category": "Mindfulness"
+    },
+    {
+      "month": 4,
+      "day": 8,
+      "text": "You yourself, as much as anybody in the entire universe, deserve your love and affection.",
+      "author": "Buddha",
+      "category": "Self-love"
+    },
+    {
+      "month": 4,
+      "day": 9,
+      "text": "Health is the greatest gift, contentment the greatest wealth, faithfulness the best relationship.",
+      "author": "Buddha",
+      "category": "Wisdom"
+    },
+    {
+      "month": 4,
+      "day": 10,
+      "text": "To be yourself in a world that is constantly trying to make you something else is the greatest accomplishment.",
+      "author": "Ralph Waldo Emerson",
+      "category": "Authenticity"
+    },
+    {
+      "month": 4,
+      "day": 11,
+      "text": "What lies behind us and what lies before us are tiny matters compared to what lies within us.",
+      "author": "Ralph Waldo Emerson",
+      "category": "Inner Strength"
+    },
+    {
+      "month": 4,
+      "day": 12,
+      "text": "For every minute you are angry you lose sixty seconds of happiness.",
+      "author": "Ralph Waldo Emerson",
+      "category": "Happiness"
+    },
+    {
+      "month": 4,
+      "day": 13,
+      "text": "Nothing great was ever achieved without enthusiasm.",
+      "author": "Ralph Waldo Emerson",
+      "category": "Motivation"
+    },
+    {
+      "month": 4,
+      "day": 14,
+      "text": "Write it on your heart that every day is the best day in the year.",
+      "author": "Ralph Waldo Emerson",
+      "category": "Gratitude"
+    },
+    {
+      "month": 4,
+      "day": 15,
+      "text": "Once you choose hope, anything is possible.",
+      "author": "Christopher Reeve",
+      "category": "Hope"
+    },
+    {
+      "month": 4,
+      "day": 16,
+      "text": "It is not what you look at that matters, it is what you see.",
+      "author": "Henry David Thoreau",
+      "category": "Perspective"
+    },
+    {
+      "month": 4,
+      "day": 17,
+      "text": "Go confidently in the direction of your dreams. Live the life you have imagined.",
+      "author": "Henry David Thoreau",
+      "category": "Dreams"
+    },
+    {
+      "month": 4,
+      "day": 18,
+      "text": "Our life is frittered away by detail. Simplify, simplify.",
+      "author": "Henry David Thoreau",
+      "category": "Simplicity"
+    },
+    {
+      "month": 4,
+      "day": 19,
+      "text": "Not until we are lost do we begin to find ourselves.",
+      "author": "Henry David Thoreau",
+      "category": "Self-discovery"
+    },
+    {
+      "month": 4,
+      "day": 20,
+      "text": "I went to the woods because I wished to live deliberately.",
+      "author": "Henry David Thoreau",
+      "category": "Intentionality"
+    },
+    {
+      "month": 4,
+      "day": 21,
+      "text": "Kind words do not cost much, yet they accomplish much.",
+      "author": "Blaise Pascal",
+      "category": "Kindness"
+    },
+    {
+      "month": 4,
+      "day": 22,
+      "text": "The heart has its reasons which reason knows nothing of.",
+      "author": "Blaise Pascal",
+      "category": "Philosophy"
+    },
+    {
+      "month": 4,
+      "day": 23,
+      "text": "Excellence is never an accident. It is always the result of high intention and sincere effort.",
+      "author": "Aristotle",
+      "category": "Excellence"
+    },
+    {
+      "month": 4,
+      "day": 24,
+      "text": "We are what we repeatedly do. Excellence, then, is not an act, but a habit.",
+      "author": "Aristotle",
+      "category": "Habits"
+    },
+    {
+      "month": 4,
+      "day": 25,
+      "text": "Knowing yourself is the beginning of all wisdom.",
+      "author": "Aristotle",
+      "category": "Wisdom"
+    },
+    {
+      "month": 4,
+      "day": 26,
+      "text": "Patience is bitter, but its fruit is sweet.",
+      "author": "Aristotle",
+      "category": "Patience"
+    },
+    {
+      "month": 4,
+      "day": 27,
+      "text": "The more you know, the more you realize you do not know.",
+      "author": "Aristotle",
+      "category": "Humility"
+    },
+    {
+      "month": 4,
+      "day": 28,
+      "text": "Pleasure in the job puts perfection in the work.",
+      "author": "Aristotle",
+      "category": "Work"
+    },
+    {
+      "month": 4,
+      "day": 29,
+      "text": "Quality is not an act, it is a habit.",
+      "author": "Aristotle",
+      "category": "Excellence"
+    },
+    {
+      "month": 4,
+      "day": 30,
+      "text": "Hope is a waking dream.",
+      "author": "Aristotle",
+      "category": "Hope"
+    },
+    {
+      "month": 4,
+      "day": 31,
+      "text": "Change your thoughts and you change your world.",
+      "author": "Norman Vincent Peale",
+      "category": "Mindset"
+    },
+    {
+      "month": 5,
+      "day": 1,
+      "text": "Shoot for the moon. Even if you miss, you will land among the stars.",
+      "author": "Les Brown",
+      "category": "Ambition"
+    },
+    {
+      "month": 5,
+      "day": 2,
+      "text": "Well done is better than well said.",
+      "author": "Benjamin Franklin",
+      "category": "Action"
+    },
+    {
+      "month": 5,
+      "day": 3,
+      "text": "An investment in knowledge pays the best interest.",
+      "author": "Benjamin Franklin",
+      "category": "Education"
+    },
+    {
+      "month": 5,
+      "day": 4,
+      "text": "Tell me and I forget. Teach me and I remember. Involve me and I learn.",
+      "author": "Benjamin Franklin",
+      "category": "Learning"
+    },
+    {
+      "month": 5,
+      "day": 5,
+      "text": "By failing to prepare, you are preparing to fail.",
+      "author": "Benjamin Franklin",
+      "category": "Preparation"
+    },
+    {
+      "month": 5,
+      "day": 6,
+      "text": "Energy and persistence conquer all things.",
+      "author": "Benjamin Franklin",
+      "category": "Perseverance"
+    },
+    {
+      "month": 5,
+      "day": 7,
+      "text": "Either write something worth reading or do something worth writing.",
+      "author": "Benjamin Franklin",
+      "category": "Purpose"
+    },
+    {
+      "month": 5,
+      "day": 8,
+      "text": "Lost time is never found again.",
+      "author": "Benjamin Franklin",
+      "category": "Time"
+    },
+    {
+      "month": 5,
+      "day": 9,
+      "text": "Never leave that till tomorrow which you can do today.",
+      "author": "Benjamin Franklin",
+      "category": "Productivity"
+    },
+    {
+      "month": 5,
+      "day": 10,
+      "text": "Without continual growth and progress, such words as improvement and success have no meaning.",
+      "author": "Benjamin Franklin",
+      "category": "Growth"
+    },
+    {
+      "month": 5,
+      "day": 11,
+      "text": "The best revenge is massive success.",
+      "author": "Frank Sinatra",
+      "category": "Success"
+    },
+    {
+      "month": 5,
+      "day": 12,
+      "text": "I am not afraid of storms, for I am learning how to sail my ship.",
+      "author": "Louisa May Alcott",
+      "category": "Courage"
+    },
+    {
+      "month": 5,
+      "day": 13,
+      "text": "There are no shortcuts to any place worth going.",
+      "author": "Beverly Sills",
+      "category": "Perseverance"
+    },
+    {
+      "month": 5,
+      "day": 14,
+      "text": "The secret of success is to do the common thing uncommonly well.",
+      "author": "John D. Rockefeller Jr.",
+      "category": "Excellence"
+    },
+    {
+      "month": 5,
+      "day": 15,
+      "text": "If you genuinely want something, do not wait for it — teach yourself to be impatient.",
+      "author": "Gurbaksh Chahal",
+      "category": "Motivation"
+    },
+    {
+      "month": 5,
+      "day": 16,
+      "text": "Do one thing every day that scares you.",
+      "author": "Eleanor Roosevelt",
+      "category": "Courage"
+    },
+    {
+      "month": 5,
+      "day": 17,
+      "text": "With the new day comes new strength and new thoughts.",
+      "author": "Eleanor Roosevelt",
+      "category": "Motivation"
+    },
+    {
+      "month": 5,
+      "day": 18,
+      "text": "Great minds discuss ideas; average minds discuss events; small minds discuss people.",
+      "author": "Eleanor Roosevelt",
+      "category": "Wisdom"
+    },
+    {
+      "month": 5,
+      "day": 19,
+      "text": "Beautiful young people are accidents of nature, but beautiful old people are works of art.",
+      "author": "Eleanor Roosevelt",
+      "category": "Wisdom"
+    },
+    {
+      "month": 5,
+      "day": 20,
+      "text": "The purpose of life is to contribute in some way to making things better.",
+      "author": "Robert F. Kennedy",
+      "category": "Purpose"
+    },
+    {
+      "month": 5,
+      "day": 21,
+      "text": "It is not the strongest of the species that survives, nor the most intelligent; it is the most adaptable.",
+      "author": "Charles Darwin",
+      "category": "Adaptability"
+    },
+    {
+      "month": 5,
+      "day": 22,
+      "text": "A journey of a thousand miles begins with a single step.",
+      "author": "Lao Tzu",
+      "category": "Action"
+    },
+    {
+      "month": 5,
+      "day": 23,
+      "text": "When I let go of what I am, I become what I might be.",
+      "author": "Lao Tzu",
+      "category": "Growth"
+    },
+    {
+      "month": 5,
+      "day": 24,
+      "text": "Nature does not hurry, yet everything is accomplished.",
+      "author": "Lao Tzu",
+      "category": "Patience"
+    },
+    {
+      "month": 5,
+      "day": 25,
+      "text": "Knowing others is wisdom. Knowing yourself is enlightenment.",
+      "author": "Lao Tzu",
+      "category": "Self-awareness"
+    },
+    {
+      "month": 5,
+      "day": 26,
+      "text": "To the mind that is still, the whole universe surrenders.",
+      "author": "Lao Tzu",
+      "category": "Inner Peace"
+    },
+    {
+      "month": 5,
+      "day": 27,
+      "text": "Life is really simple, but we insist on making it complicated.",
+      "author": "Confucius",
+      "category": "Simplicity"
+    },
+    {
+      "month": 5,
+      "day": 28,
+      "text": "Before you embark on a journey of revenge, dig two graves.",
+      "author": "Confucius",
+      "category": "Wisdom"
+    },
+    {
+      "month": 5,
+      "day": 29,
+      "text": "It does not matter how slowly you go so long as you do not stop.",
+      "author": "Confucius",
+      "category": "Perseverance"
+    },
+    {
+      "month": 5,
+      "day": 30,
+      "text": "When it is obvious that the goals cannot be reached, do not adjust the goals, adjust the action steps.",
+      "author": "Confucius",
+      "category": "Adaptability"
+    },
+    {
+      "month": 5,
+      "day": 31,
+      "text": "Wherever you go, go with all your heart.",
+      "author": "Confucius",
+      "category": "Commitment"
+    },
+    {
+      "month": 6,
+      "day": 1,
+      "text": "The will to win, the desire to succeed, the urge to reach your full potential — these are the keys that will unlock the door to personal excellence.",
+      "author": "Confucius",
+      "category": "Excellence"
+    },
+    {
+      "month": 6,
+      "day": 2,
+      "text": "Be not afraid of greatness. Some are born great, some achieve greatness, and some have greatness thrust upon them.",
+      "author": "William Shakespeare",
+      "category": "Greatness"
+    },
+    {
+      "month": 6,
+      "day": 3,
+      "text": "We know what we are, but know not what we may be.",
+      "author": "William Shakespeare",
+      "category": "Potential"
+    },
+    {
+      "month": 6,
+      "day": 4,
+      "text": "All the world is a stage, and all the men and women merely players.",
+      "author": "William Shakespeare",
+      "category": "Philosophy"
+    },
+    {
+      "month": 6,
+      "day": 5,
+      "text": "There is nothing either good or bad, but thinking makes it so.",
+      "author": "William Shakespeare",
+      "category": "Mindset"
+    },
+    {
+      "month": 6,
+      "day": 6,
+      "text": "Our doubts are traitors, and make us lose the good we oft might win, by fearing to attempt.",
+      "author": "William Shakespeare",
+      "category": "Courage"
+    },
+    {
+      "month": 6,
+      "day": 7,
+      "text": "What's in a name? That which we call a rose by any other name would smell as sweet.",
+      "author": "William Shakespeare",
+      "category": "Philosophy"
+    },
+    {
+      "month": 6,
+      "day": 8,
+      "text": "Love all, trust a few, do wrong to none.",
+      "author": "William Shakespeare",
+      "category": "Wisdom"
+    },
+    {
+      "month": 6,
+      "day": 9,
+      "text": "Give every man thine ear, but few thy voice.",
+      "author": "William Shakespeare",
+      "category": "Wisdom"
+    },
+    {
+      "month": 6,
+      "day": 10,
+      "text": "The robbed that smiles, steals something from the thief.",
+      "author": "William Shakespeare",
+      "category": "Resilience"
+    },
+    {
+      "month": 6,
+      "day": 11,
+      "text": "How sharper than a serpent's tooth it is to have a thankless child.",
+      "author": "William Shakespeare",
+      "category": "Gratitude"
+    },
+    {
+      "month": 6,
+      "day": 12,
+      "text": "The course of true love never did run smooth.",
+      "author": "William Shakespeare",
+      "category": "Love"
+    },
+    {
+      "month": 6,
+      "day": 13,
+      "text": "I am not bound to please thee with my answers.",
+      "author": "William Shakespeare",
+      "category": "Authenticity"
+    },
+    {
+      "month": 6,
+      "day": 14,
+      "text": "We are such stuff as dreams are made on, and our little life is rounded with a sleep.",
+      "author": "William Shakespeare",
+      "category": "Philosophy"
+    },
+    {
+      "month": 6,
+      "day": 15,
+      "text": "Brevity is the soul of wit.",
+      "author": "William Shakespeare",
+      "category": "Wisdom"
+    },
+    {
+      "month": 6,
+      "day": 16,
+      "text": "The fool doth think he is wise, but the wise man knows himself to be a fool.",
+      "author": "William Shakespeare",
+      "category": "Humility"
+    },
+    {
+      "month": 6,
+      "day": 17,
+      "text": "We know what we are, but know not what we may be.",
+      "author": "William Shakespeare",
+      "category": "Potential"
+    },
+    {
+      "month": 6,
+      "day": 18,
+      "text": "The quality of mercy is not strained; it droppeth as the gentle rain from heaven.",
+      "author": "William Shakespeare",
+      "category": "Compassion"
+    },
+    {
+      "month": 6,
+      "day": 19,
+      "text": "Cowards die many times before their deaths; the valiant never taste of death but once.",
+      "author": "William Shakespeare",
+      "category": "Courage"
+    },
+    {
+      "month": 6,
+      "day": 20,
+      "text": "How poor are they that have not patience.",
+      "author": "William Shakespeare",
+      "category": "Patience"
+    },
+    {
+      "month": 6,
+      "day": 21,
+      "text": "The pain of parting is nothing to the joy of meeting again.",
+      "author": "Charles Dickens",
+      "category": "Hope"
+    },
+    {
+      "month": 6,
+      "day": 22,
+      "text": "No one is useless in this world who lightens the burdens of another.",
+      "author": "Charles Dickens",
+      "category": "Service"
+    },
+    {
+      "month": 6,
+      "day": 23,
+      "text": "Have a heart that never hardens, a temper that never tires, a touch that never hurts.",
+      "author": "Charles Dickens",
+      "category": "Kindness"
+    },
+    {
+      "month": 6,
+      "day": 24,
+      "text": "It was the best of times, it was the worst of times — but it was always a time to keep going.",
+      "author": "Charles Dickens",
+      "category": "Resilience"
+    },
+    {
+      "month": 6,
+      "day": 25,
+      "text": "Reflect upon your present blessings, of which every man has many.",
+      "author": "Charles Dickens",
+      "category": "Gratitude"
+    },
+    {
+      "month": 6,
+      "day": 26,
+      "text": "Whatever I have tried to do in life, I have tried with all my heart to do it well.",
+      "author": "Charles Dickens",
+      "category": "Commitment"
+    },
+    {
+      "month": 6,
+      "day": 27,
+      "text": "A loving heart is the truest wisdom.",
+      "author": "Charles Dickens",
+      "category": "Love"
+    },
+    {
+      "month": 6,
+      "day": 28,
+      "text": "There is nothing I would not do for those who are really my friends.",
+      "author": "Jane Austen",
+      "category": "Friendship"
+    },
+    {
+      "month": 6,
+      "day": 29,
+      "text": "I declare after all there is no enjoyment like reading.",
+      "author": "Jane Austen",
+      "category": "Learning"
+    },
+    {
+      "month": 6,
+      "day": 30,
+      "text": "One half of the world cannot understand the pleasures of the other.",
+      "author": "Jane Austen",
+      "category": "Empathy"
+    },
+    {
+      "month": 6,
+      "day": 31,
+      "text": "Silly things do cease to be silly if they are done by sensible people in an impudent way.",
+      "author": "Jane Austen",
+      "category": "Wisdom"
+    },
+    {
+      "month": 7,
+      "day": 1,
+      "text": "There is no charm equal to tenderness of heart.",
+      "author": "Jane Austen",
+      "category": "Kindness"
+    },
+    {
+      "month": 7,
+      "day": 2,
+      "text": "To be fond of dancing was a certain step towards falling in love.",
+      "author": "Jane Austen",
+      "category": "Joy"
+    },
+    {
+      "month": 7,
+      "day": 3,
+      "text": "The secret of change is to focus all of your energy not on fighting the old, but on building the new.",
+      "author": "Socrates",
+      "category": "Change"
+    },
+    {
+      "month": 7,
+      "day": 4,
+      "text": "The only true wisdom is in knowing you know nothing.",
+      "author": "Socrates",
+      "category": "Humility"
+    },
+    {
+      "month": 7,
+      "day": 5,
+      "text": "Strong minds discuss ideas, average minds discuss events, weak minds discuss people.",
+      "author": "Socrates",
+      "category": "Wisdom"
+    },
+    {
+      "month": 7,
+      "day": 6,
+      "text": "He who is not contented with what he has, would not be contented with what he would like to have.",
+      "author": "Socrates",
+      "category": "Contentment"
+    },
+    {
+      "month": 7,
+      "day": 7,
+      "text": "Employ your time in improving yourself by other men's writings, so that you shall gain easily what others have labored hard for.",
+      "author": "Socrates",
+      "category": "Learning"
+    },
+    {
+      "month": 7,
+      "day": 8,
+      "text": "To move the world, we must first move ourselves.",
+      "author": "Socrates",
+      "category": "Self-improvement"
+    },
+    {
+      "month": 7,
+      "day": 9,
+      "text": "Contentment is natural wealth, luxury is artificial poverty.",
+      "author": "Socrates",
+      "category": "Contentment"
+    },
+    {
+      "month": 7,
+      "day": 10,
+      "text": "I cannot teach anybody anything. I can only make them think.",
+      "author": "Socrates",
+      "category": "Learning"
+    },
+    {
+      "month": 7,
+      "day": 11,
+      "text": "The measure of a man is what he does with power.",
+      "author": "Plato",
+      "category": "Character"
+    },
+    {
+      "month": 7,
+      "day": 12,
+      "text": "At the touch of love, everyone becomes a poet.",
+      "author": "Plato",
+      "category": "Love"
+    },
+    {
+      "month": 7,
+      "day": 13,
+      "text": "Wise men talk because they have something to say; fools because they have to say something.",
+      "author": "Plato",
+      "category": "Wisdom"
+    },
+    {
+      "month": 7,
+      "day": 14,
+      "text": "You can discover more about a person in an hour of play than in a year of conversation.",
+      "author": "Plato",
+      "category": "Character"
+    },
+    {
+      "month": 7,
+      "day": 15,
+      "text": "Courage is knowing what not to fear.",
+      "author": "Plato",
+      "category": "Courage"
+    },
+    {
+      "month": 7,
+      "day": 16,
+      "text": "No man should bring children into the world who is unwilling to persevere to the end in their nature and education.",
+      "author": "Plato",
+      "category": "Responsibility"
+    },
+    {
+      "month": 7,
+      "day": 17,
+      "text": "The beginning is the most important part of the work.",
+      "author": "Plato",
+      "category": "Action"
+    },
+    {
+      "month": 7,
+      "day": 18,
+      "text": "Good actions give strength to ourselves and inspire good actions in others.",
+      "author": "Plato",
+      "category": "Virtue"
+    },
+    {
+      "month": 7,
+      "day": 19,
+      "text": "There are three classes of men: lovers of wisdom, lovers of honor, and lovers of gain.",
+      "author": "Plato",
+      "category": "Philosophy"
+    },
+    {
+      "month": 7,
+      "day": 20,
+      "text": "One of the penalties for refusing to participate in politics is that you end up being governed by your inferiors.",
+      "author": "Plato",
+      "category": "Leadership"
+    },
+    {
+      "month": 7,
+      "day": 21,
+      "text": "Never discourage anyone who continually makes progress, no matter how slow.",
+      "author": "Plato",
+      "category": "Encouragement"
+    },
+    {
+      "month": 7,
+      "day": 22,
+      "text": "Every heart sings a song, incomplete, until another heart whispers back.",
+      "author": "Plato",
+      "category": "Love"
+    },
+    {
+      "month": 7,
+      "day": 23,
+      "text": "There is no harm in repeating a good thing.",
+      "author": "Plato",
+      "category": "Wisdom"
+    },
+    {
+      "month": 7,
+      "day": 24,
+      "text": "The price of anything is the amount of life you exchange for it.",
+      "author": "Henry David Thoreau",
+      "category": "Time"
+    },
+    {
+      "month": 7,
+      "day": 25,
+      "text": "If you have built castles in the air, your work need not be lost; that is where they should be. Now put the foundations under them.",
+      "author": "Henry David Thoreau",
+      "category": "Dreams"
+    },
+    {
+      "month": 7,
+      "day": 26,
+      "text": "You must live in the present, launch yourself on every wave, find your eternity in each moment.",
+      "author": "Henry David Thoreau",
+      "category": "Mindfulness"
+    },
+    {
+      "month": 7,
+      "day": 27,
+      "text": "Things do not change; we change.",
+      "author": "Henry David Thoreau",
+      "category": "Self-improvement"
+    },
+    {
+      "month": 7,
+      "day": 28,
+      "text": "Success is finding satisfaction in giving a little more than you take.",
+      "author": "Christopher Reeve",
+      "category": "Service"
+    },
+    {
+      "month": 7,
+      "day": 29,
+      "text": "The only way to have a friend is to be one.",
+      "author": "Ralph Waldo Emerson",
+      "category": "Friendship"
+    },
+    {
+      "month": 7,
+      "day": 30,
+      "text": "Do not go where the path may lead; go instead where there is no path and leave a trail.",
+      "author": "Ralph Waldo Emerson",
+      "category": "Leadership"
+    },
+    {
+      "month": 7,
+      "day": 31,
+      "text": "The earth laughs in flowers.",
+      "author": "Ralph Waldo Emerson",
+      "category": "Nature"
+    },
+    {
+      "month": 8,
+      "day": 1,
+      "text": "Finish each day and be done with it. Tomorrow is a new day.",
+      "author": "Ralph Waldo Emerson",
+      "category": "Resilience"
+    },
+    {
+      "month": 8,
+      "day": 2,
+      "text": "Do not be too timid and squeamish about your actions. All life is an experiment.",
+      "author": "Ralph Waldo Emerson",
+      "category": "Courage"
+    },
+    {
+      "month": 8,
+      "day": 3,
+      "text": "The greatest glory in living lies not in never falling, but in rising every time we fall.",
+      "author": "Nelson Mandela",
+      "category": "Resilience"
+    },
+    {
+      "month": 8,
+      "day": 4,
+      "text": "Real generosity toward the future lies in giving all to the present.",
+      "author": "Albert Camus",
+      "category": "Commitment"
+    },
+    {
+      "month": 8,
+      "day": 5,
+      "text": "In the depth of winter, I finally learned that within me there lay an invincible summer.",
+      "author": "Albert Camus",
+      "category": "Inner Strength"
+    },
+    {
+      "month": 8,
+      "day": 6,
+      "text": "You will never be happy if you continue to search for what happiness consists of.",
+      "author": "Albert Camus",
+      "category": "Happiness"
+    },
+    {
+      "month": 8,
+      "day": 7,
+      "text": "Always go too far, because that is where you will find the truth.",
+      "author": "Albert Camus",
+      "category": "Truth"
+    },
+    {
+      "month": 8,
+      "day": 8,
+      "text": "Blessed are the hearts that can bend; they shall never be broken.",
+      "author": "Albert Camus",
+      "category": "Resilience"
+    },
+    {
+      "month": 8,
+      "day": 9,
+      "text": "Don't walk behind me; I may not lead. Don't walk in front of me; I may not follow. Just walk beside me and be my friend.",
+      "author": "Albert Camus",
+      "category": "Friendship"
+    },
+    {
+      "month": 8,
+      "day": 10,
+      "text": "Those who cannot change their minds cannot change anything.",
+      "author": "George Bernard Shaw",
+      "category": "Change"
+    },
+    {
+      "month": 8,
+      "day": 11,
+      "text": "Life is not about finding yourself. Life is about creating yourself.",
+      "author": "George Bernard Shaw",
+      "category": "Self-creation"
+    },
+    {
+      "month": 8,
+      "day": 12,
+      "text": "Progress is impossible without change, and those who cannot change their minds cannot change anything.",
+      "author": "George Bernard Shaw",
+      "category": "Progress"
+    },
+    {
+      "month": 8,
+      "day": 13,
+      "text": "The single biggest problem in communication is the illusion that it has taken place.",
+      "author": "George Bernard Shaw",
+      "category": "Communication"
+    },
+    {
+      "month": 8,
+      "day": 14,
+      "text": "A life spent making mistakes is not only more honorable, but more useful than a life spent doing nothing.",
+      "author": "George Bernard Shaw",
+      "category": "Growth"
+    },
+    {
+      "month": 8,
+      "day": 15,
+      "text": "You see things; and you say 'Why?' But I dream things that never were; and I say 'Why not?'",
+      "author": "George Bernard Shaw",
+      "category": "Vision"
+    },
+    {
+      "month": 8,
+      "day": 16,
+      "text": "The reasonable man adapts himself to the world; the unreasonable one persists in trying to adapt the world to himself.",
+      "author": "George Bernard Shaw",
+      "category": "Change"
+    },
+    {
+      "month": 8,
+      "day": 17,
+      "text": "We are made wise not by the recollection of our past, but by the responsibility for our future.",
+      "author": "George Bernard Shaw",
+      "category": "Responsibility"
+    },
+    {
+      "month": 8,
+      "day": 18,
+      "text": "The secret to getting ahead is getting started.",
+      "author": "Agatha Christie",
+      "category": "Action"
+    },
+    {
+      "month": 8,
+      "day": 19,
+      "text": "I like living. I have sometimes been wildly, despairingly, acutely miserable, but through it all I still know quite certainly that just to be alive is a grand thing.",
+      "author": "Agatha Christie",
+      "category": "Gratitude"
+    },
+    {
+      "month": 8,
+      "day": 20,
+      "text": "Good advice is always certain to be ignored, but that is no reason not to give it.",
+      "author": "Agatha Christie",
+      "category": "Wisdom"
+    },
+    {
+      "month": 8,
+      "day": 21,
+      "text": "One is left with the horrible feeling now that war settles nothing; that to win a war is as disastrous as to lose one.",
+      "author": "Agatha Christie",
+      "category": "Peace"
+    },
+    {
+      "month": 8,
+      "day": 22,
+      "text": "The best time to plan a book is while you are doing the dishes.",
+      "author": "Agatha Christie",
+      "category": "Creativity"
+    },
+    {
+      "month": 8,
+      "day": 23,
+      "text": "To know is nothing at all; to imagine is everything.",
+      "author": "Anatole France",
+      "category": "Imagination"
+    },
+    {
+      "month": 8,
+      "day": 24,
+      "text": "If you want to go fast, go alone. If you want to go far, go together.",
+      "author": "African Proverb",
+      "category": "Teamwork"
+    },
+    {
+      "month": 8,
+      "day": 25,
+      "text": "Until the lion learns to write, every story will glorify the hunter.",
+      "author": "African Proverb",
+      "category": "Empowerment"
+    },
+    {
+      "month": 8,
+      "day": 26,
+      "text": "A child who is not embraced by the village will burn it down to feel its warmth.",
+      "author": "African Proverb",
+      "category": "Community"
+    },
+    {
+      "month": 8,
+      "day": 27,
+      "text": "Rain does not fall on one roof alone.",
+      "author": "African Proverb",
+      "category": "Community"
+    },
+    {
+      "month": 8,
+      "day": 28,
+      "text": "The axe forgets, but the tree remembers.",
+      "author": "African Proverb",
+      "category": "Empathy"
+    },
+    {
+      "month": 8,
+      "day": 29,
+      "text": "When the music changes, so does the dance.",
+      "author": "African Proverb",
+      "category": "Adaptability"
+    },
+    {
+      "month": 8,
+      "day": 30,
+      "text": "Smooth seas do not make skillful sailors.",
+      "author": "African Proverb",
+      "category": "Growth"
+    },
+    {
+      "month": 8,
+      "day": 31,
+      "text": "He who does not know one thing knows another.",
+      "author": "African Proverb",
+      "category": "Wisdom"
+    },
+    {
+      "month": 9,
+      "day": 1,
+      "text": "However long the night, the dawn will break.",
+      "author": "African Proverb",
+      "category": "Hope"
+    },
+    {
+      "month": 9,
+      "day": 2,
+      "text": "Not everything that is faced can be changed, but nothing can be changed until it is faced.",
+      "author": "James Baldwin",
+      "category": "Change"
+    },
+    {
+      "month": 9,
+      "day": 3,
+      "text": "Not everything that is faced can be changed, but nothing can be changed until it is faced.",
+      "author": "James Baldwin",
+      "category": "Courage"
+    },
+    {
+      "month": 9,
+      "day": 4,
+      "text": "I am not what happened to me. I am what I choose to become.",
+      "author": "Carl Jung",
+      "category": "Self-creation"
+    },
+    {
+      "month": 9,
+      "day": 5,
+      "text": "The most terrifying thing is to accept oneself completely.",
+      "author": "Carl Jung",
+      "category": "Self-acceptance"
+    },
+    {
+      "month": 9,
+      "day": 6,
+      "text": "Your vision will become clear only when you can look into your own heart.",
+      "author": "Carl Jung",
+      "category": "Self-awareness"
+    },
+    {
+      "month": 9,
+      "day": 7,
+      "text": "Knowing your own darkness is the best method for dealing with the darknesses of other people.",
+      "author": "Carl Jung",
+      "category": "Self-awareness"
+    },
+    {
+      "month": 9,
+      "day": 8,
+      "text": "Even a happy life cannot be without a measure of darkness, and the word happy would lose its meaning if it were not balanced by sadness.",
+      "author": "Carl Jung",
+      "category": "Balance"
+    },
+    {
+      "month": 9,
+      "day": 9,
+      "text": "The meeting of two personalities is like the contact of two chemical substances: if there is any reaction, both are transformed.",
+      "author": "Carl Jung",
+      "category": "Relationships"
+    },
+    {
+      "month": 9,
+      "day": 10,
+      "text": "In all chaos there is a cosmos, in all disorder a secret order.",
+      "author": "Carl Jung",
+      "category": "Philosophy"
+    },
+    {
+      "month": 9,
+      "day": 11,
+      "text": "Until you make the unconscious conscious, it will direct your life and you will call it fate.",
+      "author": "Carl Jung",
+      "category": "Self-awareness"
+    },
+    {
+      "month": 9,
+      "day": 12,
+      "text": "Life really does begin at forty. Up until then, you are just doing research.",
+      "author": "Carl Jung",
+      "category": "Philosophy"
+    },
+    {
+      "month": 9,
+      "day": 13,
+      "text": "The privilege of a lifetime is to become who you truly are.",
+      "author": "Carl Jung",
+      "category": "Authenticity"
+    },
+    {
+      "month": 9,
+      "day": 14,
+      "text": "Show me a man or woman alone and I will show you a saint. Give them a family, and they will show you a devil.",
+      "author": "Eugene O'Neill",
+      "category": "Human Nature"
+    },
+    {
+      "month": 9,
+      "day": 15,
+      "text": "The secret of joy in work is contained in one word — excellence.",
+      "author": "Pearl S. Buck",
+      "category": "Excellence"
+    },
+    {
+      "month": 9,
+      "day": 16,
+      "text": "You cannot make yourself feel something you do not feel, but you can make yourself do right in spite of your feelings.",
+      "author": "Pearl S. Buck",
+      "category": "Character"
+    },
+    {
+      "month": 9,
+      "day": 17,
+      "text": "You can judge your age by the amount of pain you feel when you come in contact with a new idea.",
+      "author": "Pearl S. Buck",
+      "category": "Growth"
+    },
+    {
+      "month": 9,
+      "day": 18,
+      "text": "All things are possible until they are proved impossible — and even the impossible may only be so, as of now.",
+      "author": "Pearl S. Buck",
+      "category": "Possibility"
+    },
+    {
+      "month": 9,
+      "day": 19,
+      "text": "Daring ideas are like chessmen moved forward; they may be beaten, but they may start a winning game.",
+      "author": "Johann Wolfgang von Goethe",
+      "category": "Courage"
+    },
+    {
+      "month": 9,
+      "day": 20,
+      "text": "Whatever you can do, or dream you can, begin it. Boldness has genius, power, and magic in it.",
+      "author": "Johann Wolfgang von Goethe",
+      "category": "Action"
+    },
+    {
+      "month": 9,
+      "day": 21,
+      "text": "Knowing is not enough; we must apply. Willing is not enough; we must do.",
+      "author": "Johann Wolfgang von Goethe",
+      "category": "Action"
+    },
+    {
+      "month": 9,
+      "day": 22,
+      "text": "One ought, every day at least, to hear a little song, read a good poem, see a fine picture, and speak a few reasonable words.",
+      "author": "Johann Wolfgang von Goethe",
+      "category": "Culture"
+    },
+    {
+      "month": 9,
+      "day": 23,
+      "text": "A man sees in the world what he carries in his heart.",
+      "author": "Johann Wolfgang von Goethe",
+      "category": "Perspective"
+    },
+    {
+      "month": 9,
+      "day": 24,
+      "text": "As soon as you trust yourself, you will know how to live.",
+      "author": "Johann Wolfgang von Goethe",
+      "category": "Self-trust"
+    },
+    {
+      "month": 9,
+      "day": 25,
+      "text": "Treat people as if they were what they ought to be and you help them to become what they are capable of being.",
+      "author": "Johann Wolfgang von Goethe",
+      "category": "Leadership"
+    },
+    {
+      "month": 9,
+      "day": 26,
+      "text": "If children grew up according to early indications, we should have nothing but geniuses.",
+      "author": "Johann Wolfgang von Goethe",
+      "category": "Education"
+    },
+    {
+      "month": 9,
+      "day": 27,
+      "text": "The intelligent man finds almost everything ridiculous, the sensible man hardly anything.",
+      "author": "Johann Wolfgang von Goethe",
+      "category": "Wisdom"
+    },
+    {
+      "month": 9,
+      "day": 28,
+      "text": "Difficulties increase the nearer we approach the goal.",
+      "author": "Johann Wolfgang von Goethe",
+      "category": "Perseverance"
+    },
+    {
+      "month": 9,
+      "day": 29,
+      "text": "The soul that sees beauty may sometimes walk alone.",
+      "author": "Johann Wolfgang von Goethe",
+      "category": "Solitude"
+    },
+    {
+      "month": 9,
+      "day": 30,
+      "text": "Nothing is worth more than this day.",
+      "author": "Johann Wolfgang von Goethe",
+      "category": "Mindfulness"
+    },
+    {
+      "month": 10,
+      "day": 1,
+      "text": "The most common form of despair is not being who you are.",
+      "author": "Søren Kierkegaard",
+      "category": "Authenticity"
+    },
+    {
+      "month": 10,
+      "day": 2,
+      "text": "Life can only be understood backwards; but it must be lived forwards.",
+      "author": "Søren Kierkegaard",
+      "category": "Philosophy"
+    },
+    {
+      "month": 10,
+      "day": 3,
+      "text": "The most painful state of being is remembering the future, particularly the one you will never have.",
+      "author": "Søren Kierkegaard",
+      "category": "Philosophy"
+    },
+    {
+      "month": 10,
+      "day": 4,
+      "text": "Anxiety is the dizziness of freedom.",
+      "author": "Søren Kierkegaard",
+      "category": "Philosophy"
+    },
+    {
+      "month": 10,
+      "day": 5,
+      "text": "To dare is to lose one's footing momentarily. To not dare is to lose oneself.",
+      "author": "Søren Kierkegaard",
+      "category": "Courage"
+    },
+    {
+      "month": 10,
+      "day": 6,
+      "text": "People demand freedom of speech as a compensation for the freedom of thought which they seldom use.",
+      "author": "Søren Kierkegaard",
+      "category": "Wisdom"
+    },
+    {
+      "month": 10,
+      "day": 7,
+      "text": "The function of prayer is not to influence God, but rather to change the nature of the one who prays.",
+      "author": "Søren Kierkegaard",
+      "category": "Spirituality"
+    },
+    {
+      "month": 10,
+      "day": 8,
+      "text": "Once you label me you negate me.",
+      "author": "Søren Kierkegaard",
+      "category": "Identity"
+    },
+    {
+      "month": 10,
+      "day": 9,
+      "text": "What I really need is to get clear about what I must do, not what I must know.",
+      "author": "Søren Kierkegaard",
+      "category": "Purpose"
+    },
+    {
+      "month": 10,
+      "day": 10,
+      "text": "God creates out of nothing. Wonderful you say. Yes, to be sure, but He does what is still more wonderful: He makes saints out of sinners.",
+      "author": "Søren Kierkegaard",
+      "category": "Faith"
+    },
+    {
+      "month": 10,
+      "day": 11,
+      "text": "The wound is the place where the Light enters you.",
+      "author": "Rumi",
+      "category": "Healing"
+    },
+    {
+      "month": 10,
+      "day": 12,
+      "text": "Out beyond ideas of wrongdoing and rightdoing, there is a field. I will meet you there.",
+      "author": "Rumi",
+      "category": "Philosophy"
+    },
+    {
+      "month": 10,
+      "day": 13,
+      "text": "What you seek is seeking you.",
+      "author": "Rumi",
+      "category": "Spirituality"
+    },
+    {
+      "month": 10,
+      "day": 14,
+      "text": "Do not be satisfied with the stories that come before you. Unfold your own myth.",
+      "author": "Rumi",
+      "category": "Self-creation"
+    },
+    {
+      "month": 10,
+      "day": 15,
+      "text": "Raise your words, not voice. It is rain that grows flowers, not thunder.",
+      "author": "Rumi",
+      "category": "Communication"
+    },
+    {
+      "month": 10,
+      "day": 16,
+      "text": "The quieter you become, the more you are able to hear.",
+      "author": "Rumi",
+      "category": "Mindfulness"
+    },
+    {
+      "month": 10,
+      "day": 17,
+      "text": "Yesterday I was clever, so I wanted to change the world. Today I am wise, so I am changing myself.",
+      "author": "Rumi",
+      "category": "Wisdom"
+    },
+    {
+      "month": 10,
+      "day": 18,
+      "text": "When you do things from your soul, you feel a river moving in you, a joy.",
+      "author": "Rumi",
+      "category": "Joy"
+    },
+    {
+      "month": 10,
+      "day": 19,
+      "text": "Stop acting so small. You are the universe in ecstatic motion.",
+      "author": "Rumi",
+      "category": "Self-worth"
+    },
+    {
+      "month": 10,
+      "day": 20,
+      "text": "Let yourself be silently drawn by the strange pull of what you really love.",
+      "author": "Rumi",
+      "category": "Passion"
+    },
+    {
+      "month": 10,
+      "day": 21,
+      "text": "Sell your cleverness and buy bewilderment.",
+      "author": "Rumi",
+      "category": "Humility"
+    },
+    {
+      "month": 10,
+      "day": 22,
+      "text": "Be a lamp, or a lifeboat, or a ladder. Help someone's soul heal.",
+      "author": "Rumi",
+      "category": "Service"
+    },
+    {
+      "month": 10,
+      "day": 23,
+      "text": "Live where you fear to live. Destroy your reputation. Be notorious.",
+      "author": "Rumi",
+      "category": "Courage"
+    },
+    {
+      "month": 10,
+      "day": 24,
+      "text": "Be grateful for whoever comes, because each has been sent as a guide from beyond.",
+      "author": "Rumi",
+      "category": "Gratitude"
+    },
+    {
+      "month": 10,
+      "day": 25,
+      "text": "Ignore those that make you fearful and sad, that degrade you back towards disease and death.",
+      "author": "Rumi",
+      "category": "Self-care"
+    },
+    {
+      "month": 10,
+      "day": 26,
+      "text": "When I am silent, I have thunder hidden inside.",
+      "author": "Rumi",
+      "category": "Inner Strength"
+    },
+    {
+      "month": 10,
+      "day": 27,
+      "text": "Travel brings power and love back into your life.",
+      "author": "Rumi",
+      "category": "Adventure"
+    },
+    {
+      "month": 10,
+      "day": 28,
+      "text": "Your task is not to seek for love, but merely to seek and find all the barriers within yourself that you have built against it.",
+      "author": "Rumi",
+      "category": "Love"
+    },
+    {
+      "month": 10,
+      "day": 29,
+      "text": "Work in the invisible world at least as hard as you do in the visible.",
+      "author": "Rumi",
+      "category": "Spirituality"
+    },
+    {
+      "month": 10,
+      "day": 30,
+      "text": "Why do you stay in prison when the door is so wide open?",
+      "author": "Rumi",
+      "category": "Freedom"
+    },
+    {
+      "month": 11,
+      "day": 1,
+      "text": "He who has a why to live can bear almost any how.",
+      "author": "Friedrich Nietzsche",
+      "category": "Purpose"
+    },
+    {
+      "month": 11,
+      "day": 2,
+      "text": "Without music, life would be a mistake.",
+      "author": "Friedrich Nietzsche",
+      "category": "Art"
+    },
+    {
+      "month": 11,
+      "day": 3,
+      "text": "That which does not kill us makes us stronger.",
+      "author": "Friedrich Nietzsche",
+      "category": "Resilience"
+    },
+    {
+      "month": 11,
+      "day": 4,
+      "text": "In individuals, insanity is rare; but in groups, parties, nations, and epochs, it is the rule.",
+      "author": "Friedrich Nietzsche",
+      "category": "Society"
+    },
+    {
+      "month": 11,
+      "day": 5,
+      "text": "The higher we soar, the smaller we appear to those who cannot fly.",
+      "author": "Friedrich Nietzsche",
+      "category": "Vision"
+    },
+    {
+      "month": 11,
+      "day": 6,
+      "text": "There are no facts, only interpretations.",
+      "author": "Friedrich Nietzsche",
+      "category": "Philosophy"
+    },
+    {
+      "month": 11,
+      "day": 7,
+      "text": "One must still have chaos in oneself to be able to give birth to a dancing star.",
+      "author": "Friedrich Nietzsche",
+      "category": "Creativity"
+    },
+    {
+      "month": 11,
+      "day": 8,
+      "text": "The secret for harvesting from existence the greatest fruitfulness and the greatest enjoyment is to live dangerously.",
+      "author": "Friedrich Nietzsche",
+      "category": "Courage"
+    },
+    {
+      "month": 11,
+      "day": 9,
+      "text": "We love life, not because we are used to living but because we are used to loving.",
+      "author": "Friedrich Nietzsche",
+      "category": "Love"
+    },
+    {
+      "month": 11,
+      "day": 10,
+      "text": "The man of knowledge must be able not only to love his enemies but also to hate his friends.",
+      "author": "Friedrich Nietzsche",
+      "category": "Wisdom"
+    },
+    {
+      "month": 11,
+      "day": 11,
+      "text": "The surest way to corrupt a youth is to instruct him to hold in higher esteem those who think alike than those who think differently.",
+      "author": "Friedrich Nietzsche",
+      "category": "Education"
+    },
+    {
+      "month": 11,
+      "day": 12,
+      "text": "Blessed are the forgetful, for they get the better even of their blunders.",
+      "author": "Friedrich Nietzsche",
+      "category": "Forgiveness"
+    },
+    {
+      "month": 11,
+      "day": 13,
+      "text": "To live is to suffer, to survive is to find some meaning in the suffering.",
+      "author": "Friedrich Nietzsche",
+      "category": "Resilience"
+    },
+    {
+      "month": 11,
+      "day": 14,
+      "text": "In every real man a child is hidden that wants to play.",
+      "author": "Friedrich Nietzsche",
+      "category": "Joy"
+    },
+    {
+      "month": 11,
+      "day": 15,
+      "text": "Become who you are.",
+      "author": "Friedrich Nietzsche",
+      "category": "Authenticity"
+    },
+    {
+      "month": 11,
+      "day": 16,
+      "text": "The biggest adventure you can take is to live the life of your dreams.",
+      "author": "Oprah Winfrey",
+      "category": "Dreams"
+    },
+    {
+      "month": 11,
+      "day": 17,
+      "text": "You get in life what you have the courage to ask for.",
+      "author": "Oprah Winfrey",
+      "category": "Courage"
+    },
+    {
+      "month": 11,
+      "day": 18,
+      "text": "The more you praise and celebrate your life, the more there is in life to celebrate.",
+      "author": "Oprah Winfrey",
+      "category": "Gratitude"
+    },
+    {
+      "month": 11,
+      "day": 19,
+      "text": "Turn your wounds into wisdom.",
+      "author": "Oprah Winfrey",
+      "category": "Growth"
+    },
+    {
+      "month": 11,
+      "day": 20,
+      "text": "Create the highest, grandest vision possible for your life, because you become what you believe.",
+      "author": "Oprah Winfrey",
+      "category": "Vision"
+    },
+    {
+      "month": 11,
+      "day": 21,
+      "text": "Real integrity is doing the right thing, knowing that nobody is going to know whether you did it or not.",
+      "author": "Oprah Winfrey",
+      "category": "Integrity"
+    },
+    {
+      "month": 11,
+      "day": 22,
+      "text": "Surround yourself with only people who are going to lift you higher.",
+      "author": "Oprah Winfrey",
+      "category": "Relationships"
+    },
+    {
+      "month": 11,
+      "day": 23,
+      "text": "Passion is energy. Feel the power that comes from focusing on what excites you.",
+      "author": "Oprah Winfrey",
+      "category": "Passion"
+    },
+    {
+      "month": 11,
+      "day": 24,
+      "text": "Be thankful for what you have; you will end up having more.",
+      "author": "Oprah Winfrey",
+      "category": "Gratitude"
+    },
+    {
+      "month": 11,
+      "day": 25,
+      "text": "The greatest discovery of all time is that a person can change his future by merely changing his attitude.",
+      "author": "Oprah Winfrey",
+      "category": "Mindset"
+    },
+    {
+      "month": 11,
+      "day": 26,
+      "text": "Doing the best at this moment puts you in the best place for the next moment.",
+      "author": "Oprah Winfrey",
+      "category": "Mindfulness"
+    },
+    {
+      "month": 11,
+      "day": 27,
+      "text": "My philosophy is that not only are you responsible for your life, but doing the best at this moment puts you in the best place for the next moment.",
+      "author": "Oprah Winfrey",
+      "category": "Responsibility"
+    },
+    {
+      "month": 11,
+      "day": 28,
+      "text": "Every time you state what you want or believe, you are the first to hear it. It is a message to both you and others about what you think is possible.",
+      "author": "Oprah Winfrey",
+      "category": "Self-talk"
+    },
+    {
+      "month": 11,
+      "day": 29,
+      "text": "With every experience, you alone are painting your own canvas, thought by thought, choice by choice.",
+      "author": "Oprah Winfrey",
+      "category": "Self-creation"
+    },
+    {
+      "month": 11,
+      "day": 30,
+      "text": "The greatest gift that you can give yourself is a little bit of your own attention.",
+      "author": "Anthony J. D'Angelo",
+      "category": "Self-care"
+    },
+    {
+      "month": 12,
+      "day": 1,
+      "text": "It is not how much we have, but how much we enjoy, that makes happiness.",
+      "author": "Charles Spurgeon",
+      "category": "Happiness"
+    },
+    {
+      "month": 12,
+      "day": 2,
+      "text": "We must accept finite disappointment, but never lose infinite hope.",
+      "author": "Martin Luther King Jr.",
+      "category": "Hope"
+    },
+    {
+      "month": 12,
+      "day": 3,
+      "text": "Darkness cannot drive out darkness; only light can do that. Hate cannot drive out hate; only love can do that.",
+      "author": "Martin Luther King Jr.",
+      "category": "Love"
+    },
+    {
+      "month": 12,
+      "day": 4,
+      "text": "The time is always right to do what is right.",
+      "author": "Martin Luther King Jr.",
+      "category": "Ethics"
+    },
+    {
+      "month": 12,
+      "day": 5,
+      "text": "Every moment is a fresh beginning.",
+      "author": "T. S. Eliot",
+      "category": "Hope"
+    },
+    {
+      "month": 12,
+      "day": 6,
+      "text": "Only those who will risk going too far can possibly find out how far one can go.",
+      "author": "T. S. Eliot",
+      "category": "Courage"
+    },
+    {
+      "month": 12,
+      "day": 7,
+      "text": "The journey not the arrival matters.",
+      "author": "T. S. Eliot",
+      "category": "Philosophy"
+    },
+    {
+      "month": 12,
+      "day": 8,
+      "text": "What we call the beginning is often the end. And to make an end is to make a beginning.",
+      "author": "T. S. Eliot",
+      "category": "Philosophy"
+    },
+    {
+      "month": 12,
+      "day": 9,
+      "text": "Genuine poetry can communicate before it is understood.",
+      "author": "T. S. Eliot",
+      "category": "Art"
+    },
+    {
+      "month": 12,
+      "day": 10,
+      "text": "Where is the wisdom we have lost in knowledge? Where is the knowledge we have lost in information?",
+      "author": "T. S. Eliot",
+      "category": "Wisdom"
+    },
+    {
+      "month": 12,
+      "day": 11,
+      "text": "Humankind cannot bear very much reality.",
+      "author": "T. S. Eliot",
+      "category": "Philosophy"
+    },
+    {
+      "month": 12,
+      "day": 12,
+      "text": "Do I dare disturb the universe?",
+      "author": "T. S. Eliot",
+      "category": "Courage"
+    },
+    {
+      "month": 12,
+      "day": 13,
+      "text": "In my beginning is my end.",
+      "author": "T. S. Eliot",
+      "category": "Philosophy"
+    },
+    {
+      "month": 12,
+      "day": 14,
+      "text": "You are the sum total of everything you have ever seen, heard, eaten, smelled, been told, forgot — it is all there.",
+      "author": "Maya Angelou",
+      "category": "Identity"
+    },
+    {
+      "month": 12,
+      "day": 15,
+      "text": "We delight in the beauty of the butterfly, but rarely admit the changes it has gone through to achieve that beauty.",
+      "author": "Maya Angelou",
+      "category": "Growth"
+    },
+    {
+      "month": 12,
+      "day": 16,
+      "text": "If you are always trying to be normal, you will never know how amazing you can be.",
+      "author": "Maya Angelou",
+      "category": "Authenticity"
+    },
+    {
+      "month": 12,
+      "day": 17,
+      "text": "Try to be a rainbow in someone's cloud.",
+      "author": "Maya Angelou",
+      "category": "Kindness"
+    },
+    {
+      "month": 12,
+      "day": 18,
+      "text": "Success is liking yourself, liking what you do, and liking how you do it.",
+      "author": "Maya Angelou",
+      "category": "Success"
+    },
+    {
+      "month": 12,
+      "day": 19,
+      "text": "I've learned that you can tell a lot about a person by the way he handles these three things: a rainy day, lost luggage, and tangled Christmas tree lights.",
+      "author": "Maya Angelou",
+      "category": "Character"
+    },
+    {
+      "month": 12,
+      "day": 20,
+      "text": "When someone shows you who they are, believe them the first time.",
+      "author": "Maya Angelou",
+      "category": "Wisdom"
+    },
+    {
+      "month": 12,
+      "day": 21,
+      "text": "You may encounter many defeats, but you must not be defeated.",
+      "author": "Maya Angelou",
+      "category": "Resilience"
+    },
+    {
+      "month": 12,
+      "day": 22,
+      "text": "There is no greater agony than bearing an untold story inside you.",
+      "author": "Maya Angelou",
+      "category": "Expression"
+    },
+    {
+      "month": 12,
+      "day": 23,
+      "text": "I've learned that people will forget what you said, people will forget what you did, but people will never forget how you made them feel.",
+      "author": "Maya Angelou",
+      "category": "Impact"
+    },
+    {
+      "month": 12,
+      "day": 24,
+      "text": "Ask for what you want and be prepared to get it.",
+      "author": "Maya Angelou",
+      "category": "Intention"
+    },
+    {
+      "month": 12,
+      "day": 25,
+      "text": "Nothing will work unless you do.",
+      "author": "Maya Angelou",
+      "category": "Work"
+    },
+    {
+      "month": 12,
+      "day": 26,
+      "text": "We need much less than we think we need.",
+      "author": "Maya Angelou",
+      "category": "Simplicity"
+    },
+    {
+      "month": 12,
+      "day": 27,
+      "text": "We are only as blind as we want to be.",
+      "author": "Maya Angelou",
+      "category": "Awareness"
+    },
+    {
+      "month": 12,
+      "day": 28,
+      "text": "Pursue some path, however narrow and crooked, in which you can walk with love and reverence.",
+      "author": "Henry David Thoreau",
+      "category": "Purpose"
+    },
+    {
+      "month": 12,
+      "day": 29,
+      "text": "You must live in the present, launch yourself on every wave, find your eternity in each moment.",
+      "author": "Henry David Thoreau",
+      "category": "Mindfulness"
+    },
+    {
+      "month": 12,
+      "day": 30,
+      "text": "The mass of men lead lives of quiet desperation. What is called resignation is confirmed desperation.",
+      "author": "Henry David Thoreau",
+      "category": "Authenticity"
+    },
+    {
+      "month": 12,
+      "day": 31,
+      "text": "I took a deep breath and listened to the old brag of my heart: I am, I am, I am.",
+      "author": "Sylvia Plath",
+      "category": "Existence"
+    }
+  ]
+}

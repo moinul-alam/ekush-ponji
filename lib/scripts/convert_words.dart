@@ -1,5 +1,13 @@
-// lib/core/data/daily_words.dart
-// CHUNK 1 of 4 — Q1: January · February · March (days 1–91)
+// convert_words.dart
+// Run with: dart run convert_words.dart
+//
+// 1. Paste your EnWord class below (already done)
+// 2. Paste your dailyWordsEn list at the bottom
+// 3. Adjust _wordsPerMonth if needed
+// 4. dart run convert_words.dart → outputs words_en.json
+
+import 'dart:convert';
+import 'dart:io';
 
 class EnWord {
   final String word;
@@ -21,6 +29,67 @@ class EnWord {
   });
 }
 
+// ── Words per month — adjust to match your section sizes ───
+const List<int> _wordsPerMonth = [
+  31, // January
+  28, // February
+  31, // March
+  30, // April
+  31, // May
+  30, // June
+  31, // July
+  31, // August
+  30, // September
+  31, // October
+  30, // November
+  31, // December
+];
+
+void main() {
+  final List<Map<String, dynamic>> output = [];
+
+  int index = 0;
+  for (int m = 0; m < 12; m++) {
+    final int daysInMonth = _wordsPerMonth[m];
+    for (int d = 1; d <= daysInMonth; d++) {
+      if (index >= dailyWordsEn.length) {
+        print('⚠️  Ran out of words at month ${m + 1}, day $d (index $index)');
+        break;
+      }
+      final w = dailyWordsEn[index];
+      output.add({
+        'month': m + 1,
+        'day': d,
+        'word': w.word,
+        'partOfSpeech': w.partOfSpeech,
+        'meaningEn': w.meaningEn,
+        'meaningBn': w.meaningBn,
+        'synonym': w.synonym,
+        'example': w.example,
+        'pronunciation': w.pronunciation,
+      });
+      index++;
+    }
+  }
+
+  if (index < dailyWordsEn.length) {
+    print('⚠️  ${dailyWordsEn.length - index} words were not assigned a date.');
+  }
+
+  final Map<String, dynamic> json = {
+    'version': '1.0.0',
+    'language': 'en',
+    'count': output.length,
+    'words': output,
+  };
+
+  final file = File('words_en.json');
+  file.writeAsStringSync(const JsonEncoder.withIndent('  ').convert(json));
+
+  print('✅ Written ${output.length} words → words_en.json');
+}
+
+// ── PASTE YOUR LIST BELOW THIS LINE ────────────────────────
 const List<EnWord> dailyWordsEn = [
   // ── January ───────────────────────────────────────────────
   EnWord(

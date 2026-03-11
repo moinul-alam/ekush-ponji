@@ -9,6 +9,10 @@ class QuotesRepository {
   QuotesRepository({required QuotesLocalDatasource localDatasource})
       : _localDatasource = localDatasource;
 
+  /// Must be called once before any other method.
+  /// Loads the JSON asset into memory.
+  Future<void> init() => _localDatasource.init();
+
   QuoteModel getDailyQuote() => _localDatasource.getDailyQuote();
 
   List<QuoteModel> getAllQuotes() => _localDatasource.getAllQuotes();
@@ -23,6 +27,5 @@ class QuotesRepository {
     }
   }
 
-  bool isQuoteSaved(QuoteModel quote) =>
-      _localDatasource.isQuoteSaved(quote);
+  bool isQuoteSaved(QuoteModel quote) => _localDatasource.isQuoteSaved(quote);
 }
