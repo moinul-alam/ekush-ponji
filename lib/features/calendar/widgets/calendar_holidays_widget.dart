@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:ekush_ponji/features/holidays/models/holiday.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 
-/// Displays all holidays for the selected calendar month
-/// Vertical list style — distinct from HomeHolidaysWidget
+/// Displays all holidays for the selected calendar month in two sections:
+/// 1. সরকারি ছুটি  — Mandatory (সাধারণ + নির্বাহী আদেশে ছুটি)
+/// 2. ঔচ্ছিক ছুটি — Optional (community-specific holidays)
 class CalendarHolidaysWidget extends StatelessWidget {
   final String monthName;
   final List<Holiday> holidays;
@@ -19,6 +20,9 @@ class CalendarHolidaysWidget extends StatelessWidget {
     final theme = Theme.of(context);
     final localizations = AppLocalizations.of(context);
     final isBangla = localizations.locale.languageCode == 'bn';
+
+    final mandatory = holidays.where((h) => h.isMandatory).toList();
+    final optional = holidays.where((h) => h.isOptional).toList();
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -40,104 +44,34 @@ class CalendarHolidaysWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ─── Header ────────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.calendar_month_rounded,
-                      color: theme.colorScheme.primary,
-                      size: 18,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      isBangla
-                          ? '$monthName মাসে সরকারি ছুটি'
-                          : '$monthName Holidays',
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.secondaryContainer,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    isBangla
-                        ? localizations.localizeNumber(holidays.length)
-                        : '${holidays.length}',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.onSecondaryContainer,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+          // ─── Mandatory Section ──────────────────────────────
+          _HolidaySection(
+            monthName: monthName,
+            holidays: mandatory,
+            isBangla: isBangla,
+            localizations: localizations,
+            theme: theme,
+            isMandatory: true,
           ),
 
-          const SizedBox(height: 10),
-          Divider(
-            height: 1,
-            color: theme.colorScheme.outlineVariant.withOpacity(0.4),
-          ),
-
-          // ─── Empty State ────────────────────────────────────
-          if (holidays.isEmpty)
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.event_busy_outlined,
-                    color: theme.colorScheme.onSurfaceVariant,
-                    size: 18,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    isBangla
-                        ? '$monthName মাসে কোনো ছুটি নেই'
-                        : 'No holidays in $monthName',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
+          // ─── Section separator ──────────────────────────────
+          if (optional.isNotEmpty) ...[
+            Divider(
+              height: 1,
+              thickness: 1,
+              color: theme.colorScheme.outlineVariant.withOpacity(0.5),
             ),
 
-          // ─── Holiday List ───────────────────────────────────
-          if (holidays.isNotEmpty)
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: holidays.length,
-              separatorBuilder: (_, __) => Divider(
-                height: 1,
-                indent: 16,
-                endIndent: 16,
-                color: theme.colorScheme.outlineVariant.withOpacity(0.3),
-              ),
-              itemBuilder: (context, index) {
-                final holiday = holidays[index];
-                return _CalendarHolidayItem(
-                  holiday: holiday,
-                  isBangla: isBangla,
-                  localizations: localizations,
-                  theme: theme,
-                );
-              },
+            // ─── Optional Section ─────────────────────────────
+            _HolidaySection(
+              monthName: monthName,
+              holidays: optional,
+              isBangla: isBangla,
+              localizations: localizations,
+              theme: theme,
+              isMandatory: false,
             ),
+          ],
 
           const SizedBox(height: 4),
         ],
@@ -146,14 +80,161 @@ class CalendarHolidaysWidget extends StatelessWidget {
   }
 }
 
-// ─── Holiday List Item ────────────────────────────────────────
-class _CalendarHolidayItem extends StatelessWidget {
+// ─── Section ──────────────────────────────────────────────────────────────────
+class _HolidaySection extends StatelessWidget {
+  final String monthName;
+  final List<Holiday> holidays;
+  final bool isBangla;
+  final AppLocalizations localizations;
+  final ThemeData theme;
+  final bool isMandatory;
+
+  const _HolidaySection({
+    required this.monthName,
+    required this.holidays,
+    required this.isBangla,
+    required this.localizations,
+    required this.theme,
+    required this.isMandatory,
+  });
+
+  String get _title {
+    if (isBangla) {
+      return isMandatory
+          ? '$monthName মাসে সরকারি ছুটি'
+          : '$monthName মাসে ঔচ্ছিক ছুটি';
+    }
+    return isMandatory
+        ? '$monthName Public Holidays'
+        : '$monthName Optional Holidays';
+  }
+
+  String get _emptyText {
+    if (isBangla) {
+      return isMandatory
+          ? '$monthName মাসে কোনো সরকারি ছুটি নেই'
+          : '$monthName মাসে কোনো ঔচ্ছিক ছুটি নেই';
+    }
+    return isMandatory
+        ? 'No public holidays in $monthName'
+        : 'No optional holidays in $monthName';
+  }
+
+  // Mandatory uses primary; optional uses tertiary
+  Color get _headerColor =>
+      isMandatory ? theme.colorScheme.primary : theme.colorScheme.tertiary;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ─── Header ─────────────────────────────────────────
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    isMandatory
+                        ? Icons.calendar_month_rounded
+                        : Icons.event_available_rounded,
+                    color: _headerColor,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    _title,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              // Count badge
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: _headerColor.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  isBangla
+                      ? localizations.localizeNumber(holidays.length)
+                      : '${holidays.length}',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: _headerColor,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 10),
+        Divider(
+          height: 1,
+          color: theme.colorScheme.outlineVariant.withOpacity(0.4),
+        ),
+
+        // ─── Empty state ────────────────────────────────────
+        if (holidays.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.event_busy_outlined,
+                  color: theme.colorScheme.onSurfaceVariant,
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  _emptyText,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+        // ─── List ────────────────────────────────────────────
+        if (holidays.isNotEmpty)
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: holidays.length,
+            separatorBuilder: (_, __) => Divider(
+              height: 1,
+              indent: 16,
+              endIndent: 16,
+              color: theme.colorScheme.outlineVariant.withOpacity(0.3),
+            ),
+            itemBuilder: (context, index) => _HolidayItem(
+              holiday: holidays[index],
+              isBangla: isBangla,
+              localizations: localizations,
+              theme: theme,
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+// ─── Holiday Item ─────────────────────────────────────────────────────────────
+class _HolidayItem extends StatelessWidget {
   final Holiday holiday;
   final bool isBangla;
   final AppLocalizations localizations;
   final ThemeData theme;
 
-  const _CalendarHolidayItem({
+  const _HolidayItem({
     required this.holiday,
     required this.isBangla,
     required this.localizations,
@@ -163,7 +244,7 @@ class _CalendarHolidayItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isPast = holiday.daysUntil < 0;
-    final typeColor = _typeColor(holiday.category);
+    final catColor = _categoryColor(holiday.category);
 
     return Opacity(
       opacity: isPast ? 0.55 : 1.0,
@@ -171,12 +252,12 @@ class _CalendarHolidayItem extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         child: Row(
           children: [
-            // ─── Left accent bar + date ─────────────────────
+            // ─── Left accent bar ────────────────────────────
             Container(
               width: 4,
               height: 48,
               decoration: BoxDecoration(
-                color: typeColor,
+                color: catColor,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -187,7 +268,7 @@ class _CalendarHolidayItem extends StatelessWidget {
               width: 44,
               height: 48,
               decoration: BoxDecoration(
-                color: typeColor.withOpacity(0.08),
+                color: catColor.withOpacity(0.08),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Column(
@@ -195,18 +276,19 @@ class _CalendarHolidayItem extends StatelessWidget {
                 children: [
                   Text(
                     holiday.isMultiDay
-                        ? '${localizations.localizeNumber(holiday.startDate.day)}-${localizations.localizeNumber(holiday.endDate!.day)}'
+                        ? '${localizations.localizeNumber(holiday.startDate.day)}-'
+                            '${localizations.localizeNumber(holiday.endDate!.day)}'
                         : localizations.localizeNumber(holiday.startDate.day),
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: typeColor,
+                      color: catColor,
                       fontSize: holiday.isMultiDay ? 10 : 14,
                     ),
                   ),
                   Text(
                     localizations.getMonthAbbreviation(holiday.startDate.month),
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color: typeColor.withOpacity(0.8),
+                      color: catColor.withOpacity(0.8),
                       fontSize: 10,
                     ),
                   ),
@@ -216,25 +298,72 @@ class _CalendarHolidayItem extends StatelessWidget {
 
             const SizedBox(width: 12),
 
-            // ─── Name + description ─────────────────────────
+            // ─── Name + gazette label + regional note ────────
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          isBangla ? holiday.namebn : holiday.name,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                      ),
+                      // Moon icon for moon-sighting-dependent dates (e.g. Eid)
+                      if (holiday.isApproximate) ...[
+                        const SizedBox(width: 4),
+                        Tooltip(
+                          message: isBangla
+                              ? 'চাঁদ দেখার উপর নির্ভরশীল'
+                              : 'Subject to moon sighting',
+                          child: Icon(
+                            Icons.brightness_3_rounded,
+                            size: 12,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 3),
+                  // Gazette type — সরকারি শ্রেণিবিন্যাস
                   Text(
-                    isBangla ? holiday.namebn : holiday.name,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: theme.colorScheme.onSurface,
+                    isBangla
+                        ? holiday.gazetteType.displayNameBn
+                        : holiday.gazetteType.displayName,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontSize: 10,
                     ),
                   ),
-                  if (isBangla && holiday.name.isNotEmpty) ...[
+                  // Regional note if applicable
+                  if (holiday.isRegional) ...[
                     const SizedBox(height: 2),
-                    Text(
-                      holiday.name,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.location_on_outlined,
+                          size: 10,
+                          color: theme.colorScheme.tertiary,
+                        ),
+                        const SizedBox(width: 2),
+                        Expanded(
+                          child: Text(
+                            isBangla
+                                ? (holiday.regionNoteBn ?? '')
+                                : (holiday.regionNote ?? ''),
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: theme.colorScheme.tertiary,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ],
@@ -243,27 +372,33 @@ class _CalendarHolidayItem extends StatelessWidget {
 
             const SizedBox(width: 8),
 
-            // ─── Right: type chip + days until ─────────────
+            // ─── Right: category chip + countdown ───────────
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
+                // Category chip
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                   decoration: BoxDecoration(
-                    color: typeColor.withOpacity(0.1),
+                    color: catColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(_typeIcon(holiday.category),
-                          color: typeColor, size: 10),
+                      Icon(
+                        _categoryIcon(holiday.category),
+                        color: catColor,
+                        size: 10,
+                      ),
                       const SizedBox(width: 3),
                       Text(
-                        _typeLabel(holiday.category, isBangla),
+                        isBangla
+                            ? holiday.category.displayNameBn
+                            : holiday.category.displayName,
                         style: theme.textTheme.labelSmall?.copyWith(
-                          color: typeColor,
+                          color: catColor,
                           fontWeight: FontWeight.w600,
                           fontSize: 9,
                         ),
@@ -272,6 +407,7 @@ class _CalendarHolidayItem extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
+                // Countdown / passed label
                 Text(
                   isPast
                       ? localizations.passed
@@ -294,7 +430,7 @@ class _CalendarHolidayItem extends StatelessWidget {
     );
   }
 
-  Color _typeColor(HolidayCategory category) {
+  Color _categoryColor(HolidayCategory category) {
     switch (category) {
       case HolidayCategory.national:
         return const Color(0xFF1565C0);
@@ -313,7 +449,7 @@ class _CalendarHolidayItem extends StatelessWidget {
     }
   }
 
-  IconData _typeIcon(HolidayCategory category) {
+  IconData _categoryIcon(HolidayCategory category) {
     switch (category) {
       case HolidayCategory.national:
         return Icons.flag_rounded;
@@ -329,25 +465,6 @@ class _CalendarHolidayItem extends StatelessWidget {
         return Icons.diversity_3_rounded;
       case HolidayCategory.cultural:
         return Icons.festival_rounded;
-    }
-  }
-
-  String _typeLabel(HolidayCategory category, bool isBangla) {
-    switch (category) {
-      case HolidayCategory.national:
-        return isBangla ? 'জাতীয়' : 'National';
-      case HolidayCategory.islamic:
-        return isBangla ? 'ইসলামী' : 'Islamic';
-      case HolidayCategory.hindu:
-        return isBangla ? 'হিন্দু' : 'Hindu';
-      case HolidayCategory.christian:
-        return isBangla ? 'খ্রিষ্টান' : 'Christian';
-      case HolidayCategory.buddhist:
-        return isBangla ? 'বৌদ্ধ' : 'Buddhist';
-      case HolidayCategory.ethnicMinority:
-        return isBangla ? 'নৃ-গোষ্ঠী' : 'Ethnic';
-      case HolidayCategory.cultural:
-        return isBangla ? 'সাংস্কৃতিক' : 'Cultural';
     }
   }
 }

@@ -89,15 +89,12 @@ dev_dependencies:
   # Linting
   flutter_lints: ^6.0.0
 
-  flutter_native_splash: ^2.4.1
-
 flutter:
   uses-material-design: true
 
   # Assets
   assets:
     - assets/images/
-    - assets/icons/
     - assets/data/
 
 flutter_native_splash:

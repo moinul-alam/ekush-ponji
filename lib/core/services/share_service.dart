@@ -1,10 +1,5 @@
 // lib/core/services/share_service.dart
-//
-// Key fix: added `shareWidget()` which renders any widget off-screen into a
-// PNG — no theme dependency, no empty-space issues, always correct size.
-
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
@@ -14,15 +9,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 class ShareService {
-  // ─────────────────────────────────────────────────────────────────────────
-  // NEW: Render any widget to PNG and share — no RepaintBoundary needed.
-  //
-  // Usage:
-  //   await ShareService.shareWidget(
-  //     widget: QuoteShareCard(quote: quote),
-  //     fileBaseName: 'ekush_ponji_quote_${quote.storageKey}',
-  //   );
-  // ─────────────────────────────────────────────────────────────────────────
   static Future<void> shareWidget({
     required Widget widget,
     required String fileBaseName,
@@ -31,8 +17,6 @@ class ShareService {
     Size logicalSize = const Size(420, 9999), // height is unconstrained
   }) async {
     // Wrap in a LayoutBuilder so intrinsic height is respected
-    final repaintKey = GlobalKey();
-
     final renderView = RenderRepaintBoundary();
     final renderView2 = RenderView(
       view: WidgetsBinding.instance.platformDispatcher.views.first,
@@ -94,9 +78,6 @@ class ShareService {
     debugPrint('✅ ShareService.shareWidget: shared $fileBaseName.png');
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // ORIGINAL: Capture an on-screen RepaintBoundary (kept for other usages).
-  // ─────────────────────────────────────────────────────────────────────────
   static Future<void> shareRepaintBoundary({
     required GlobalKey boundaryKey,
     required String fileBaseName,
