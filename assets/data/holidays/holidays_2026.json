@@ -12,8 +12,8 @@
       "startDate": "2026-02-21",
       "gazetteType": "mandatoryGeneral",
       "category": "national",
-      "description": "Commemorates the martyrs of the Bengali language movement of 1952",
-      "descriptionbn": "১৯৫২ সালের ভাষা আন্দোলনের শহীদদের স্মরণে",
+      "description": "Tribute to 1952 Language Movement martyrs and international mother language day",
+      "descriptionbn": "১৯৫২ সালের ভাষা আন্দোলনের শহীদদের প্রতি শ্রদ্ধা ও আন্তর্জাতিক মাতৃভাষা দিবস",
       "isApproximate": false
     },
     {
@@ -24,7 +24,7 @@
       "gazetteType": "mandatoryGeneral",
       "category": "islamic",
       "description": "Last Friday of Ramadan",
-      "descriptionbn": "রমজান মাসের শেষ জুমা",
+      "descriptionbn": "রমজান মাসের শেষ শুক্রবার",
       "isApproximate": false
     },
     {
@@ -36,7 +36,7 @@
       "category": "islamic",
       "description": "Festival marking the end of Ramadan",
       "descriptionbn": "রমজান মাসের সমাপ্তিতে ঈদ উদযাপন",
-      "isApproximate": false
+      "isApproximate": true
     },
     {
       "id": "bd_2026_004",
@@ -70,8 +70,8 @@
       "startDate": "2026-05-01",
       "gazetteType": "mandatoryGeneral",
       "category": "cultural",
-      "description": "International Workers' Day",
-      "descriptionbn": "আন্তর্জাতিক শ্রমিক দিবস",
+      "description": "International Workers' Day for labor rights and solidarity",
+      "descriptionbn": "শ্রমিক অধিকার এবং সংহতি প্রকাশের আন্তর্জাতিক শ্রমিক দিবস",
       "isApproximate": false
     },
     {
@@ -81,9 +81,9 @@
       "startDate": "2026-05-01",
       "gazetteType": "mandatoryGeneral",
       "category": "buddhist",
-      "description": "Vesak — celebrates the birth, enlightenment and passing of the Buddha",
-      "descriptionbn": "গৌতম বুদ্ধের জন্ম, বোধিলাভ ও মহাপরিনির্বাণের স্মরণ",
-      "isApproximate": false
+      "description": "Sacred day for birth, enlightenment, and passing of Gautama Buddha",
+      "descriptionbn": "গৌতম বুদ্ধের জন্ম, বোধিলাভ ও মহাপরিনির্বাণের স্মরণে বৌদ্ধ ধর্মাবলম্বীদের উৎসব",
+      "isApproximate": true
     },
     {
       "id": "bd_2026_008",
@@ -94,7 +94,7 @@
       "category": "islamic",
       "description": "Festival of Sacrifice",
       "descriptionbn": "কুরবানীর ঈদ",
-      "isApproximate": false
+      "isApproximate": true
     },
     {
       "id": "bd_2026_009",
@@ -104,7 +104,7 @@
       "gazetteType": "mandatoryGeneral",
       "category": "national",
       "description": "Commemorates the student-led mass uprising of 2024",
-      "descriptionbn": "২০২৪ সালের ছাত্র-জনতার গণঅভ্যুত্থানের স্মরণে",
+      "descriptionbn": "২০২৪ সালের ছাত্র-জনতার গণঅভ্যুত্থান স্মরণে দিবস",
       "isApproximate": false
     },
     {
@@ -116,7 +116,7 @@
       "category": "islamic",
       "description": "Birth anniversary of Prophet Muhammad (PBUH), 12th of Rabi al-Awwal",
       "descriptionbn": "রবিউল আউয়ালের ১২ তারিখ, হযরত মুহাম্মদ (সা.)-এর জন্মদিন",
-      "isApproximate": false
+      "isApproximate": true
     },
     {
       "id": "bd_2026_011",
@@ -126,7 +126,7 @@
       "gazetteType": "mandatoryGeneral",
       "category": "hindu",
       "description": "Hindu festival celebrating the birth of Lord Krishna",
-      "descriptionbn": "ভগবান শ্রীকৃষ্ণের জন্মদিন উদযাপন",
+      "descriptionbn": "শ্রীকৃষ্ণের জন্মদিন উপলক্ষে সনাতন ধর্মাবলম্বীদের উৎসব",
       "isApproximate": false
     },
     {
@@ -137,7 +137,7 @@
       "gazetteType": "mandatoryGeneral",
       "category": "hindu",
       "description": "Hindu festival — Vijaya Dashami",
-      "descriptionbn": "হিন্দু ধর্মাবলম্বীদের দুর্গাপূজা — বিজয়া দশমী",
+      "descriptionbn": "সনাতন ধর্মাবলম্বীদের দুর্গাপূজা — বিজয়া দশমী",
       "isApproximate": false
     },
     {
@@ -147,8 +147,8 @@
       "startDate": "2026-12-16",
       "gazetteType": "mandatoryGeneral",
       "category": "national",
-      "description": "Celebrates Bangladesh's victory in the Liberation War of 1971",
-      "descriptionbn": "১৯৭১ সালের মুক্তিযুদ্ধে বিজয়ের উদযাপন",
+      "description": "Historical victory of Bangladesh in the Liberation War of 1971",
+      "descriptionbn": "১৯৭১ সালের মুক্তিযুদ্ধে বাংলাদেশের ঐতিহাসিক বিজয় উদযাপন",
       "isApproximate": false
     },
     {
@@ -159,7 +159,7 @@
       "gazetteType": "mandatoryGeneral",
       "category": "christian",
       "description": "Christian holiday celebrating the birth of Jesus Christ",
-      "descriptionbn": "যিশু খ্রিস্টের জন্মদিন উদযাপন",
+      "descriptionbn": "যিশু খ্রিস্টের জন্মদিন উপলক্ষে খ্রিস্টান ধর্মাবলম্বীদের উৎসব",
       "isApproximate": false
     },
 
@@ -171,8 +171,8 @@
       "gazetteType": "mandatoryExecutive",
       "category": "islamic",
       "description": "Night of forgiveness, 15th of Shaban",
-      "descriptionbn": "শাবান মাসের ১৫তম রাত, ক্ষমার রাত",
-      "isApproximate": false
+      "descriptionbn": "শাবান মাসের ১৫তম তারিখ, সৌভাগ্যের রজনী এবং বিশেষ ইবাদত ও ক্ষমার রাত",
+      "isApproximate": true
     },
     {
       "id": "bd_2026_016",
@@ -181,30 +181,30 @@
       "startDate": "2026-03-17",
       "gazetteType": "mandatoryExecutive",
       "category": "islamic",
-      "description": "Night of Power, the holiest night of Ramadan",
-      "descriptionbn": "রমজানের সবচেয়ে পবিত্র রাত",
-      "isApproximate": false
+      "description": "Glorious night of the Holy Quran's revelation",
+      "descriptionbn": "মহিমান্বিত রজনী এবং পবিত্র কোরআন নাজিলের রাত",
+      "isApproximate": true
     },
     {
       "id": "bd_2026_017",
       "name": "Eid ul-Fitr (Extended)",
-      "namebn": "ঈদ-উল-ফিতর (ঈদের পূর্বের ০২ দিন ও পরের ০২ দিন)",
-      "startDate": "2026-03-19",
+      "namebn": "ঈদ-উল-ফিতর (ঈদের পূর্বের ০৩ দিন ও পরের ০২ দিন)",
+      "startDate": "2026-03-18",
       "endDate": "2026-03-23",
       "gazetteType": "mandatoryExecutive",
       "category": "islamic",
-      "description": "Executive holidays: 2 days before and 2 days after Eid ul-Fitr (19–20 Mar before, 22–23 Mar after)",
-      "descriptionbn": "ঈদ-উল-ফিতরের পূর্বের ০২ দিন (১৯–২০ মার্চ) ও পরের ০২ দিন (২২–২৩ মার্চ) নির্বাহী ছুটি",
-      "isApproximate": false
+      "description": "Executive holidays: 3 days before and 2 days after Eid ul-Fitr (18–20 Mar before, 22–23 Mar after)",
+      "descriptionbn": "ঈদ-উল-ফিতরের পূর্বের ০৩ দিন (১৮–২০ মার্চ) ও পরের ০২ দিন (২২–২৩ মার্চ) নির্বাহী আদেশে ছুটি",
+      "isApproximate": true
     },
     {
       "id": "bd_2026_018",
-      "name": "Pohela Boishakh (Bengali New Year)",
-      "namebn": "নববর্ষ (পহেলা বৈশাখ)",
+      "name": "Pohela Boishakh",
+      "namebn": "নববর্ষ",
       "startDate": "2026-04-14",
       "gazetteType": "mandatoryExecutive",
       "category": "cultural",
-      "description": "Bengali New Year, first day of the Bengali calendar",
+      "description": "First day of the Bengali calendar",
       "descriptionbn": "বাংলা নববর্ষের প্রথম দিন",
       "isApproximate": false
     },
@@ -219,7 +219,7 @@
       "category": "islamic",
       "description": "Executive holidays: 2 days before Eid ul-Adha (26–27 May) and 3 days after (29–31 May). General holiday is 28 May.",
       "descriptionbn": "ঈদ-উল-আজহার পূর্বের ০২ দিন (২৬–২৭ মে) ও পরের ০৩ দিন (২৯–৩১ মে) নির্বাহী ছুটি। সাধারণ ছুটি ২৮ মে।",
-      "isApproximate": false
+      "isApproximate": true
     },
     {
       "id": "bd_2026_020",
@@ -230,7 +230,7 @@
       "category": "islamic",
       "description": "10th day of Muharram",
       "descriptionbn": "মহররমের ১০ম দিন",
-      "isApproximate": false
+      "isApproximate": true
     },
     {
       "id": "bd_2026_021",
@@ -253,7 +253,7 @@
       "category": "islamic",
       "description": "Night Journey and Ascension of the Prophet (PBUH), 27th of Rajab",
       "descriptionbn": "রজবের ২৭ তারিখ, মেরাজুন্নবী (সা.)",
-      "isApproximate": false
+      "isApproximate": true
     },
     {
       "id": "bd_2026_023",
@@ -264,7 +264,7 @@
       "category": "islamic",
       "description": "Third day after Eid ul-Fitr",
       "descriptionbn": "ঈদ-উল-ফিতরের পরের তৃতীয় দিন",
-      "isApproximate": false
+      "isApproximate": true
     },
     {
       "id": "bd_2026_024",
@@ -275,7 +275,7 @@
       "category": "islamic",
       "description": "Fourth day after Eid ul-Adha",
       "descriptionbn": "ঈদ-উল-আজহার পরের চতুর্থ দিন",
-      "isApproximate": false
+      "isApproximate": true
     },
     {
       "id": "bd_2026_025",
@@ -286,7 +286,7 @@
       "category": "islamic",
       "description": "Last Wednesday of the month of Safar",
       "descriptionbn": "সফর মাসের শেষ বুধবার",
-      "isApproximate": false
+      "isApproximate": true
     },
     {
       "id": "bd_2026_026",
@@ -297,7 +297,7 @@
       "category": "islamic",
       "description": "Death anniversary of Hazrat Abdul Qadir Jilani (RA), 11th of Rabi al-Thani",
       "descriptionbn": "হযরত আবদুল কাদের জিলানী (রহ.)-এর ওফাত দিবস, রবিউস সানির ১১ তারিখ",
-      "isApproximate": false
+      "isApproximate": true
     },
 
     {
@@ -319,18 +319,18 @@
       "gazetteType": "optionalHindu",
       "category": "hindu",
       "description": "Hindu festival in honour of Lord Shiva",
-      "descriptionbn": "ভগবান শিবের সম্মানে হিন্দু উৎসব",
+      "descriptionbn": "ভগবান শিবের সম্মানে সনাতন উৎসব",
       "isApproximate": false
     },
     {
       "id": "bd_2026_029",
-      "name": "Dol Yatra (Holi)",
+      "name": "Dol Yatra",
       "namebn": "দোলযাত্রা",
       "startDate": "2026-03-03",
       "gazetteType": "optionalHindu",
       "category": "hindu",
-      "description": "Festival of colours, full moon of Falgun",
-      "descriptionbn": "ফাল্গুন পূর্ণিমায় রঙের উৎসব",
+      "description": "Festival of Colours, Love and Spring, celebrated on the full moon of Falgun",
+      "descriptionbn": "দোলযাত্রা বা হোলি, বসন্ত, প্রেম এবং রঙের উৎসব ",
       "isApproximate": false
     },
     {
@@ -397,8 +397,8 @@
       "startDate": "2026-01-01",
       "gazetteType": "optionalChristian",
       "category": "christian",
-      "description": "English New Year's Day",
-      "descriptionbn": "ইংরেজি নববর্ষ",
+      "description": "Celebration of English New Year's Day",
+      "descriptionbn": "ইংরেজি নববর্ষ উদযাপন",
       "isApproximate": false
     },
     {
@@ -408,8 +408,8 @@
       "startDate": "2026-02-18",
       "gazetteType": "optionalChristian",
       "category": "christian",
-      "description": "First day of Lent in the Christian calendar",
-      "descriptionbn": "খ্রিস্টান ক্যালেন্ডারে লেন্টের প্রথম দিন",
+      "description": "Day of repentance and the start of 40 days of Lent for Christians",
+      "descriptionbn": "খ্রিস্টান ধর্মাবলম্বীদের অনুশোচনা ও ৪০ দিনের উপবাসের সূচনা",
       "isApproximate": false
     },
     {
@@ -430,8 +430,8 @@
       "startDate": "2026-04-03",
       "gazetteType": "optionalChristian",
       "category": "christian",
-      "description": "Commemorates the crucifixion of Jesus Christ",
-      "descriptionbn": "যিশু খ্রিস্টের ক্রুশবিদ্ধ হওয়ার স্মরণ",
+      "description": "Day of mourning for the crucifixion and sacrifice of Jesus Christ",
+      "descriptionbn": "যিশু খ্রিস্টের আত্মত্যাগ এবং ক্রুশবিদ্ধ হওয়ার স্মরণে শোকের দিন",
       "isApproximate": false
     },
     {
@@ -452,7 +452,7 @@
       "startDate": "2026-04-05",
       "gazetteType": "optionalChristian",
       "category": "christian",
-      "description": "Celebrates the resurrection of Jesus Christ",
+      "description": "Celebration of the resurrection of Jesus Christ",
       "descriptionbn": "যিশু খ্রিস্টের পুনরুত্থান উদযাপন",
       "isApproximate": false
     },
@@ -478,7 +478,7 @@
       "category": "buddhist",
       "description": "Buddhist observance on the full moon of Magh",
       "descriptionbn": "মাঘ মাসের পূর্ণিমায় বৌদ্ধ ধর্মীয় অনুষ্ঠান",
-      "isApproximate": false
+      "isApproximate": true
     },
     {
       "id": "bd_2026_043",
@@ -505,14 +505,14 @@
     },
     {
       "id": "bd_2026_045",
-      "name": "Ashami Purnima",
-      "namebn": "আষামী পূর্ণিমা",
+      "name": "Asarhi Purnima",
+      "namebn": "আষাঢ়ী পূর্ণিমা",
       "startDate": "2026-07-29",
       "gazetteType": "optionalBuddhist",
       "category": "buddhist",
-      "description": "Buddhist full moon observance in Ashar month",
-      "descriptionbn": "আষাঢ় মাসের পূর্ণিমায় বৌদ্ধ অনুষ্ঠান",
-      "isApproximate": false
+      "description": "Buddhist full moon festival, marking the anniversary of Buddha's first sermon",
+      "descriptionbn": "বুদ্ধের প্রথম ধর্মপ্রচার স্মরণে বৌদ্ধ ধর্মীয় উৎসব",
+      "isApproximate": true
     },
     {
       "id": "bd_2026_046",
@@ -522,8 +522,8 @@
       "gazetteType": "optionalBuddhist",
       "category": "buddhist",
       "description": "Buddhist full moon festival in the month of Bhadra",
-      "descriptionbn": "ভাদ্র মাসের পূর্ণিমায় বৌদ্ধ উৎসব",
-      "isApproximate": false
+      "descriptionbn": "ভাদ্র মাসের পূর্ণিমায় বৌদ্ধ ধর্মীয় উৎসব",
+      "isApproximate": true
     },
     {
       "id": "bd_2026_047",
@@ -534,7 +534,7 @@
       "category": "buddhist",
       "description": "End of Buddhist Vassa (rainy retreat), Ashwin full moon",
       "descriptionbn": "বৌদ্ধ বর্ষাবাসের সমাপ্তি, আশ্বিন পূর্ণিমা",
-      "isApproximate": false
+      "isApproximate": true
     },
 
     {

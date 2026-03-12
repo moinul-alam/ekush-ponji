@@ -175,7 +175,7 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
           onPressed: () => _showFontSizeSheet(context),
         ),
         IconButton(
-          icon: const Icon(Icons.bookmark_outline_rounded),
+          icon: const Icon(Icons.favorite_outline_rounded),
           tooltip: l10n.savedQuotes,
           onPressed: () => context.push(RouteNames.savedQuotes),
         ),
@@ -395,8 +395,8 @@ class _QuoteCard extends StatelessWidget {
                         onPressed: onToggleSave,
                         icon: Icon(
                           quote.isSaved
-                              ? Icons.bookmark_rounded
-                              : Icons.bookmark_outline_rounded,
+                              ? Icons.favorite_rounded
+                              : Icons.favorite_border_rounded,
                           color: quote.isSaved
                               ? colorScheme.primary
                               : colorScheme.onSurfaceVariant,

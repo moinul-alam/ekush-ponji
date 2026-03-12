@@ -151,7 +151,10 @@ class AppLocalizationsBn extends AppLocalizations {
   String get wordOfTheDay => 'আজকের শব্দ';
 
   @override
-  String get meaning => 'অর্থ';
+  String get meaningEnglish => 'ইংরেজি অর্থ';
+
+  @override
+  String get meaningBengali => 'বাংলা অর্থ';
 
   @override
   String get synonym => 'সমার্থক শব্দ';

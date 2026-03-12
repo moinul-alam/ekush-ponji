@@ -115,10 +115,31 @@ class _QuoteContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.format_quote,
-            color: colorScheme.primary.withValues(alpha: 0.4),
-            size: 32,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Icon(
+                Icons.format_quote,
+                color: colorScheme.primary.withValues(alpha: 0.4),
+                size: 32,
+              ),
+              if (onToggleSave != null)
+                IconButton(
+                  onPressed: onToggleSave,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  icon: Icon(
+                    quote!.isSaved
+                        ? Icons.favorite_rounded
+                        : Icons.favorite_border_rounded,
+                    color: quote!.isSaved
+                        ? colorScheme.error
+                        : colorScheme.onSurfaceVariant,
+                    size: 28,
+                  ),
+                  visualDensity: VisualDensity.compact,
+                ),
+            ],
           ),
           const SizedBox(height: 8),
 
@@ -141,7 +162,7 @@ class _QuoteContent extends StatelessWidget {
 
           const SizedBox(height: 12),
 
-          // Author + bookmark
+          // Author
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -171,35 +192,9 @@ class _QuoteContent extends StatelessWidget {
                   ],
                 ),
               ),
-              if (onToggleSave != null)
-                IconButton(
-                  onPressed: onToggleSave,
-                  icon: Icon(
-                    quote!.isSaved
-                        ? Icons.bookmark_rounded
-                        : Icons.bookmark_outline_rounded,
-                    color: quote!.isSaved
-                        ? colorScheme.primary
-                        : colorScheme.onSurfaceVariant,
-                  ),
-                  visualDensity: VisualDensity.compact,
-                ),
+              
             ],
           ),
-
-          // Category chip
-          if (quote!.category.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            Chip(
-              label: Text(
-                quote!.category,
-                style: theme.textTheme.bodySmall,
-              ),
-              backgroundColor: colorScheme.surfaceContainerHighest,
-              padding: EdgeInsets.zero,
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-          ],
         ],
       ),
     );

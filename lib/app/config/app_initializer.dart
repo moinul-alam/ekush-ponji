@@ -14,18 +14,29 @@ import 'package:ekush_ponji/features/quotes/models/quote.dart';
 import 'package:ekush_ponji/features/words/models/word.dart';
 import 'package:ekush_ponji/features/quotes/data/datasources/local/quotes_local_datasource.dart';
 import 'package:ekush_ponji/features/words/data/datasources/local/words_local_datasource.dart';
+import 'package:ekush_ponji/features/quotes/quotes_viewmodel.dart';
+import 'package:ekush_ponji/features/words/words_viewmodel.dart';
 import 'package:ekush_ponji/core/services/local_notification_service.dart';
 import 'package:ekush_ponji/core/services/background_task_dispatcher.dart';
 import 'package:workmanager/workmanager.dart';
 
 class AppInitializer {
   // ── Phase 1: Critical path ─────────────────────────────────
+  /// Everything here must complete BEFORE runApp().
+  /// Hive boxes are cheap local disk ops (~1-2ms each) — open them
+  /// all here so viewmodels can safely call Hive.box() on first frame.
   static Future<void> initializeCore() async {
     try {
       await Future.wait([
         _setDeviceOrientation(),
         _initializeHiveAndSettings(),
       ]);
+
+      // ✅ Open ALL Hive boxes before runApp.
+      // viewmodels call Hive.box('saved_quotes') etc. the moment the
+      // home screen renders — those boxes must already be open.
+      await _openSecondaryHiveBoxes();
+
       debugPrint('✅ Core initialization completed');
     } catch (e, stackTrace) {
       debugPrint('❌ Core initialization failed: $e');
@@ -35,12 +46,12 @@ class AppInitializer {
   }
 
   // ── Phase 2: Background ────────────────────────────────────
-  /// [container] is passed in so we read the singleton DataSyncService
-  /// from the provider graph rather than creating a second instance.
+  /// Heavy work (Firebase, network, WorkManager) runs behind the
+  /// custom splash screen. [container] is passed in so we reuse the
+  /// singleton DataSyncService from the provider graph.
   static Future<void> initializeBackground(ProviderContainer container) async {
     try {
       await Future.wait([
-        _openSecondaryHiveBoxes(),
         _initializeFirebase(),
         _initializeSharedPreferences(),
         _initializeWorkManager(),
@@ -89,8 +100,10 @@ class AppInitializer {
     debugPrint('✅ Hive adapters registered');
   }
 
-  // ── Phase 2 Steps ──────────────────────────────────────────
-
+  /// ✅ MOVED FROM Phase 2 → Phase 1.
+  /// Opening boxes is a fast local op. Must be done before runApp()
+  /// so that QuotesViewModel.onInit() and WordsViewModel.onInit()
+  /// can safely call Hive.box('saved_quotes') / Hive.box('saved_words').
   static Future<void> _openSecondaryHiveBoxes() async {
     try {
       await Future.wait([
@@ -101,8 +114,11 @@ class AppInitializer {
       debugPrint('✅ Secondary Hive boxes opened');
     } catch (e) {
       debugPrint('⚠️ Secondary Hive boxes warning: $e');
+      // Non-fatal — app can still function with degraded state
     }
   }
+
+  // ── Phase 2 Steps ──────────────────────────────────────────
 
   static Future<void> _initializeFirebase() async {
     try {
@@ -151,9 +167,11 @@ class AppInitializer {
     }
   }
 
-  /// Seeds all bundled assets on first launch, then checks GitHub
-  /// for updates across holidays, quotes, and words.
+  /// Seeds all bundled assets on first launch, then checks for updates.
   /// Hard 8-second timeout — app proceeds normally if slow/offline.
+  ///
+  /// After seeding completes, viewmodels are reloaded so they pick up
+  /// the freshly written Hive data (quotes_en_json / words_en_json).
   static Future<void> _performDataSyncWithTimeout(
     ProviderContainer container,
   ) async {
@@ -166,6 +184,15 @@ class AppInitializer {
           debugPrint('⏱️ Data sync timed out — using cached/bundled data');
         },
       );
+
+      // ✅ Reload viewmodels after seed/sync completes.
+      // On first launch: seed() just wrote quotes_en_json to Hive,
+      // so reload picks up that data instead of the rootBundle fallback.
+      // On subsequent launches: picks up any newly synced remote data.
+      container.read(quotesViewModelProvider.notifier).loadQuotes();
+      container.read(wordsViewModelProvider.notifier).loadWords();
+
+      debugPrint('✅ Quotes + Words viewmodels reloaded after sync');
     } catch (e) {
       debugPrint('⚠️ Data sync error: $e');
     }

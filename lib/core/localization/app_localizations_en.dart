@@ -152,7 +152,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wordOfTheDay => 'Word of the Day';
 
   @override
-  String get meaning => 'Meaning';
+  String get meaningEnglish => 'Meaning in English';
+
+  @override
+  String get meaningBengali => 'Meaning in Bengali';
 
   @override
   String get synonym => 'Synonym';

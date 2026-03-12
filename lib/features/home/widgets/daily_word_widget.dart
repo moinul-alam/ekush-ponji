@@ -117,74 +117,74 @@ class _WordContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Word + part of speech badge + bookmark
+          // ── Word + chip inline + love icon ───────────────
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    InkWell(
-                      onTap: onOpen,
-                      borderRadius: BorderRadius.circular(8),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: Text(
-                          word!.word,
-                          style: theme.textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.tertiary,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      word!.pronunciation,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
+              // Word (tappable)
+              InkWell(
+                onTap: onOpen,
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Text(
+                    word!.word,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
                       color: colorScheme.tertiary,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      word!.partOfSpeech,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onTertiary,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      letterSpacing: 0.5,
                     ),
                   ),
-                  if (onToggleSave != null)
-                    IconButton(
-                      onPressed: onToggleSave,
-                      icon: Icon(
-                        word!.isSaved
-                            ? Icons.bookmark_rounded
-                            : Icons.bookmark_outline_rounded,
-                        color: word!.isSaved
-                            ? colorScheme.primary
-                            : colorScheme.onSurfaceVariant,
-                      ),
-                      visualDensity: VisualDensity.compact,
-                    ),
-                ],
+                ),
               ),
+
+              const SizedBox(width: 8),
+
+              // Part of speech chip — immediately after word
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: colorScheme.tertiary,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  word!.partOfSpeech,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onTertiary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+
+              const Spacer(),
+
+              // Love icon
+              if (onToggleSave != null)
+                IconButton(
+                  onPressed: onToggleSave,
+                  icon: Icon(
+                    word!.isSaved
+                        ? Icons.favorite_rounded
+                        : Icons.favorite_border_rounded,
+                    color: word!.isSaved
+                        ? colorScheme.error
+                        : colorScheme.onSurfaceVariant,
+                    size: 28,
+                  ),
+                  visualDensity: VisualDensity.compact,
+                ),
             ],
+          ),
+
+          // Pronunciation
+          const SizedBox(height: 4),
+          Text(
+            word!.pronunciation,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              fontStyle: FontStyle.italic,
+            ),
           ),
 
           const SizedBox(height: 16),
@@ -198,7 +198,7 @@ class _WordContent extends StatelessWidget {
           _buildSection(
             context,
             icon: Icons.lightbulb_outline_rounded,
-            title: l10n.meaning,
+            title: l10n.meaningEnglish,
             content: word!.meaningEn,
           ),
 
@@ -208,7 +208,7 @@ class _WordContent extends StatelessWidget {
           _buildSection(
             context,
             icon: Icons.translate_rounded,
-            title: 'অর্থ',
+            title: l10n.meaningBengali,
             content: word!.meaningBn,
           ),
 

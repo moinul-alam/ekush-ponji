@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:ekush_ponji/core/base/base_screen.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
@@ -9,6 +10,7 @@ import 'package:ekush_ponji/features/settings/settings_viewmodel.dart';
 import 'package:ekush_ponji/app/providers/app_providers.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/core/constants/app_constants.dart';
+import 'package:ekush_ponji/app/router/route_names.dart';
 
 class SettingsScreen extends BaseScreen {
   const SettingsScreen({super.key});
@@ -45,7 +47,8 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
   Widget buildBody(BuildContext context, WidgetRef ref) {
     final viewState = ref.watch(settingsViewModelProvider);
 
-    if (viewState is ViewStateLoading && viewState.message == 'Loading settings...') {
+    if (viewState is ViewStateLoading &&
+        viewState.message == 'Loading settings...') {
       return const Center(child: CircularProgressIndicator());
     }
 
@@ -60,15 +63,15 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
     final currentTheme = ref.watch(themeModeProvider);
     final currentLocale = ref.watch(localeProvider);
     final currentLanguage = currentLocale.languageCode;
+    final isBn = l10n.languageCode == 'bn';
 
-    // True only when the sync operation specifically is running
     final isSyncing = viewState is ViewStateLoading &&
-        viewState.message == 'Checking for updates...';
+        viewState.message == 'Syncing data...';
 
     return ListView(
       padding: const EdgeInsets.symmetric(vertical: 8),
       children: [
-        // ── Appearance ──────────────────────────────────────────────
+        // ── Appearance ────────────────────────────────────────────
         _SectionHeader(title: l10n.appearance),
         _SettingsTile(
           icon: Icons.palette_outlined,
@@ -87,19 +90,20 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
 
         const Divider(height: 32),
 
-        // ── Data Sync ────────────────────────────────────────────────
-        _SectionHeader(title: l10n.languageCode == 'bn' ? 'ডেটা সিঙ্ক' : 'Data Sync'),
+        // ── Data Sync ─────────────────────────────────────────────
+        _SectionHeader(title: isBn ? 'ডেটা সিঙ্ক' : 'Data Sync'),
         ListTile(
           leading: Icon(Icons.sync_rounded, color: colorScheme.primary),
           title: Text(
-            l10n.languageCode == 'bn' ? 'ছুটির তালিকা আপডেট করুন' : 'Sync Holiday Data',
+            isBn ? 'সব ডেটা আপডেট করুন' : 'Sync All Data',
             style: theme.textTheme.bodyLarge,
           ),
           subtitle: Text(
-            _formatLastCheck(l10n),
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
+            isBn
+                ? 'ছুটির তালিকা, উদ্ধৃতি ও শব্দ'
+                : 'Holidays, quotes & words',
+            style: theme.textTheme.bodySmall
+                ?.copyWith(color: colorScheme.onSurfaceVariant),
           ),
           trailing: isSyncing
               ? SizedBox(
@@ -115,13 +119,21 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
               ? null
               : () => ref
                   .read(settingsViewModelProvider.notifier)
-                  .syncHolidaysNow(widgetRef: ref),
-
+                  .syncAllData(widgetRef: ref),
+        ),
+        // Last sync timestamp row — reads each dataset's key
+        Padding(
+          padding: const EdgeInsets.fromLTRB(72, 0, 16, 12),
+          child: Text(
+            _formatLastSyncLine(isBn),
+            style: theme.textTheme.bodySmall
+                ?.copyWith(color: colorScheme.onSurfaceVariant),
+          ),
         ),
 
         const Divider(height: 32),
 
-        // ── Notifications ────────────────────────────────────────────
+        // ── Notifications & Features ──────────────────────────────
         _SectionHeader(title: l10n.notifications),
         _SettingsSwitchTile(
           icon: Icons.notifications_outlined,
@@ -130,10 +142,19 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
           value: viewModel.notificationsEnabled,
           onChanged: (value) => viewModel.toggleNotifications(value),
         ),
+        _SettingsSwitchTile(
+          icon: Icons.mosque_outlined,
+          title: isBn ? 'নামাজের সময়' : 'Prayer Times',
+          subtitle: isBn
+              ? 'নিচের নেভিগেশনে নামাজের সময় দেখান'
+              : 'Show prayer times in the bottom navigation',
+          value: viewModel.prayerTimesEnabled,
+          onChanged: (value) => viewModel.togglePrayerTimes(value, ref),
+        ),
 
         const Divider(height: 32),
 
-        // ── Data & Storage ───────────────────────────────────────────
+        // ── Data & Storage ────────────────────────────────────────
         _SectionHeader(title: l10n.dataAndStorage),
         _SettingsTile(
           icon: Icons.restore_outlined,
@@ -152,25 +173,14 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
 
         const Divider(height: 32),
 
-        // ── About ────────────────────────────────────────────────────
+        // ── About ─────────────────────────────────────────────────
         _SectionHeader(title: l10n.about),
         _SettingsTile(
           icon: Icons.info_outline,
           title: l10n.about,
           subtitle: l10n.appVersionSubtitle,
-          onTap: () => _showAboutDialog(context, l10n),
-        ),
-        _SettingsTile(
-          icon: Icons.privacy_tip_outlined,
-          title: l10n.privacyPolicy,
-          subtitle: l10n.privacyPolicySubtitle,
-          onTap: () => _showPrivacyPolicyDialog(context, l10n),
-        ),
-        _SettingsTile(
-          icon: Icons.gavel_outlined,
-          title: l10n.termsOfService,
-          subtitle: l10n.termsOfServiceSubtitle,
-          onTap: () => _showTermsDialog(context, l10n),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => context.push(RouteNames.about),
         ),
 
         const SizedBox(height: 16),
@@ -179,9 +189,8 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
             padding: const EdgeInsets.all(16),
             child: Text(
               'Version 1.0.0',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
+              style: theme.textTheme.bodySmall
+                  ?.copyWith(color: colorScheme.onSurfaceVariant),
             ),
           ),
         ),
@@ -194,7 +203,7 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
     ref.read(settingsViewModelProvider.notifier).loadSettings();
   }
 
-  // ── Helpers ────────────────────────────────────────────────────────
+  // ── Helpers ──────────────────────────────────────────────────────
 
   String _getThemeName(ThemeMode mode, AppLocalizations l10n) {
     switch (mode) {
@@ -207,61 +216,49 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
     }
   }
 
-  /// Reads the last-check timestamp from Hive settings box and formats it
-  /// for display. Falls back to "Never" if not yet synced.
-  String _formatLastCheck(AppLocalizations l10n) {
+  /// Shows the most recent check across all three datasets.
+  String _formatLastSyncLine(bool isBn) {
     try {
       final box = Hive.box('settings');
-      final lastCheckStr = box.get('holidays_last_check') as String?;
-      final isBn = l10n.languageCode == 'bn';
+      final keys = [
+        'holidays_last_check',
+        'quotes_last_check',
+        'words_last_check',
+      ];
 
-      if (lastCheckStr == null) {
-        return isBn ? 'কখনো চেক করা হয়নি' : 'Never checked';
+      DateTime? latest;
+      for (final key in keys) {
+        final raw = box.get(key) as String?;
+        if (raw == null) continue;
+        final dt = DateTime.tryParse(raw);
+        if (dt != null && (latest == null || dt.isAfter(latest))) {
+          latest = dt;
+        }
       }
 
-      final lastCheck = DateTime.tryParse(lastCheckStr);
-      if (lastCheck == null) {
-        return isBn ? 'কখনো চেক করা হয়নি' : 'Never checked';
+      if (latest == null) {
+        return isBn ? 'কখনো সিঙ্ক করা হয়নি' : 'Never synced';
       }
 
-      final now = DateTime.now();
-      final diff = now.difference(lastCheck);
+      final diff = DateTime.now().difference(latest);
 
-      if (diff.inMinutes < 1) {
-        return isBn ? 'এইমাত্র' : 'Just now';
-      }
+      if (diff.inMinutes < 1) return isBn ? 'এইমাত্র' : 'Just now';
       if (diff.inHours < 1) {
-        final mins = l10n.localizeNumber(diff.inMinutes);
-        return isBn ? '$mins মিনিট আগে' : '$mins minutes ago';
+        return isBn
+            ? '${diff.inMinutes} মিনিট আগে'
+            : '${diff.inMinutes} minutes ago';
       }
       if (diff.inDays < 1) {
-        final hours = l10n.localizeNumber(diff.inHours);
-        return isBn ? '$hours ঘণ্টা আগে' : '$hours hours ago';
+        return isBn ? '${diff.inHours} ঘণ্টা আগে' : '${diff.inHours} hours ago';
       }
-      if (diff.inDays == 1) {
-        return isBn ? 'গতকাল' : 'Yesterday';
-      }
-      final days = l10n.localizeNumber(diff.inDays);
-      return isBn ? '$days দিন আগে' : '$days days ago';
+      if (diff.inDays == 1) return isBn ? 'গতকাল' : 'Yesterday';
+      return isBn ? '${diff.inDays} দিন আগে' : '${diff.inDays} days ago';
     } catch (_) {
-      return l10n.languageCode == 'bn' ? 'অজানা' : 'Unknown';
+      return isBn ? 'অজানা' : 'Unknown';
     }
   }
 
-  void _showComingSoonSnackBar(BuildContext context, AppLocalizations l10n) {
-    final isBn = l10n.languageCode == 'bn';
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          isBn ? 'এই ফিচারটি শীঘ্রই আসছে…' : l10n.featureComingSoon,
-        ),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
-
-  // ── Dialogs ────────────────────────────────────────────────────────
+  // ── Dialogs ──────────────────────────────────────────────────────
 
   void _showThemeDialog(
       BuildContext context, WidgetRef ref, AppLocalizations l10n) {
@@ -373,183 +370,18 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
       if (confirmed) viewModel.resetSettings(ref);
     });
   }
-
-  void _showAboutDialog(BuildContext context, AppLocalizations l10n) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final isBn = l10n.languageCode == 'bn';
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.about),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.calendar_month_rounded,
-                size: 64,
-                color: colorScheme.primary,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                isBn ? 'একুশ পঞ্জি' : 'Ekush Ponji',
-                style: theme.textTheme.titleLarge
-                    ?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Version 1.0.0',
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(color: colorScheme.onSurfaceVariant),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                isBn
-                    ? 'একুশ পঞ্জি একটি বাংলা ক্যালেন্ডার অ্যাপ। বাংলা ও ইংরেজি তারিখ রূপান্তর, ছুটির তালিকা, ইভেন্ট ও রিমাইন্ডার — সব এক জায়গায়।\n\nডেভেলপ করেছেন বাংলাদেশের ব্যবহারকারীদের কথা মাথায় রেখে।'
-                    : 'Ekush Ponji is a Bangla calendar app built for Bangladesh. Convert dates between Bangla and Gregorian calendars, browse holidays, and manage personal events and reminders — all in one place.',
-                style: theme.textTheme.bodyMedium,
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l10n.close),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showPrivacyPolicyDialog(BuildContext context, AppLocalizations l10n) {
-    final theme = Theme.of(context);
-    final isBn = l10n.languageCode == 'bn';
-
-    final content = isBn
-        ? '''একুশ পঞ্জি আপনার গোপনীয়তাকে সম্মান করে।
-
-আমরা কী সংগ্রহ করি
-আপনার ব্যক্তিগত পরিচয় সংক্রান্ত কোনো তথ্য সংগ্রহ করা হয় না। আপনার তৈরি ইভেন্ট, রিমাইন্ডার ও সেটিংস শুধুমাত্র আপনার ডিভাইসেই সংরক্ষিত থাকে।
-
-অ্যানালিটিক্স
-অ্যাপের উন্নতির জন্য বেনামী ব্যবহার পরিসংখ্যান সংগ্রহ করা হতে পারে। এতে কোনো ব্যক্তিগত তথ্য থাকে না।
-
-তৃতীয় পক্ষ
-আমরা কোনো তৃতীয় পক্ষের সাথে আপনার তথ্য বিক্রি বা ভাগ করি না।
-
-যোগাযোগ
-কোনো প্রশ্ন থাকলে আমাদের সাথে যোগাযোগ করুন।'''
-        : '''Ekush Ponji respects your privacy.
-
-What We Collect
-We do not collect any personally identifiable information. Events, reminders, and settings you create are stored locally on your device only.
-
-Analytics
-Anonymous usage statistics may be collected to improve the app. No personal data is included.
-
-Third Parties
-We do not sell or share your data with any third parties.
-
-Contact
-If you have any questions, please reach out to us.''';
-
-    _showScrollableDialog(
-      context: context,
-      title: l10n.privacyPolicy,
-      content: content,
-      closeLabel: l10n.close,
-      theme: theme,
-    );
-  }
-
-  void _showTermsDialog(BuildContext context, AppLocalizations l10n) {
-    final theme = Theme.of(context);
-    final isBn = l10n.languageCode == 'bn';
-
-    final content = isBn
-        ? '''একুশ পঞ্জি ব্যবহার করে আপনি নিচের শর্তাবলি মেনে নিচ্ছেন।
-
-ব্যবহারের অনুমতি
-এই অ্যাপটি ব্যক্তিগত ও অ-বাণিজ্যিক উদ্দেশ্যে ব্যবহারের জন্য আপনাকে বিনামূল্যে লাইসেন্স প্রদান করা হয়।
-
-দায়মুক্তি
-অ্যাপটি "যেমন আছে" ভিত্তিতে সরবরাহ করা হয়। ক্যালেন্ডার বা প্রার্থনার সময়সূচির নির্ভুলতার কোনো গ্যারান্টি দেওয়া হয় না। গুরুত্বপূর্ণ বিষয়ে দাপ্তরিক সূত্র থেকে তথ্য যাচাই করুন।
-
-পরিবর্তন
-আমরা যেকোনো সময় এই শর্তাবলি পরিবর্তন করার অধিকার রাখি। পরিবর্তন কার্যকর হওয়ার পর অ্যাপ ব্যবহার অব্যাহত রাখলে আপনি নতুন শর্ত মেনে নিয়েছেন বলে ধরা হবে।
-
-যোগাযোগ
-কোনো প্রশ্ন থাকলে আমাদের সাথে যোগাযোগ করুন।'''
-        : '''By using Ekush Ponji, you agree to the following terms.
-
-License
-You are granted a free, non-exclusive license to use this app for personal, non-commercial purposes.
-
-Disclaimer
-The app is provided "as is". We make no guarantees about the accuracy of calendar dates or prayer times. Please verify critical information from official sources.
-
-Changes
-We reserve the right to modify these terms at any time. Continued use of the app after changes constitutes your acceptance of the updated terms.
-
-Contact
-If you have any questions, please reach out to us.''';
-
-    _showScrollableDialog(
-      context: context,
-      title: l10n.termsOfService,
-      content: content,
-      closeLabel: l10n.close,
-      theme: theme,
-    );
-  }
-
-  void _showScrollableDialog({
-    required BuildContext context,
-    required String title,
-    required String content,
-    required String closeLabel,
-    required ThemeData theme,
-  }) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: SingleChildScrollView(
-            child: Text(
-              content,
-              style: theme.textTheme.bodyMedium,
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(closeLabel),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 // ── Private widgets ──────────────────────────────────────────────────────────
 
 class _SectionHeader extends StatelessWidget {
   final String title;
-
   const _SectionHeader({required this.title});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
       child: Text(
@@ -585,7 +417,6 @@ class _SettingsTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-
     return ListTile(
       leading: Icon(icon, color: colorScheme.primary),
       title: Text(
@@ -624,7 +455,6 @@ class _SettingsSwitchTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-
     return SwitchListTile(
       secondary: Icon(icon, color: colorScheme.primary),
       title: Text(title, style: theme.textTheme.bodyLarge),

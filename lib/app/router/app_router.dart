@@ -21,6 +21,9 @@ import 'package:ekush_ponji/features/events/models/event.dart';
 import 'package:ekush_ponji/features/reminders/models/reminder.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/features/holidays/holidays_screen.dart';
+import 'package:ekush_ponji/features/about/about_screen.dart';
+import 'package:ekush_ponji/features/onboarding/onboarding_screen.dart';
+
 
 class AppRouter {
   AppRouter._();
@@ -207,6 +210,20 @@ class AppRouter {
         path: RouteNames.holidays,
         name: 'holidays',
         builder: (context, state) => const HolidaysScreen(),
+      ),
+
+      // About
+      GoRoute(
+        path: RouteNames.about,
+        name: 'about',
+        builder: (context, state) => const AboutScreen(),
+      ),
+
+      // Onboarding
+      GoRoute(
+        path: RouteNames.onboarding,
+        name: 'onboarding',
+        builder: (context, state) => const OnboardingScreen(),
       ),
     ],
     errorBuilder: (context, state) => _ErrorScreen(state: state),

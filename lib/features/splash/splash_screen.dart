@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ekush_ponji/app/providers/app_providers.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
+import 'package:ekush_ponji/features/onboarding/onboarding_viewmodel.dart';
 import 'package:ekush_ponji/features/splash/widgets/logo_splash_widget.dart';
 import 'package:ekush_ponji/features/splash/widgets/app_loading_widget.dart';
 
@@ -15,27 +16,25 @@ class SplashScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Navigate the moment app signals ready
     ref.listen<bool>(appReadyProvider, (_, isReady) {
-      if (isReady) context.go(RouteNames.home);
+      if (!isReady) return;
+      // First launch → onboarding, returning user → home
+      final destination = isOnboardingDone()
+          ? RouteNames.home
+          : RouteNames.onboarding;
+      context.go(destination);
     });
 
     final size = MediaQuery.sizeOf(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF080D1A), // Deep navy — makes blue logo glow
+      backgroundColor: const Color(0xFF080D1A),
       body: SizedBox(
         width: size.width,
         height: size.height,
         child: Stack(
           children: [
-            // Ambient background — deep space feel, no green
             const _SplashBackground(),
-
-            // Logo + name + tagline centered
-            const Center(
-              child: LogoSplashWidget(),
-            ),
-
-            // Loading indicator at bottom
+            const Center(child: LogoSplashWidget()),
             Positioned(
               bottom: 72,
               left: 0,
@@ -54,19 +53,14 @@ class SplashScreen extends ConsumerWidget {
   }
 }
 
-/// Ambient radial glows — deep navy with blue/indigo accents.
-/// No green. Complements the blue logo naturally.
 class _SplashBackground extends StatelessWidget {
   const _SplashBackground();
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
-
     return SizedBox.expand(
-      child: CustomPaint(
-        painter: _BackgroundPainter(size: size),
-      ),
+      child: CustomPaint(painter: _BackgroundPainter(size: size)),
     );
   }
 }
@@ -77,7 +71,6 @@ class _BackgroundPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Top-right: soft blue radial glow
     _drawRadialGlow(
       canvas,
       center: Offset(size.width * 0.85, size.height * 0.12),
@@ -85,8 +78,6 @@ class _BackgroundPainter extends CustomPainter {
       color: const Color(0xFF1A4A8A),
       opacity: 0.45,
     );
-
-    // Center: deep indigo bloom behind logo
     _drawRadialGlow(
       canvas,
       center: Offset(size.width * 0.5, size.height * 0.42),
@@ -94,8 +85,6 @@ class _BackgroundPainter extends CustomPainter {
       color: const Color(0xFF0D2A5E),
       opacity: 0.6,
     );
-
-    // Bottom-left: cyan accent glow
     _drawRadialGlow(
       canvas,
       center: Offset(size.width * 0.1, size.height * 0.88),
@@ -119,7 +108,6 @@ class _BackgroundPainter extends CustomPainter {
           color.withValues(alpha: 0.0),
         ],
       ).createShader(Rect.fromCircle(center: center, radius: radius));
-
     canvas.drawCircle(center, radius, paint);
   }
 

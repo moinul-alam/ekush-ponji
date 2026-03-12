@@ -71,7 +71,7 @@ class _HolidaysScreenState extends BaseScreenState<HolidaysScreen> {
     final vm = ref.watch(holidaysViewModelProvider.notifier);
     final l10n = AppLocalizations.of(context);
 
-    // Loading — initial full screen load
+    // Full-screen loading (initial load only)
     if (viewState is ViewStateLoading && !viewState.isRefreshing) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -94,19 +94,20 @@ class _HolidaysScreenState extends BaseScreenState<HolidaysScreen> {
 
     return Column(
       children: [
-        // ── View Mode Toggle ─────────────────────────────────
-        _ViewModeToggleBar(
+        // ── Controls bar ─────────────────────────────────────
+        // Sync button (left) + View mode toggle (right)
+        _ControlsBar(
           viewMode: vm.viewMode,
-          onToggle: () => vm.toggleViewMode(),
+          isSyncing: vm.isSyncing,
+          onSync: () => vm.syncHolidays(),
+          onToggleView: () => vm.toggleViewMode(),
           l10n: l10n,
         ),
 
-        // ── Holiday List ─────────────────────────────────────
+        // ── Holiday list ─────────────────────────────────────
         Expanded(
           child: vm.viewMode == HolidaysViewMode.gazetteType
-              ? _GazetteTypeView(
-                  grouped: vm.groupedByGazetteType,
-                )
+              ? _GazetteTypeView(grouped: vm.groupedByGazetteType)
               : _MonthWiseView(
                   grouped: vm.groupedByMonth,
                   year: vm.selectedYear,
@@ -119,7 +120,6 @@ class _HolidaysScreenState extends BaseScreenState<HolidaysScreen> {
 
 // ─────────────────────────────────────────────────────────────
 // YEAR NAVIGATOR BAR
-// Sits in AppBar bottom slot
 // ─────────────────────────────────────────────────────────────
 
 class _YearNavigatorBar extends StatelessWidget {
@@ -153,7 +153,6 @@ class _YearNavigatorBar extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Previous year button
           IconButton(
             onPressed: onPrevious,
             icon: const Icon(Icons.chevron_left_rounded),
@@ -162,10 +161,7 @@ class _YearNavigatorBar extends StatelessWidget {
               foregroundColor: theme.colorScheme.primary,
             ),
           ),
-
           const SizedBox(width: 8),
-
-          // Year display
           Text(
             l10n.localizeNumber(year),
             style: theme.textTheme.headlineSmall?.copyWith(
@@ -173,10 +169,7 @@ class _YearNavigatorBar extends StatelessWidget {
               color: theme.colorScheme.primary,
             ),
           ),
-
           const SizedBox(width: 8),
-
-          // Next year button
           IconButton(
             onPressed: onNext,
             icon: const Icon(Icons.chevron_right_rounded),
@@ -192,24 +185,30 @@ class _YearNavigatorBar extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────
-// VIEW MODE TOGGLE BAR
-// Switches between gazette-type and month-wise views
+// CONTROLS BAR
+// Sync button left · View mode toggle right
+// Sits directly below the year navigator bar
 // ─────────────────────────────────────────────────────────────
 
-class _ViewModeToggleBar extends StatelessWidget {
+class _ControlsBar extends StatelessWidget {
   final HolidaysViewMode viewMode;
-  final VoidCallback onToggle;
+  final bool isSyncing;
+  final VoidCallback onSync;
+  final VoidCallback onToggleView;
   final AppLocalizations l10n;
 
-  const _ViewModeToggleBar({
+  const _ControlsBar({
     required this.viewMode,
-    required this.onToggle,
+    required this.isSyncing,
+    required this.onSync,
+    required this.onToggleView,
     required this.l10n,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final isBn = l10n.languageCode == 'bn';
     final isMonthWise = viewMode == HolidaysViewMode.monthWise;
 
@@ -217,45 +216,73 @@ class _ViewModeToggleBar extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
+        color: colorScheme.surface,
         border: Border(
-          bottom: BorderSide(
-            color: theme.colorScheme.outlineVariant,
-            width: 1,
-          ),
+          bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
         ),
       ),
-      child: Align(
-        alignment: Alignment.centerRight,
-        child: FilledButton.tonal(
-          onPressed: onToggle,
-          style: FilledButton.styleFrom(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 14,
-              vertical: 8,
+      child: Row(
+        children: [
+          // ── Sync button (left) ──────────────────────────────
+          FilledButton.tonal(
+            onPressed: isSyncing ? null : onSync,
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
-            minimumSize: Size.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            child: isSyncing
+                ? SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: colorScheme.primary,
+                    ),
+                  )
+                : Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.sync_rounded, size: 16),
+                      const SizedBox(width: 6),
+                      Text(
+                        isBn ? 'আপডেট' : 'Sync',
+                        style: theme.textTheme.labelMedium,
+                      ),
+                    ],
+                  ),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                isMonthWise
-                    ? Icons.list_alt_rounded
-                    : Icons.calendar_month_rounded,
-                size: 16,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                isMonthWise
-                    ? (isBn ? 'গেজেট অনুযায়ী দেখুন' : 'View by Gazette Type')
-                    : (isBn ? 'মাস অনুযায়ী দেখুন' : 'View by Month'),
-                style: theme.textTheme.labelMedium,
-              ),
-            ],
+
+          const Spacer(),
+
+          // ── View mode toggle (right) ────────────────────────
+          FilledButton.tonal(
+            onPressed: onToggleView,
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  isMonthWise
+                      ? Icons.list_alt_rounded
+                      : Icons.calendar_month_rounded,
+                  size: 16,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  isMonthWise
+                      ? (isBn ? 'গেজেট অনুযায়ী' : 'By Gazette')
+                      : (isBn ? 'মাস অনুযায়ী' : 'By Month'),
+                  style: theme.textTheme.labelMedium,
+                ),
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -263,12 +290,10 @@ class _ViewModeToggleBar extends StatelessWidget {
 
 // ─────────────────────────────────────────────────────────────
 // GAZETTE TYPE VIEW
-// Default view — one section per GazetteType
 // ─────────────────────────────────────────────────────────────
 
 class _GazetteTypeView extends StatelessWidget {
   final Map<GazetteType, List<Holiday>> grouped;
-
   const _GazetteTypeView({required this.grouped});
 
   @override
@@ -289,36 +314,27 @@ class _GazetteTypeView extends StatelessWidget {
 
 // ─────────────────────────────────────────────────────────────
 // MONTH WISE VIEW
-// 12 collapsible month sections
 // ─────────────────────────────────────────────────────────────
 
 class _MonthWiseView extends StatelessWidget {
   final Map<int, List<Holiday>> grouped;
   final int year;
-
-  const _MonthWiseView({
-    required this.grouped,
-    required this.year,
-  });
+  const _MonthWiseView({required this.grouped, required this.year});
 
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
-
     return ListView.builder(
       padding: const EdgeInsets.only(bottom: 24),
       itemCount: grouped.length,
       itemBuilder: (context, index) {
         final entry = grouped.entries.elementAt(index);
         final month = entry.key;
-        final isCurrentMonth = month == now.month && year == now.year;
-
         return HolidayMonthSectionWidget(
           month: month,
           year: year,
           holidays: entry.value,
-          // Only current month is expanded by default
-          initiallyExpanded: isCurrentMonth,
+          initiallyExpanded: month == now.month && year == now.year,
         );
       },
     );

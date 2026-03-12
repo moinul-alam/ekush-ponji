@@ -27,11 +27,14 @@ class _HomeHolidaysWidgetState extends State<HomeHolidaysWidget> {
     final l10n = AppLocalizations.of(context);
     final monthName = l10n.getMonthName(DateTime.now().month);
 
-    final visibleHolidays = _showAll
-        ? widget.holidays
-        : widget.holidays.take(_collapseThreshold).toList();
+    final mandatoryHolidays =
+    widget.holidays.where((h) => h.isMandatory).toList();
 
-    final hasMore = widget.holidays.length > _collapseThreshold;
+    final visibleHolidays = _showAll
+        ? mandatoryHolidays
+        : mandatoryHolidays.take(_collapseThreshold).toList();
+
+    final hasMore = mandatoryHolidays.length > _collapseThreshold;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -68,18 +71,11 @@ class _HomeHolidaysWidgetState extends State<HomeHolidaysWidget> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          l10n.sectionHolidays,
+                          l10n.formatUpcomingHolidaysInMonth(monthName),
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w800,
                             color: cs.onSurface,
                             letterSpacing: -0.3,
-                          ),
-                        ),
-                        Text(
-                          l10n.formatUpcomingHolidaysInMonth(monthName),
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: cs.onSurfaceVariant,
-                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
@@ -101,7 +97,7 @@ class _HomeHolidaysWidgetState extends State<HomeHolidaysWidget> {
                           size: 12, color: cs.onPrimaryContainer),
                       const SizedBox(width: 4),
                       Text(
-                        l10n.localizeNumber(widget.holidays.length),
+                        l10n.localizeNumber(mandatoryHolidays.length),
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: cs.onPrimaryContainer,
                           fontWeight: FontWeight.w800,
@@ -117,7 +113,7 @@ class _HomeHolidaysWidgetState extends State<HomeHolidaysWidget> {
           const SizedBox(height: 12),
 
           // ─── Empty State ──────────────────────────────────
-          if (widget.holidays.isEmpty)
+          if (mandatoryHolidays.isEmpty)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               child: Container(
@@ -189,8 +185,8 @@ class _HomeHolidaysWidgetState extends State<HomeHolidaysWidget> {
                                       ? 'কম দেখাও'
                                       : 'Show less')
                                   : (l10n.languageCode == 'bn'
-                                      ? 'আরও ${l10n.localizeNumber(widget.holidays.length - _collapseThreshold)}টি দেখাও'
-                                      : 'Show ${widget.holidays.length - _collapseThreshold} more'),
+                                      ? 'আরও ${l10n.localizeNumber(mandatoryHolidays.length - _collapseThreshold)}টি দেখাও'
+                                      : 'Show ${mandatoryHolidays.length - _collapseThreshold} more'),
                               style: theme.textTheme.labelMedium?.copyWith(
                                 color: cs.primary,
                                 fontWeight: FontWeight.w600,

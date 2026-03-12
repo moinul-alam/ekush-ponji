@@ -13,8 +13,6 @@ import 'package:ekush_ponji/features/words/widgets/word_share_card.dart';
 import 'package:ekush_ponji/core/services/share_service.dart';
 
 class WordsScreen extends BaseScreen {
-  /// When navigating from home, pass the daily word's index so the screen
-  /// opens directly on that word instead of always starting at index 0.
   final int initialIndex;
 
   const WordsScreen({super.key, this.initialIndex = 0});
@@ -97,8 +95,6 @@ class _WordsScreenState extends BaseScreenState<WordsScreen>
   PreferredSizeWidget? buildAppBar(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     return AppBar(
-      // Back button is shown automatically because this screen is pushed
-      // onto the navigator stack via context.pushNamed()
       leading: IconButton(
         icon: const Icon(Icons.arrow_back_ios_new_rounded),
         onPressed: () => context.pop(),
@@ -106,7 +102,7 @@ class _WordsScreenState extends BaseScreenState<WordsScreen>
       title: Text(l10n.wordOfTheDay),
       actions: [
         IconButton(
-          icon: const Icon(Icons.bookmark_outline_rounded),
+          icon: const Icon(Icons.favorite_border_rounded),
           tooltip: l10n.savedWords,
           onPressed: () => context.push(RouteNames.savedWords),
         ),
@@ -318,8 +314,8 @@ class _WordCard extends StatelessWidget {
                           onPressed: onToggleSave,
                           icon: Icon(
                             word.isSaved
-                                ? Icons.bookmark_rounded
-                                : Icons.bookmark_outline_rounded,
+                                ? Icons.favorite_rounded
+                                : Icons.favorite_outline_rounded,
                             color: word.isSaved
                                 ? colorScheme.primary
                                 : colorScheme.onSurfaceVariant,
@@ -360,12 +356,12 @@ class _WordCard extends StatelessWidget {
 
                 _buildSection(context,
                     icon: Icons.lightbulb_outline_rounded,
-                    title: l10n.meaning,
+                    title: l10n.meaningEnglish,
                     content: word.meaningEn),
                 const SizedBox(height: 4),
                 _buildSection(context,
                     icon: Icons.translate_rounded,
-                    title: 'অর্থ',
+                    title: l10n.meaningBengali,
                     content: word.meaningBn),
                 const SizedBox(height: 16),
                 _buildSection(context,

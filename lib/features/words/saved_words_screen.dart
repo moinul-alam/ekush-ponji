@@ -108,7 +108,7 @@ class _SavedWordCard extends StatelessWidget {
                 IconButton(
                   onPressed: onUnsave,
                   icon: Icon(
-                    Icons.bookmark_rounded,
+                    Icons.favorite_rounded,
                     color: colorScheme.primary,
                   ),
                   tooltip: 'Remove from saved',
@@ -147,7 +147,7 @@ class _SavedWordCard extends StatelessWidget {
             _buildSection(
               context,
               icon: Icons.lightbulb_outline_rounded,
-              title: l10n.meaning,
+              title: l10n.meaningEnglish,
               content: word.meaningEn,
             ),
 

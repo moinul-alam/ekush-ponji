@@ -1,23 +1,18 @@
+// lib/core/themes/app_theme.dart
+
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:ekush_ponji/core/themes/color_schemes.dart';
 
 class AppTheme {
   AppTheme._();
 
-  // Public font name constants — may be referenced by other files
-  static const String englishFont = 'Syne';
-  static const String bengaliFont = 'Tiro Bangla';
+  // Font family name — must match the 'family' key in pubspec.yaml exactly
+  static const String appFont = 'NotoSerifBengali';
 
-  // Cache font family names once — avoids repeated object creation
-  static final String _syneFamily = GoogleFonts.syne().fontFamily!;
-  static final String _tiroBanglaFamily = GoogleFonts.tiroBangla().fontFamily!;
-  static final List<String> _fontFallback = [_tiroBanglaFamily];
-
-  // Cache the entire textTheme — same for light and dark, built exactly once
+  // Cache the text theme — built once, shared by light and dark
   static final TextTheme _cachedTextTheme = _buildTextTheme();
 
-  // Light Theme
+  // ── Light Theme ────────────────────────────────────────────
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
@@ -37,7 +32,7 @@ class AppTheme {
     );
   }
 
-  // Dark Theme
+  // ── Dark Theme ─────────────────────────────────────────────
   static ThemeData get darkTheme {
     return ThemeData(
       useMaterial3: true,
@@ -57,22 +52,22 @@ class AppTheme {
     );
   }
 
-  // Builds a single TextStyle with Syne primary and Tiro Bangla fallback
+  // ── Text Style Helper ──────────────────────────────────────
+  // Single font covers both English and Bengali — no fallback needed.
   static TextStyle _s({
     required double fontSize,
     required FontWeight fontWeight,
     double letterSpacing = 0,
   }) {
     return TextStyle(
-      fontFamily: _syneFamily,
-      fontFamilyFallback: _fontFallback,
+      fontFamily: appFont,
       fontSize: fontSize,
       fontWeight: fontWeight,
       letterSpacing: letterSpacing,
     );
   }
 
-  // Text Theme — English text → Syne, Bengali text → Tiro Bangla (automatically)
+  // ── Text Theme ─────────────────────────────────────────────
   static TextTheme _buildTextTheme() {
     return TextTheme(
       displayLarge:  _s(fontSize: 57, fontWeight: FontWeight.w400, letterSpacing: -0.25),
@@ -93,28 +88,27 @@ class AppTheme {
     );
   }
 
-  // AppBar Theme - Light
+  // ── AppBar ─────────────────────────────────────────────────
   static const AppBarTheme _lightAppBarTheme = AppBarTheme(
     centerTitle: false,
     elevation: 0,
     scrolledUnderElevation: 1,
   );
 
-  // AppBar Theme - Dark
   static const AppBarTheme _darkAppBarTheme = AppBarTheme(
     centerTitle: false,
     elevation: 0,
     scrolledUnderElevation: 1,
   );
 
-  // Card Theme
+  // ── Card ───────────────────────────────────────────────────
   static CardThemeData get _cardTheme => CardThemeData(
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       );
 
-  // Elevated Button Theme
+  // ── Buttons ────────────────────────────────────────────────
   static ElevatedButtonThemeData get _elevatedButtonTheme =>
       ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -124,7 +118,6 @@ class AppTheme {
         ),
       );
 
-  // Outlined Button Theme
   static OutlinedButtonThemeData get _outlinedButtonTheme =>
       OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
@@ -133,7 +126,6 @@ class AppTheme {
         ),
       );
 
-  // Text Button Theme
   static TextButtonThemeData get _textButtonTheme => TextButtonThemeData(
         style: TextButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -141,8 +133,9 @@ class AppTheme {
         ),
       );
 
-  // Input Decoration Theme
-  static InputDecorationTheme get _inputDecorationTheme => InputDecorationTheme(
+  // ── Input ──────────────────────────────────────────────────
+  static InputDecorationTheme get _inputDecorationTheme =>
+      InputDecorationTheme(
         filled: true,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -160,28 +153,29 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: Colors.red),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       );
 
-  // FAB Theme
+  // ── FAB ────────────────────────────────────────────────────
   static FloatingActionButtonThemeData get _fabTheme =>
       FloatingActionButtonThemeData(
         elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       );
 
-  // SnackBar Theme
+  // ── SnackBar ───────────────────────────────────────────────
   static SnackBarThemeData get _snackBarTheme => SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       );
 
-  // Dialog Theme
+  // ── Dialog ─────────────────────────────────────────────────
   static DialogThemeData get _dialogTheme => DialogThemeData(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       );
 
-  // Bottom Navigation Bar Theme - Light
+  // ── Bottom Navigation ──────────────────────────────────────
   static const BottomNavigationBarThemeData _lightBottomNavTheme =
       BottomNavigationBarThemeData(
         type: BottomNavigationBarType.fixed,
@@ -190,7 +184,6 @@ class AppTheme {
         showUnselectedLabels: true,
       );
 
-  // Bottom Navigation Bar Theme - Dark
   static const BottomNavigationBarThemeData _darkBottomNavTheme =
       BottomNavigationBarThemeData(
         type: BottomNavigationBarType.fixed,
@@ -199,7 +192,7 @@ class AppTheme {
         showUnselectedLabels: true,
       );
 
-  // Navigation Bar Theme - Light
+  // ── Navigation Bar ─────────────────────────────────────────
   static NavigationBarThemeData get _lightNavigationBarTheme =>
       NavigationBarThemeData(
         elevation: 2,
@@ -209,7 +202,6 @@ class AppTheme {
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       );
 
-  // Navigation Bar Theme - Dark
   static NavigationBarThemeData get _darkNavigationBarTheme =>
       NavigationBarThemeData(
         elevation: 2,

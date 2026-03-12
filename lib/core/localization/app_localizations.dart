@@ -168,7 +168,8 @@ abstract class AppLocalizations {
   String get noUpcomingHolidays;
   String get quoteOfTheDay;
   String get wordOfTheDay;
-  String get meaning;
+  String get meaningEnglish;
+  String get meaningBengali;
   String get synonym;
   String get example;
   String get inDays;

@@ -43,4 +43,10 @@ class RouteNames {
 
   //holidays
   static const String holidays = '/holidays';
+
+  //about
+  static const String about = '/about';
+
+  //onboarding
+  static const String onboarding = '/onboarding';
 }

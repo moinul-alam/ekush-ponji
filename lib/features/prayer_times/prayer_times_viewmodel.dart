@@ -304,14 +304,13 @@ class PrayerTimesViewModel extends Notifier<PrayerTimesState> {
     if (times == null) return;
 
     final now = DateTime.now();
-    final next = times.nextPrayer; // never null now — wraps to Fajr after Isha
-    final countdown = times.timeUntilNextPrayer;
 
-    // After midnight the date has changed — recalculate for the new day.
-    // tomorrowFajr being in the past is a reliable signal for this.
-    final tomorrowFajr = times.tomorrowFajr;
-    if (tomorrowFajr != null && now.isAfter(tomorrowFajr)) {
-      // Silently reload for the new day (no loading indicator)
+    final modelDate = times.fajr; // Fajr is always the first prayer of the day
+    final modelDay = DateTime(modelDate.year, modelDate.month, modelDate.day);
+    final today = DateTime(now.year, now.month, now.day);
+
+    if (today.isAfter(modelDay)) {
+      // The calendar date has changed — recalculate for the new day.
       SharedPreferences.getInstance().then((prefs) {
         final languageCode = prefs.getString('languageCode') ?? 'bn';
         _calculateAndUpdate(
@@ -324,9 +323,11 @@ class PrayerTimesViewModel extends Notifier<PrayerTimesState> {
       return;
     }
 
+    final next = times.nextPrayer;
+    final countdown = times.timeUntilNextPrayer;
+
     state = state.copyWith(
       countdown: countdown,
-      // After Isha, next == Prayer.fajr, so the UI highlights Fajr correctly.
       highlightedPrayer: next,
     );
   }

@@ -110,7 +110,7 @@ class _SavedQuoteCard extends StatelessWidget {
                 IconButton(
                   onPressed: onUnsave,
                   icon: Icon(
-                    Icons.bookmark_rounded,
+                    Icons.favorite_rounded,
                     color: colorScheme.primary,
                   ),
                   tooltip: 'Remove from saved',
