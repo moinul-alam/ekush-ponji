@@ -1,10 +1,10 @@
 {
-  "manifestVersion": 1,
+  "manifestVersion": 2,
   "lastUpdated": "2026-03-11",
   "baseUrl": "https://raw.githubusercontent.com/moinul-alam/ekush_ponji/refs/heads/main/assets/data",
   "datasets": {
     "holidays": {
-      "version": 1,
+      "version": 2,
       "type": "by_year",
       "path": "holidays",
       "files": {
@@ -16,14 +16,14 @@
       }
     },
     "quotes": {
-      "version": 1,
+      "version": 2,
       "type": "single_file",
       "files": {
         "en": "quotes/quotes_en.json"
       }
     },
     "words": {
-      "version": 1,
+      "version": 2,
       "type": "single_file",
       "files": {
         "en": "words/words_en.json"
