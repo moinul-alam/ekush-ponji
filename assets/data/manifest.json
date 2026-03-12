@@ -4,7 +4,7 @@
   "baseUrl": "https://raw.githubusercontent.com/moinul-alam/ekush_ponji/refs/heads/main/assets/data",
   "datasets": {
     "holidays": {
-      "version": 2,
+      "version": 1,
       "type": "by_year",
       "path": "holidays",
       "files": {
