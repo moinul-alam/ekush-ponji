@@ -1,4 +1,6 @@
 // lib/app/config/app_initializer.dart
+//
+// CHANGED: Added _initializeMobileAds() to initializeBackground()
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import 'package:ekush_ponji/app/providers/app_providers.dart';
 import 'package:ekush_ponji/core/themes/app_theme.dart';
@@ -55,6 +58,7 @@ class AppInitializer {
         _initializeFirebase(),
         _initializeSharedPreferences(),
         _initializeWorkManager(),
+        _initializeMobileAds(), // ← ADDED: must run before AdService loads ads
       ]);
 
       await Future.wait([
@@ -164,6 +168,19 @@ class AppInitializer {
       debugPrint('✅ Notifications initialized');
     } catch (e) {
       debugPrint('⚠️ Notifications warning: $e');
+    }
+  }
+
+  // ── ADDED ──────────────────────────────────────────────────
+  /// Initializes the Google Mobile Ads SDK.
+  /// Must complete before AdService attempts to load any ads.
+  /// Non-fatal — app works normally if this fails.
+  static Future<void> _initializeMobileAds() async {
+    try {
+      await MobileAds.instance.initialize();
+      debugPrint('✅ MobileAds initialized');
+    } catch (e) {
+      debugPrint('⚠️ MobileAds initialization warning: $e');
     }
   }
 

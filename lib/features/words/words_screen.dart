@@ -11,6 +11,7 @@ import 'package:ekush_ponji/features/words/models/word.dart';
 import 'package:ekush_ponji/features/words/words_viewmodel.dart';
 import 'package:ekush_ponji/features/words/widgets/word_share_card.dart';
 import 'package:ekush_ponji/core/services/share_service.dart';
+import 'package:ekush_ponji/core/services/ad_service.dart';
 
 class WordsScreen extends BaseScreen {
   final int initialIndex;
@@ -29,6 +30,8 @@ class _WordsScreenState extends BaseScreenState<WordsScreen>
   late Animation<Offset> _slideInAnimation;
   bool _isAnimating = false;
   bool _slideFromRight = true;
+  int _wordsViewed = 0;
+  bool _interstitialTriggered = false;
 
   @override
   NotifierProvider<dynamic, ViewState> get viewModelProvider =>
@@ -76,6 +79,11 @@ class _WordsScreenState extends BaseScreenState<WordsScreen>
     _animationController.reset();
     await _animationController.forward();
     setState(() => _currentIndex++);
+    _wordsViewed++;
+    if (_wordsViewed >= 3 && !_interstitialTriggered) {
+      _interstitialTriggered = true;
+      ref.read(adServiceProvider).showInterstitialIfAvailable();
+    }
     _animationController.reset();
     _isAnimating = false;
   }
@@ -87,6 +95,11 @@ class _WordsScreenState extends BaseScreenState<WordsScreen>
     _animationController.reset();
     await _animationController.forward();
     setState(() => _currentIndex--);
+    _wordsViewed++;
+    if (_wordsViewed >= 3 && !_interstitialTriggered) {
+      _interstitialTriggered = true;
+      ref.read(adServiceProvider).showInterstitialIfAvailable();
+    }
     _animationController.reset();
     _isAnimating = false;
   }
@@ -260,8 +273,7 @@ class _WordCard extends StatelessWidget {
       height: double.infinity,
       child: Card(
         elevation: 3,
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
@@ -303,8 +315,7 @@ class _WordCard extends StatelessWidget {
                         IconButton(
                           onPressed: () => ShareService.shareWidget(
                             widget: WordShareCard(word: word),
-                            fileBaseName:
-                                'ekush_ponji_word_${word.storageKey}',
+                            fileBaseName: 'ekush_ponji_word_${word.storageKey}',
                           ),
                           icon: Icon(Icons.share_rounded,
                               color: colorScheme.onSurfaceVariant),
@@ -381,8 +392,8 @@ class _WordCard extends StatelessWidget {
                   child: Text(
                     'Ekush Ponji',
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant
-                          .withValues(alpha: 0.55),
+                      color:
+                          colorScheme.onSurfaceVariant.withValues(alpha: 0.55),
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0.6,
                     ),

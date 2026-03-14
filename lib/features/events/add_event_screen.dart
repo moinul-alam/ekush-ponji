@@ -9,6 +9,7 @@ import 'package:ekush_ponji/features/events/models/event.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ekush_ponji/core/services/local_notification_service.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:ekush_ponji/core/services/ad_service.dart';
 
 class AddEventScreen extends ConsumerStatefulWidget {
   final DateTime? prefilledDate;
@@ -135,7 +136,12 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
     ref.listen(addEventViewModelProvider, (prev, next) {
       if (next is ViewStateSuccess && next.message != null) {
         _showSnackbar(next.message!);
-        context.pop();
+        // Show interstitial if caps allow, then pop
+        ref.read(adServiceProvider).showInterstitialIfAvailable(
+          onClosed: () {
+            if (mounted) context.pop();
+          },
+        );
       }
       if (next is ViewStateError) {
         _showSnackbar(next.message, isError: true);

@@ -1,7 +1,9 @@
 // lib/app/router/app_router.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:ekush_ponji/features/splash/splash_screen.dart';
 import 'package:ekush_ponji/features/home/home_screen.dart';
 import 'package:ekush_ponji/features/calendar/calendar_screen.dart';
@@ -17,6 +19,8 @@ import 'package:ekush_ponji/features/words/words_screen.dart';
 import 'package:ekush_ponji/features/words/saved_words_screen.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
 import 'package:ekush_ponji/core/widgets/navigation/app_bottom_nav.dart';
+import 'package:ekush_ponji/core/widgets/navigation/more_bottom_sheet.dart';
+import 'package:ekush_ponji/core/services/ad_service.dart';
 import 'package:ekush_ponji/features/events/models/event.dart';
 import 'package:ekush_ponji/features/reminders/models/reminder.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
@@ -24,13 +28,9 @@ import 'package:ekush_ponji/features/holidays/holidays_screen.dart';
 import 'package:ekush_ponji/features/about/about_screen.dart';
 import 'package:ekush_ponji/features/onboarding/onboarding_screen.dart';
 
-
 class AppRouter {
   AppRouter._();
 
-  /// A global navigator key passed to GoRouter.
-  /// This allows navigation from outside the widget tree — specifically
-  /// from notification tap callbacks which have no BuildContext.
   static final GlobalKey<NavigatorState> navigatorKey =
       GlobalKey<NavigatorState>();
 
@@ -39,20 +39,34 @@ class AppRouter {
     initialLocation: RouteNames.splash,
     debugLogDiagnostics: false,
     routes: [
-      // Splash
+      // ── No nav bar routes ────────────────────────────────────
       GoRoute(
         path: RouteNames.splash,
         name: 'splash',
         builder: (context, state) => const SplashScreen(),
       ),
+      GoRoute(
+        path: RouteNames.onboarding,
+        name: 'onboarding',
+        builder: (context, state) => const OnboardingScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.settings,
+        name: 'settings',
+        builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.about,
+        name: 'about',
+        builder: (context, state) => const AboutScreen(),
+      ),
 
-      // Main Navigation Shell
+      // ── Tab Shell — Home, Calendar, Holidays, Prayer ─────────
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
           return _ScaffoldWithNavBar(navigationShell: navigationShell);
         },
         branches: [
-          // 0 — Home
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -62,8 +76,6 @@ class AppRouter {
               ),
             ],
           ),
-
-          // 1 — Calendar
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -108,8 +120,15 @@ class AppRouter {
               ),
             ],
           ),
-
-          // 2 — Prayer Times
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.holidays,
+                name: 'holidays',
+                builder: (context, state) => const HolidaysScreen(),
+              ),
+            ],
+          ),
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -119,135 +138,232 @@ class AppRouter {
               ),
             ],
           ),
-
-          // 3 — Calculator
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: RouteNames.calculator,
-                name: 'calculator',
-                builder: (context, state) => const CalculatorScreen(),
-              ),
-            ],
-          ),
         ],
       ),
 
-      // Standalone routes
-      GoRoute(
-        path: RouteNames.eventsList,
-        name: 'eventsList',
-        builder: (context, state) => const _PlaceholderScreen(title: 'Events'),
-      ),
-      GoRoute(
-        path: RouteNames.addEvent,
-        name: 'addEvent',
-        builder: (context, state) =>
-            const _PlaceholderScreen(title: 'Add Event'),
-      ),
-      GoRoute(
-        path: RouteNames.editEvent,
-        name: 'editEvent',
-        builder: (context, state) {
-          final eventId = state.uri.queryParameters['id'] ?? '';
-          return _PlaceholderScreen(title: 'Edit Event: $eventId');
-        },
-      ),
-      GoRoute(
-        path: RouteNames.reminders,
-        name: 'reminders',
-        builder: (context, state) =>
-            const _PlaceholderScreen(title: 'Reminders'),
-      ),
-      GoRoute(
-        path: RouteNames.addReminder,
-        name: 'addReminder',
-        builder: (context, state) =>
-            const _PlaceholderScreen(title: 'Add Reminder'),
-      ),
-
-      // Quotes
-      // state.extra carries the int initialIndex passed via context.pushNamed()
-      // from the home screen, so the screen opens on the daily quote directly.
-      GoRoute(
-        path: RouteNames.quotes,
-        name: 'quotes',
-        builder: (context, state) => QuotesScreen(
-          initialIndex: (state.extra as int?) ?? 0,
-        ),
-      ),
-      GoRoute(
-        path: RouteNames.savedQuotes,
-        name: 'savedQuotes',
-        builder: (context, state) => const SavedQuotesScreen(),
-      ),
-
-      // Words
-      // state.extra carries the int initialIndex passed via context.pushNamed()
-      // from the home screen, so the screen opens on the daily word directly.
-      GoRoute(
-        path: RouteNames.words,
-        name: 'words',
-        builder: (context, state) => WordsScreen(
-          initialIndex: (state.extra as int?) ?? 0,
-        ),
-      ),
-      GoRoute(
-        path: RouteNames.savedWords,
-        name: 'savedWords',
-        builder: (context, state) => const SavedWordsScreen(),
-      ),
-
-      // Settings
-      GoRoute(
-        path: RouteNames.settings,
-        name: 'settings',
-        builder: (context, state) => const SettingsScreen(),
-      ),
-
-      // Holidays
-      GoRoute(
-        path: RouteNames.holidays,
-        name: 'holidays',
-        builder: (context, state) => const HolidaysScreen(),
-      ),
-
-      // About
-      GoRoute(
-        path: RouteNames.about,
-        name: 'about',
-        builder: (context, state) => const AboutScreen(),
-      ),
-
-      // Onboarding
-      GoRoute(
-        path: RouteNames.onboarding,
-        name: 'onboarding',
-        builder: (context, state) => const OnboardingScreen(),
+      // ── Standalone Shell ─────────────────────────────────────
+      ShellRoute(
+        builder: (context, state, child) =>
+            _StandaloneScaffoldWithNavBar(child: child),
+        routes: [
+          GoRoute(
+            path: RouteNames.calculator,
+            name: 'calculator',
+            builder: (context, state) => const CalculatorScreen(),
+          ),
+          GoRoute(
+            path: RouteNames.quotes,
+            name: 'quotes',
+            builder: (context, state) => QuotesScreen(
+              initialIndex: (state.extra as int?) ?? 0,
+            ),
+          ),
+          GoRoute(
+            path: RouteNames.savedQuotes,
+            name: 'savedQuotes',
+            builder: (context, state) => const SavedQuotesScreen(),
+          ),
+          GoRoute(
+            path: RouteNames.words,
+            name: 'words',
+            builder: (context, state) => WordsScreen(
+              initialIndex: (state.extra as int?) ?? 0,
+            ),
+          ),
+          GoRoute(
+            path: RouteNames.savedWords,
+            name: 'savedWords',
+            builder: (context, state) => const SavedWordsScreen(),
+          ),
+          GoRoute(
+            path: RouteNames.eventsList,
+            name: 'eventsList',
+            builder: (context, state) =>
+                const _PlaceholderScreen(title: 'Events'),
+          ),
+          GoRoute(
+            path: RouteNames.addEvent,
+            name: 'addEvent',
+            builder: (context, state) =>
+                const _PlaceholderScreen(title: 'Add Event'),
+          ),
+          GoRoute(
+            path: RouteNames.editEvent,
+            name: 'editEvent',
+            builder: (context, state) {
+              final eventId = state.uri.queryParameters['id'] ?? '';
+              return _PlaceholderScreen(title: 'Edit Event: $eventId');
+            },
+          ),
+          GoRoute(
+            path: RouteNames.reminders,
+            name: 'reminders',
+            builder: (context, state) =>
+                const _PlaceholderScreen(title: 'Reminders'),
+          ),
+          GoRoute(
+            path: RouteNames.addReminder,
+            name: 'addReminder',
+            builder: (context, state) =>
+                const _PlaceholderScreen(title: 'Add Reminder'),
+          ),
+        ],
       ),
     ],
     errorBuilder: (context, state) => _ErrorScreen(state: state),
   );
 }
 
-// ─── Scaffold with bottom nav ─────────────────────────────────
-class _ScaffoldWithNavBar extends StatelessWidget {
+// ─────────────────────────────────────────────────────────────────────────────
+// BANNER AD SLOT
+// Watches bannerLoadedProvider (NotifierProvider<bool>) — rebuilds
+// automatically when banner finishes loading.
+// Always shows 50dp so layout never jumps.
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _BannerAdSlot extends ConsumerWidget {
+  const _BannerAdSlot();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bannerLoaded = ref.watch(bannerLoadedProvider);
+    final adService = ref.read(adServiceProvider);
+
+    if (bannerLoaded && adService.bannerAd != null) {
+      final banner = adService.bannerAd!;
+      return SizedBox(
+        width: banner.size.width.toDouble(),
+        height: banner.size.height.toDouble(),
+        child: AdWidget(ad: banner),
+      );
+    }
+
+    // Placeholder — always reserves 50dp so layout never jumps
+    return Container(
+      height: 50,
+      width: double.infinity,
+      color: Theme.of(context)
+          .colorScheme
+          .surfaceContainerHighest
+          .withOpacity(0.4),
+      child: Center(
+        child: Text(
+          'Advertisement',
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurfaceVariant
+                    .withOpacity(0.4),
+                letterSpacing: 1.2,
+              ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TAB SCAFFOLD
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _ScaffoldWithNavBar extends ConsumerWidget {
   final StatefulNavigationShell navigationShell;
 
   const _ScaffoldWithNavBar({required this.navigationShell});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       body: navigationShell,
-      bottomNavigationBar: AppBottomNav(
-        currentIndex: navigationShell.currentIndex,
-        onTap: (index) {
-          navigationShell.goBranch(
-            index,
-            initialLocation: index == navigationShell.currentIndex,
-          );
-        },
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const _BannerAdSlot(),
+          AppBottomNav(
+            currentIndex: _toLogical(navigationShell.currentIndex),
+            onTap: (logicalIndex) {
+              navigationShell.goBranch(
+                _toBranch(logicalIndex),
+                initialLocation:
+                    _toBranch(logicalIndex) == navigationShell.currentIndex,
+              );
+            },
+            onMoreTap: () => showMoreBottomSheet(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  int _toLogical(int branch) {
+    switch (branch) {
+      case 0:
+        return AppTab.home;
+      case 1:
+        return AppTab.calendar;
+      case 2:
+        return AppTab.holidays;
+      case 3:
+        return AppTab.prayerTimes;
+      default:
+        return AppTab.home;
+    }
+  }
+
+  int _toBranch(int logical) {
+    switch (logical) {
+      case AppTab.home:
+        return 0;
+      case AppTab.calendar:
+        return 1;
+      case AppTab.holidays:
+        return 2;
+      case AppTab.prayerTimes:
+        return 3;
+      default:
+        return 0;
+    }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// STANDALONE SCAFFOLD
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _StandaloneScaffoldWithNavBar extends ConsumerWidget {
+  final Widget child;
+
+  const _StandaloneScaffoldWithNavBar({required this.child});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Scaffold(
+      body: child,
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const _BannerAdSlot(),
+          AppBottomNav(
+            currentIndex: AppTab.none,
+            onTap: (logicalIndex) {
+              switch (logicalIndex) {
+                case AppTab.home:
+                  context.go(RouteNames.home);
+                  break;
+                case AppTab.calendar:
+                  context.go(RouteNames.calendar);
+                  break;
+                case AppTab.holidays:
+                  context.go(RouteNames.holidays);
+                  break;
+                case AppTab.prayerTimes:
+                  context.go(RouteNames.prayerTimes);
+                  break;
+              }
+            },
+            onMoreTap: () => showMoreBottomSheet(context),
+          ),
+        ],
       ),
     );
   }

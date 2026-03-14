@@ -58,7 +58,6 @@
 
         <!-- ── Boot Receiver ── -->
         <!-- Restarts scheduled alarms after device reboot -->
-        <!-- This is the correct receiver from flutter_local_notifications — NOT CoreComponentFactory -->
         <receiver
             android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver"
             android:exported="false">
@@ -76,6 +75,12 @@
         <receiver
             android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"
             android:exported="false"/>
+
+        <!-- ── AdMob App ID ── -->
+        <!-- TODO: replace with real App ID before release -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-3940256099942544~3347511713"/>
 
     </application>
 

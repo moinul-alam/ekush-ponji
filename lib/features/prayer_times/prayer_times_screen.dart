@@ -1,8 +1,15 @@
 // lib/features/prayer_times/prayer_times_screen.dart
+//
+// CHANGED:
+//   • Added _enteredAt timestamp in initState()
+//   • Back button onPressed replaced with _onBack() which checks 30s engagement
+//   • Added import for ad_service.dart
+// Everything else is identical to the original file.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
+import 'package:ekush_ponji/core/services/ad_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:ekush_ponji/features/prayer_times/prayer_times_viewmodel.dart';
 import 'package:ekush_ponji/features/prayer_times/prayer_settings_viewmodel.dart';
@@ -22,9 +29,13 @@ class PrayerTimesScreen extends ConsumerStatefulWidget {
 }
 
 class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
+  // Track when user entered — used for 30-second engagement check
+  late final DateTime _enteredAt;
+
   @override
   void initState() {
     super.initState();
+    _enteredAt = DateTime.now();
     // Initialize notifications, request permission once, then load prayer times
     PrayerNotificationService.initialize().then((_) async {
       await PrayerNotificationService.requestPermission();
@@ -32,6 +43,20 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
         ref.read(prayerTimesViewModelProvider.notifier).load();
       }
     });
+  }
+
+  // CHANGED: show interstitial if user spent 30+ seconds on screen
+  void _onBack() {
+    final elapsed = DateTime.now().difference(_enteredAt);
+    if (elapsed.inSeconds >= 30) {
+      ref.read(adServiceProvider).showInterstitialIfAvailable(
+        onClosed: () {
+          if (mounted) context.go(RouteNames.home);
+        },
+      );
+    } else {
+      context.go(RouteNames.home);
+    }
   }
 
   @override
@@ -49,7 +74,7 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go(RouteNames.home),
+          onPressed: _onBack, // CHANGED
           tooltip: l10n.back,
         ),
         actions: [

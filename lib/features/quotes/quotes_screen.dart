@@ -13,6 +13,7 @@ import 'package:ekush_ponji/features/quotes/widgets/quote_share_card.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ekush_ponji/core/services/share_service.dart';
+import 'package:ekush_ponji/core/services/ad_service.dart';
 
 class QuotesScreen extends BaseScreen {
   /// When navigating from home, pass the daily quote's index so the screen
@@ -34,6 +35,8 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
   bool _isAnimating = false;
   bool _slideFromRight = true;
   double _quoteFontScale = 1.0;
+  int _quotesViewed = 0;
+  bool _interstitialTriggered = false;
 
   @override
   NotifierProvider<dynamic, ViewState> get viewModelProvider =>
@@ -142,6 +145,11 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
     _animationController.reset();
     await _animationController.forward();
     setState(() => _currentIndex++);
+    _quotesViewed++;
+    if (_quotesViewed >= 3 && !_interstitialTriggered) {
+      _interstitialTriggered = true;
+      ref.read(adServiceProvider).showInterstitialIfAvailable();
+    }
     _animationController.reset();
     _isAnimating = false;
   }
@@ -153,6 +161,11 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
     _animationController.reset();
     await _animationController.forward();
     setState(() => _currentIndex--);
+    _quotesViewed++;
+    if (_quotesViewed >= 3 && !_interstitialTriggered) {
+      _interstitialTriggered = true;
+      ref.read(adServiceProvider).showInterstitialIfAvailable();
+    }
     _animationController.reset();
     _isAnimating = false;
   }
@@ -365,8 +378,8 @@ class _QuoteCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: colorScheme.primaryContainer,
                       borderRadius: BorderRadius.circular(20),
@@ -384,8 +397,7 @@ class _QuoteCard extends StatelessWidget {
                       IconButton(
                         onPressed: () => ShareService.shareWidget(
                           widget: QuoteShareCard(quote: quote),
-                          fileBaseName:
-                              'ekush_ponji_quote_${quote.storageKey}',
+                          fileBaseName: 'ekush_ponji_quote_${quote.storageKey}',
                         ),
                         icon: Icon(Icons.share_rounded,
                             color: colorScheme.onSurfaceVariant),
@@ -458,8 +470,8 @@ class _QuoteCard extends StatelessWidget {
                   Text(
                     'Ekush Ponji',
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant
-                          .withValues(alpha: 0.55),
+                      color:
+                          colorScheme.onSurfaceVariant.withValues(alpha: 0.55),
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0.6,
                     ),

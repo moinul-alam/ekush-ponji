@@ -60,17 +60,14 @@ abstract class AppLocalizations {
     );
   }
 
-  
   String localizeNumber(dynamic number) {
     return NumberConverter.convertToLocale(number, languageCode);
   }
-
 
   String formatNumber(int number) {
     return NumberConverter.formatWithSeparator(number, languageCode);
   }
 
-  
   String formatCount(int count, String singular, String plural) {
     return StringFormatter.formatPlural(
       count,
@@ -135,6 +132,14 @@ abstract class AppLocalizations {
   String get navPrayerTimes;
   String get navCalculator;
   String get navSettings;
+  String get navHolidays;
+  String get navMore;
+  String get navAddEvent;
+  String get navAddReminder;
+  String get navCalculatorFull;
+  String get navSavedQuotes;
+  String get navSavedWords;
+  String get navAbout;
 
   // Common actions
   String get ok;
@@ -187,12 +192,11 @@ abstract class AppLocalizations {
   String get descriptionSubtitle;
   String get notes;
   String get notesSubtitle;
-  String get savedQuotes; 
+  String get savedQuotes;
   String get savedWords;
   String get share;
   String get adjustFontSize;
   String get notificationsPermissionRequired;
-
 
   // Drawer
   String get profile;
@@ -201,7 +205,6 @@ abstract class AppLocalizations {
   String get settings;
   String get welcome;
   String get allHolidays;
-
 
   // Settings
   String get settingsTitle;
@@ -524,7 +527,6 @@ abstract class AppLocalizations {
     return seasonWinter;
   }
 
-  
   String formatDate(DateTime date) {
     String day = localizeNumber(date.day);
     String month = getMonthName(date.month);

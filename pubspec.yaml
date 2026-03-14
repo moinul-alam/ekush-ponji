@@ -54,6 +54,7 @@ dependencies:
   # Background manager
   workmanager: ^0.9.0
   flutter_native_splash: ^2.4.1
+  google_mobile_ads: ^7.0.0
 
 dev_dependencies:
   flutter_test:

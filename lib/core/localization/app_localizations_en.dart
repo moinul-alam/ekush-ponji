@@ -37,7 +37,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get navCalendar => 'Calendar';
 
-
   @override
   String get navPrayerTimes => 'Prayer Times';
 
@@ -46,6 +45,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get navSettings => 'Settings';
+
+  @override
+  String get navHolidays => 'Holidays';
+
+  @override
+  String get navMore => 'More';
+
+  @override
+  String get navAddEvent => 'Add Event';
+
+  @override
+  String get navAddReminder => 'Add Reminder';
+
+  @override
+  String get navCalculatorFull => 'Calculator';
+
+  @override
+  String get navSavedQuotes => 'Saved Quotes';
+
+  @override
+  String get navSavedWords => 'Saved Words';
+
+  @override
+  String get navAbout => 'About';
 
   // ========================================
   // COMMON ACTIONS
@@ -223,7 +246,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get notificationsPermissionRequired =>
       'Please allow notification permission to enable reminders.';
-  
+
   // ========================================
   // DRAWER
   // ========================================
@@ -281,7 +304,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get themeChanged => 'Theme changed';
 
   @override
-  String get notificationSubtitle => 'Enable notifications to receive updates about holidays and prayer times';
+  String get notificationSubtitle =>
+      'Enable notifications to receive updates about holidays and prayer times';
 
   @override
   String get dataAndStorage => 'Data & Storage';
@@ -315,19 +339,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteAllDataConfirmMessage =>
-    'This will reset all settings to their defaults and erase all stored data. '
-    'This action cannot be undone.';
+      'This will reset all settings to their defaults and erase all stored data. '
+      'This action cannot be undone.';
 
   @override
   String get resetSettings => 'Reset Settings';
 
   @override
   String get resetSettingsConfirmMessage =>
-    'This will reset all settings to their defaults. '
-    'This action cannot be undone.';
+      'This will reset all settings to their defaults. '
+      'This action cannot be undone.';
 
   @override
-  String get resetSettingsSubtitle => 'Reset all app settings to default values';
+  String get resetSettingsSubtitle =>
+      'Reset all app settings to default values';
 
   @override
   String get languageBangla => 'Bangla';
@@ -352,7 +377,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get confirm => 'Confirm';
-  
+
   // GPS
   @override
   String get updateLocation => 'Update location';
@@ -376,13 +401,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get locationPermissionDenied => 'Location permission denied';
 
   @override
-  String get enableLocationServicesForPrayerTimes => 'Please enable location services to get accurate prayer times';
+  String get enableLocationServicesForPrayerTimes =>
+      'Please enable location services to get accurate prayer times';
 
   @override
-  String get localtionServiceRequiredForPrayerTimes => 'Location services are required to calculate prayer times';
+  String get localtionServiceRequiredForPrayerTimes =>
+      'Location services are required to calculate prayer times';
 
   @override
-  String get locationServiceUsageForPrayerTimes => "Your location will be used to calculate accurate prayer times for your area";
+  String get locationServiceUsageForPrayerTimes =>
+      "Your location will be used to calculate accurate prayer times for your area";
 
   @override
   String get openSettings => 'Open Settings';
@@ -460,13 +488,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forbiddenTimeSunset => 'Sunset';
 
   @override
-  String get allPrayersCompletedToday =>
-      'All prayers completed for today';
+  String get allPrayersCompletedToday => 'All prayers completed for today';
 
   @override
   String get dayProgressTitle => "Today's Progress";
-
-  
 
   // ========================================
   // MESSAGES
@@ -586,8 +611,19 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String getMonthAbbreviation(int month) {
     const months = [
-      '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      '',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
     ];
     return months[month];
   }

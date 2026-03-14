@@ -9,6 +9,7 @@ import 'package:ekush_ponji/features/reminders/models/reminder.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ekush_ponji/core/services/local_notification_service.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:ekush_ponji/core/services/ad_service.dart';
 
 class AddReminderScreen extends ConsumerStatefulWidget {
   final DateTime? prefilledDate;
@@ -121,7 +122,11 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
     ref.listen(addReminderViewModelProvider, (prev, next) {
       if (next is ViewStateSuccess && next.message != null) {
         _showSnackbar(next.message!);
-        context.pop(); // pops back to DayDetailsScreen
+        ref.read(adServiceProvider).showInterstitialIfAvailable(
+          onClosed: () {
+            if (mounted) context.pop();
+          },
+        );
       }
       if (next is ViewStateError) {
         _showSnackbar(next.message, isError: true);

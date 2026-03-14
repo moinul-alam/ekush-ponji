@@ -46,6 +46,30 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get navSettings => 'সেটিংস';
 
+  @override
+  String get navHolidays => 'ছুটি';
+
+  @override
+  String get navMore => 'আরও';
+
+  @override
+  String get navAddEvent => 'ইভেন্ট যোগ করুন';
+
+  @override
+  String get navAddReminder => 'রিমাইন্ডার যোগ করুন';
+
+  @override
+  String get navCalculatorFull => 'ক্যালকুলেটর';
+
+  @override
+  String get navSavedQuotes => 'সংরক্ষিত উক্তি';
+
+  @override
+  String get navSavedWords => 'সংরক্ষিত শব্দ';
+
+  @override
+  String get navAbout => 'আমাদের সম্পর্কে';
+
   // ========================================
   // COMMON ACTIONS
   // ========================================
@@ -222,7 +246,7 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get notificationsPermissionRequired =>
       'রিমাইন্ডার চালু করতে নোটিফিকেশন অনুমতি দিন।';
-  
+
   // ========================================
   // DRAWER
   // ========================================
@@ -268,13 +292,16 @@ class AppLocalizationsBn extends AppLocalizations {
   String get locationPermissionDenied => 'লোকেশন অনুমতি অস্বীকার করা হয়েছে';
 
   @override
-  String get enableLocationServicesForPrayerTimes => 'নামাজের সময়ের জন্য লোকেশন সার্ভিস সক্ষম করুন';  
+  String get enableLocationServicesForPrayerTimes =>
+      'নামাজের সময়ের জন্য লোকেশন সার্ভিস সক্ষম করুন';
 
   @override
-  String get localtionServiceRequiredForPrayerTimes => 'নামাজের সময়ের জন্য লোকেশন সার্ভিস প্রয়োজন';
+  String get localtionServiceRequiredForPrayerTimes =>
+      'নামাজের সময়ের জন্য লোকেশন সার্ভিস প্রয়োজন';
 
   @override
-  String get locationServiceUsageForPrayerTimes => 'নামাজের সময়ের জন্য লোকেশন সার্ভিস ব্যবহার করা হবে';
+  String get locationServiceUsageForPrayerTimes =>
+      'নামাজের সময়ের জন্য লোকেশন সার্ভিস ব্যবহার করা হবে';
 
   @override
   String get openSettings => 'সেটিংস খুলুন';
@@ -392,7 +419,8 @@ class AppLocalizationsBn extends AppLocalizations {
   String get themeChanged => 'থিম পরিবর্তিত হয়েছে';
 
   @override
-  String get notificationSubtitle => 'ছুটির দিন এবং নামাজের সময় সম্পর্কে নোটিফিকেশন পেতে এনাবল করুন';
+  String get notificationSubtitle =>
+      'ছুটির দিন এবং নামাজের সময় সম্পর্কে নোটিফিকেশন পেতে এনাবল করুন';
 
   @override
   String get dataAndStorage => 'ডেটা এবং স্টোরেজ';
@@ -426,16 +454,16 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get deleteAllDataConfirmMessage =>
-    'এটি সমস্ত সেটিংস ডিফল্টে ফিরিয়ে দেবে এবং সংরক্ষিত সব ডেটা মুছে ফেলবে। '
-    'এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।';
+      'এটি সমস্ত সেটিংস ডিফল্টে ফিরিয়ে দেবে এবং সংরক্ষিত সব ডেটা মুছে ফেলবে। '
+      'এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।';
 
   @override
   String get resetSettings => 'সেটিংস রিসেট করুন';
 
   @override
   String get resetSettingsConfirmMessage =>
-    'এটি সমস্ত সেটিংস ডিফল্টে ফিরিয়ে দেবে। '
-    'এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।';
+      'এটি সমস্ত সেটিংস ডিফল্টে ফিরিয়ে দেবে। '
+      'এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।';
 
   @override
   String get resetSettingsSubtitle => 'সমস্ত অ্যাপ সেটিংস ডিফল্টে রিসেট করুন';
@@ -580,23 +608,23 @@ class AppLocalizationsBn extends AppLocalizations {
   String get priority => 'অগ্রাধিকার';
 
   @override
-String getMonthAbbreviation(int month) {
-  const abbreviations = {
-    1:  'জানু',
-    2:  'ফেব্রু',
-    3:  'মার্চ',
-    4:  'এপ্রি',
-    5:  'মে',
-    6:  'জুন',
-    7:  'জুলা',
-    8:  'আগস্ট',
-    9:  'সেপ্টে',
-    10: 'অক্টো',
-    11: 'নভে',
-    12: 'ডিসে',
-  };
-  return abbreviations[month] ?? '';
-}
+  String getMonthAbbreviation(int month) {
+    const abbreviations = {
+      1: 'জানু',
+      2: 'ফেব্রু',
+      3: 'মার্চ',
+      4: 'এপ্রি',
+      5: 'মে',
+      6: 'জুন',
+      7: 'জুলা',
+      8: 'আগস্ট',
+      9: 'সেপ্টে',
+      10: 'অক্টো',
+      11: 'নভে',
+      12: 'ডিসে',
+    };
+    return abbreviations[month] ?? '';
+  }
 
   // ========================================
   // DAYS OF WEEK

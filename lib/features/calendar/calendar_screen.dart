@@ -1,10 +1,14 @@
 // lib/features/calendar/calendar_screen.dart
+//
+// CHANGED: Back button now triggers interstitial ad before navigating home.
+// Everything else is identical to the original file.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ekush_ponji/core/base/base_screen.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
+import 'package:ekush_ponji/core/services/ad_service.dart';
 import 'package:ekush_ponji/features/calendar/services/hijri_calendar_service.dart';
 import 'package:ekush_ponji/features/calendar/calendar_viewmodel.dart';
 import 'package:ekush_ponji/features/calendar/widgets/calendar_header.dart';
@@ -51,7 +55,14 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
       centerTitle: true,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
-        onPressed: () => context.go(RouteNames.home),
+        // CHANGED: show interstitial before navigating home
+        onPressed: () {
+          ref.read(adServiceProvider).showInterstitialIfAvailable(
+            onClosed: () {
+              if (mounted) context.go(RouteNames.home);
+            },
+          );
+        },
       ),
       actions: [
         IconButton(
