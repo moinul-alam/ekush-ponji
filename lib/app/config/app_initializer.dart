@@ -5,8 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:firebase_core/firebase_core.dart';
-
 import 'package:ekush_ponji/app/providers/app_providers.dart';
 import 'package:ekush_ponji/core/themes/app_theme.dart';
 import 'package:ekush_ponji/features/holidays/models/holiday.dart';
@@ -55,7 +53,6 @@ class AppInitializer {
   static Future<void> initializeBackground(ProviderContainer container) async {
     try {
       await Future.wait([
-        _initializeFirebase(),
         _initializeSharedPreferences(),
         _initializeWorkManager(),
       ]);
@@ -126,16 +123,6 @@ class AppInitializer {
   }
 
   // ── Phase 2 Steps ──────────────────────────────────────────
-
-  static Future<void> _initializeFirebase() async {
-    try {
-      await Firebase.initializeApp();
-      debugPrint('✅ Firebase initialized');
-    } catch (e) {
-      debugPrint('❌ Firebase initialization failed: $e');
-      rethrow;
-    }
-  }
 
   static Future<void> _initializeSharedPreferences() async {
     try {

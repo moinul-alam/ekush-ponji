@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hive/hive.dart';
 
 // ─────────────────────────────────────────────────────────────
@@ -184,7 +183,8 @@ class Holiday {
     this.isRegional = false,
     this.regionNote,
     this.regionNoteBn,
-  }) : id = id ?? '${startDate.year}_${name.replaceAll(' ', '_').toLowerCase()}';
+  }) : id = id ??
+            '${startDate.year}_${name.replaceAll(' ', '_').toLowerCase()}';
 
   // ─────────────────────────────────────────────────────────────
   // Convenience getters
@@ -286,11 +286,9 @@ class Holiday {
   // Helpers
   // ─────────────────────────────────────────────────────────────
 
-  static DateTime _dateOnly(DateTime dt) =>
-      DateTime(dt.year, dt.month, dt.day);
+  static DateTime _dateOnly(DateTime dt) => DateTime(dt.year, dt.month, dt.day);
 
   static DateTime _parseDate(dynamic value) {
-    if (value is Timestamp) return value.toDate();
     if (value is String) return DateTime.parse(value);
     throw Exception('Unsupported date format: $value');
   }
