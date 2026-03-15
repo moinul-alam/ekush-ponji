@@ -1,8 +1,4 @@
 // lib/features/holidays/holidays_screen.dart
-//
-// Changes vs original:
-//   1. Import holidayNotificationProvider
-//   2. buildAppBar: watch prefs directly (plain state, no .value), add bell icon
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -97,8 +93,7 @@ class _HolidaysScreenState extends BaseScreenState<HolidaysScreen> {
     bool isBn,
   ) {
     // Read current state directly — plain HolidayNotificationPrefs
-    final currentlyEnabled =
-        ref.read(holidayNotificationProvider).enabled;
+    final currentlyEnabled = ref.read(holidayNotificationProvider).enabled;
 
     showDialog<void>(
       context: context,
@@ -123,9 +118,7 @@ class _HolidaysScreenState extends BaseScreenState<HolidaysScreen> {
               Navigator.of(ctx).pop();
               final holidays =
                   ref.read(holidaysViewModelProvider.notifier).holidays;
-              await ref
-                  .read(holidayNotificationProvider.notifier)
-                  .setEnabled(
+              await ref.read(holidayNotificationProvider.notifier).setEnabled(
                     !currentlyEnabled,
                     holidays: holidays,
                     languageCode: l10n.languageCode,
