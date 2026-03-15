@@ -1,6 +1,4 @@
 // lib/app/config/app_initializer.dart
-//
-// CHANGED: Added _initializeMobileAds() to initializeBackground()
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import 'package:ekush_ponji/app/providers/app_providers.dart';
 import 'package:ekush_ponji/core/themes/app_theme.dart';
@@ -21,6 +18,9 @@ import 'package:ekush_ponji/features/quotes/quotes_viewmodel.dart';
 import 'package:ekush_ponji/features/words/words_viewmodel.dart';
 import 'package:ekush_ponji/core/services/local_notification_service.dart';
 import 'package:ekush_ponji/core/services/background_task_dispatcher.dart';
+import 'package:ekush_ponji/features/calendar/data/calendar_repository.dart';
+import 'package:ekush_ponji/features/holidays/services/holiday_notification_prefs.dart';
+import 'package:ekush_ponji/features/holidays/services/holiday_notification_service.dart';
 import 'package:workmanager/workmanager.dart';
 
 class AppInitializer {
@@ -58,13 +58,17 @@ class AppInitializer {
         _initializeFirebase(),
         _initializeSharedPreferences(),
         _initializeWorkManager(),
-        _initializeMobileAds(), // ← ADDED: must run before AdService loads ads
       ]);
 
       await Future.wait([
         _initializeNotifications(),
         _performDataSyncWithTimeout(container),
       ]);
+
+      // ── Schedule holiday notifications after sync completes ──────────────
+      // Done here (not inside _performDataSyncWithTimeout) so it always runs
+      // even if sync times out — we still schedule from local cached holidays.
+      await _scheduleHolidayNotifications(container);
 
       debugPrint('✅ Background initialization completed');
     } catch (e, stackTrace) {
@@ -104,7 +108,6 @@ class AppInitializer {
     debugPrint('✅ Hive adapters registered');
   }
 
-  /// ✅ MOVED FROM Phase 2 → Phase 1.
   /// Opening boxes is a fast local op. Must be done before runApp()
   /// so that QuotesViewModel.onInit() and WordsViewModel.onInit()
   /// can safely call Hive.box('saved_quotes') / Hive.box('saved_words').
@@ -171,19 +174,6 @@ class AppInitializer {
     }
   }
 
-  // ── ADDED ──────────────────────────────────────────────────
-  /// Initializes the Google Mobile Ads SDK.
-  /// Must complete before AdService attempts to load any ads.
-  /// Non-fatal — app works normally if this fails.
-  static Future<void> _initializeMobileAds() async {
-    try {
-      await MobileAds.instance.initialize();
-      debugPrint('✅ MobileAds initialized');
-    } catch (e) {
-      debugPrint('⚠️ MobileAds initialization warning: $e');
-    }
-  }
-
   /// Seeds all bundled assets on first launch, then checks for updates.
   /// Hard 8-second timeout — app proceeds normally if slow/offline.
   ///
@@ -212,6 +202,53 @@ class AppInitializer {
       debugPrint('✅ Quotes + Words viewmodels reloaded after sync');
     } catch (e) {
       debugPrint('⚠️ Data sync error: $e');
+    }
+  }
+
+  /// Schedule holiday notifications from locally cached data.
+  ///
+  /// Reads holidays for the current year + next year, filters to upcoming ones,
+  /// and schedules a morning notification (8:00 AM) for each — respecting the
+  /// user's saved [HolidayNotificationPrefs] master switch.
+  ///
+  /// This is non-fatal: if it fails or holidays are empty the rest of the app
+  /// is completely unaffected.
+  static Future<void> _scheduleHolidayNotifications(
+    ProviderContainer container,
+  ) async {
+    try {
+      debugPrint('🔔 Scheduling holiday notifications...');
+
+      // Load user prefs (honours the enabled/disabled toggle)
+      final prefs = await HolidayNotificationPrefs.load();
+      if (!prefs.enabled) {
+        debugPrint('ℹ️ Holiday notifications disabled — skipping scheduling');
+        return;
+      }
+
+      // Read language from SharedPreferences (same key prayer notifications use)
+      final sp = await SharedPreferences.getInstance();
+      final languageCode = sp.getString('languageCode') ?? 'bn';
+
+      // Fetch upcoming holidays from local Hive cache — no network needed
+      final calendarRepo = container.read(calendarRepositoryProvider);
+      final holidays = await calendarRepo.getUpcomingHolidays(days: 60);
+
+      if (holidays.isEmpty) {
+        debugPrint('ℹ️ No upcoming holidays found — nothing to schedule');
+        return;
+      }
+
+      await HolidayNotificationService.scheduleAll(
+        holidays: holidays,
+        prefs: prefs,
+        languageCode: languageCode,
+      );
+
+      debugPrint(
+          '✅ Holiday notification scheduling complete (${holidays.length} holidays checked)');
+    } catch (e) {
+      debugPrint('⚠️ Holiday notification scheduling error: $e');
     }
   }
 

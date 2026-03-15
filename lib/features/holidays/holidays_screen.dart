@@ -1,4 +1,8 @@
 // lib/features/holidays/holidays_screen.dart
+//
+// Changes vs original:
+//   1. Import holidayNotificationProvider
+//   2. buildAppBar: watch prefs directly (plain state, no .value), add bell icon
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +13,7 @@ import 'package:ekush_ponji/features/holidays/models/holiday.dart';
 import 'package:ekush_ponji/features/holidays/holidays_viewmodel.dart';
 import 'package:ekush_ponji/features/holidays/widgets/holiday_gazette_section_widget.dart';
 import 'package:ekush_ponji/features/holidays/widgets/holiday_month_section_widget.dart';
+import 'package:ekush_ponji/features/holidays/providers/holiday_notification_provider.dart';
 
 class HolidaysScreen extends BaseScreen {
   const HolidaysScreen({super.key});
@@ -45,12 +50,32 @@ class _HolidaysScreenState extends BaseScreenState<HolidaysScreen> {
     final vm = ref.watch(holidaysViewModelProvider.notifier);
     final isBn = l10n.languageCode == 'bn';
 
+    // HolidayNotificationPrefs is plain state — no .value / .valueOrNull needed
+    final notifPrefs = ref.watch(holidayNotificationProvider);
+    final notifEnabled = notifPrefs.enabled;
+
     return AppBar(
       title: Text(
         isBn ? 'সকল ছুটির দিন' : 'All Holidays',
         style: theme.textTheme.titleLarge,
       ),
       centerTitle: false,
+      actions: [
+        IconButton(
+          tooltip: notifEnabled
+              ? (isBn ? 'বিজ্ঞপ্তি চালু আছে' : 'Notifications on')
+              : (isBn ? 'বিজ্ঞপ্তি বন্ধ আছে' : 'Notifications off'),
+          icon: Icon(
+            notifEnabled
+                ? Icons.notifications_active_outlined
+                : Icons.notifications_off_outlined,
+            color: notifEnabled
+                ? theme.colorScheme.primary
+                : theme.colorScheme.onSurfaceVariant,
+          ),
+          onPressed: () => _showNotificationDialog(context, ref, l10n, isBn),
+        ),
+      ],
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(56),
         child: _YearNavigatorBar(
@@ -63,6 +88,60 @@ class _HolidaysScreenState extends BaseScreenState<HolidaysScreen> {
     );
   }
 
+  // ── Notification toggle dialog ───────────────────────────
+
+  void _showNotificationDialog(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+    bool isBn,
+  ) {
+    // Read current state directly — plain HolidayNotificationPrefs
+    final currentlyEnabled =
+        ref.read(holidayNotificationProvider).enabled;
+
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(isBn ? 'ছুটির বিজ্ঞপ্তি' : 'Holiday Notifications'),
+        content: Text(
+          currentlyEnabled
+              ? (isBn
+                  ? 'ছুটির দিনের সকালে বিজ্ঞপ্তি পাচ্ছেন। বন্ধ করতে চান?'
+                  : 'You\'re receiving morning notifications for holidays. Turn off?')
+              : (isBn
+                  ? 'ছুটির বিজ্ঞপ্তি বন্ধ আছে। চালু করতে চান?'
+                  : 'Holiday notifications are off. Turn on?'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(isBn ? 'বাতিল' : 'Cancel'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              final holidays =
+                  ref.read(holidaysViewModelProvider.notifier).holidays;
+              await ref
+                  .read(holidayNotificationProvider.notifier)
+                  .setEnabled(
+                    !currentlyEnabled,
+                    holidays: holidays,
+                    languageCode: l10n.languageCode,
+                  );
+            },
+            child: Text(
+              currentlyEnabled
+                  ? (isBn ? 'বন্ধ করুন' : 'Turn Off')
+                  : (isBn ? 'চালু করুন' : 'Turn On'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // ── Body ─────────────────────────────────────────────────
 
   @override
@@ -71,17 +150,14 @@ class _HolidaysScreenState extends BaseScreenState<HolidaysScreen> {
     final vm = ref.watch(holidaysViewModelProvider.notifier);
     final l10n = AppLocalizations.of(context);
 
-    // Full-screen loading (initial load only)
     if (viewState is ViewStateLoading && !viewState.isRefreshing) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    // Error
     if (viewState is ViewStateError) {
       return buildErrorWidget(viewState);
     }
 
-    // Empty
     if (vm.holidays.isEmpty) {
       return buildEmptyWidget(
         ViewStateEmpty(
@@ -94,8 +170,6 @@ class _HolidaysScreenState extends BaseScreenState<HolidaysScreen> {
 
     return Column(
       children: [
-        // ── Controls bar ─────────────────────────────────────
-        // Sync button (left) + View mode toggle (right)
         _ControlsBar(
           viewMode: vm.viewMode,
           isSyncing: vm.isSyncing,
@@ -103,8 +177,6 @@ class _HolidaysScreenState extends BaseScreenState<HolidaysScreen> {
           onToggleView: () => vm.toggleViewMode(),
           l10n: l10n,
         ),
-
-        // ── Holiday list ─────────────────────────────────────
         Expanded(
           child: vm.viewMode == HolidaysViewMode.gazetteType
               ? _GazetteTypeView(grouped: vm.groupedByGazetteType)
@@ -186,8 +258,6 @@ class _YearNavigatorBar extends StatelessWidget {
 
 // ─────────────────────────────────────────────────────────────
 // CONTROLS BAR
-// Sync button left · View mode toggle right
-// Sits directly below the year navigator bar
 // ─────────────────────────────────────────────────────────────
 
 class _ControlsBar extends StatelessWidget {
@@ -223,7 +293,6 @@ class _ControlsBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // ── Sync button (left) ──────────────────────────────
           FilledButton.tonal(
             onPressed: isSyncing ? null : onSync,
             style: FilledButton.styleFrom(
@@ -252,10 +321,7 @@ class _ControlsBar extends StatelessWidget {
                     ],
                   ),
           ),
-
           const Spacer(),
-
-          // ── View mode toggle (right) ────────────────────────
           FilledButton.tonal(
             onPressed: onToggleView,
             style: FilledButton.styleFrom(

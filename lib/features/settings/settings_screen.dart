@@ -11,6 +11,8 @@ import 'package:ekush_ponji/app/providers/app_providers.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/core/constants/app_constants.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
+  import 'package:ekush_ponji/features/holidays/providers/holiday_notification_provider.dart';
+  import 'package:ekush_ponji/features/holidays/holidays_viewmodel.dart';
 
 class SettingsScreen extends BaseScreen {
   const SettingsScreen({super.key});
@@ -150,6 +152,34 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
               : 'Show prayer times in the bottom navigation',
           value: viewModel.prayerTimesEnabled,
           onChanged: (value) => viewModel.togglePrayerTimes(value, ref),
+        ),
+
+        Consumer(
+          builder: (context, ref, _) {
+            // Plain state read — HolidayNotificationPrefs is synchronous,
+            // no .value or .valueOrNull needed
+            final notifEnabled =
+                ref.watch(holidayNotificationProvider).enabled;
+            return _SettingsSwitchTile(
+              icon: Icons.celebration_outlined,
+              title: isBn ? 'ছুটির দিনের বিজ্ঞপ্তি' : 'Holiday Notifications',
+              subtitle: isBn
+                  ? 'প্রতিটি ছুটির সকালে মনে করিয়ে দেবে'
+                  : 'Morning reminder on every holiday',
+              value: notifEnabled,
+              onChanged: (value) async {
+                final holidays =
+                    ref.read(holidaysViewModelProvider.notifier).holidays;
+                await ref
+                    .read(holidayNotificationProvider.notifier)
+                    .setEnabled(
+                      value,
+                      holidays: holidays,
+                      languageCode: l10n.languageCode,
+                    );
+              },
+            );
+          },
         ),
 
         const Divider(height: 32),

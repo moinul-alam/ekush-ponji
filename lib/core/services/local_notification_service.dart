@@ -1,4 +1,7 @@
 // lib/core/services/local_notification_service.dart
+//
+// Change from original: added 'holiday' case in _onNotificationTapped
+// and updated the payload format comment to document it.
 
 import 'dart:io';
 
@@ -32,7 +35,8 @@ class LocalNotificationService {
       tz.setLocalLocation(tz.getLocation(tzName));
       debugPrint('✅ Timezone set to: $tzName');
     } catch (e) {
-      debugPrint('❌ Failed to resolve timezone, falling back to Asia/Dhaka: $e');
+      debugPrint(
+          '❌ Failed to resolve timezone, falling back to Asia/Dhaka: $e');
       tz.setLocalLocation(tz.getLocation('Asia/Dhaka'));
     }
 
@@ -82,7 +86,8 @@ class LocalNotificationService {
       if (!exactAlarmStatus.isGranted) {
         final result = await Permission.scheduleExactAlarm.request();
         if (!result.isGranted) {
-          debugPrint('❌ Exact alarm permission denied — notifications will not fire');
+          debugPrint(
+              '❌ Exact alarm permission denied — notifications will not fire');
           return false;
         }
       }
@@ -110,6 +115,7 @@ class LocalNotificationService {
   /// When the user taps the notification, [_onNotificationTapped] reads
   /// this payload to decide where to navigate. Format:
   ///   - 'prayer'          → navigates to Prayer Times screen
+  ///   - 'holiday'         → navigates to Holidays screen        ← NEW
   ///   - 'event:id'        → navigates to Calendar screen
   ///   - 'reminder:id'     → navigates to Reminders screen
   static Future<void> scheduleZoned({
@@ -167,6 +173,12 @@ class LocalNotificationService {
       return;
     }
 
+    // ── Holiday — tap opens Holidays screen ──────────────────────────────
+    if (payload == 'holiday') {
+      AppRouter.router.go(RouteNames.holidays);
+      return;
+    }
+
     if (payload.startsWith('event:')) {
       // Navigate to calendar — deep link to specific event can be added later
       AppRouter.router.go(RouteNames.calendar);
@@ -194,22 +206,22 @@ class LocalNotificationService {
     final offsetMinutes = DateTime.now().timeZoneOffset.inMinutes;
 
     const Map<int, String> offsetToTimezone = {
-      330:  'Asia/Kolkata',        // UTC+5:30 — India
-      345:  'Asia/Kathmandu',      // UTC+5:45 — Nepal
-      360:  'Asia/Dhaka',          // UTC+6    — Bangladesh ✓
-      390:  'Asia/Yangon',         // UTC+6:30 — Myanmar
-      420:  'Asia/Bangkok',        // UTC+7    — Thailand/Vietnam
-      480:  'Asia/Singapore',      // UTC+8    — Singapore/Malaysia
-      300:  'Asia/Karachi',        // UTC+5    — Pakistan
-      270:  'Asia/Kabul',          // UTC+4:30 — Afghanistan
-      240:  'Asia/Dubai',          // UTC+4    — UAE
-      180:  'Asia/Riyadh',         // UTC+3    — Saudi Arabia
-      120:  'Africa/Cairo',        // UTC+2    — Egypt
-      60:   'Europe/Paris',        // UTC+1    — Central Europe
-      0:    'Europe/London',       // UTC+0    — UK
-      -300: 'America/New_York',    // UTC-5    — US Eastern
-      -360: 'America/Chicago',     // UTC-6    — US Central
-      -420: 'America/Denver',      // UTC-7    — US Mountain
+      330: 'Asia/Kolkata', // UTC+5:30 — India
+      345: 'Asia/Kathmandu', // UTC+5:45 — Nepal
+      360: 'Asia/Dhaka', // UTC+6    — Bangladesh ✓
+      390: 'Asia/Yangon', // UTC+6:30 — Myanmar
+      420: 'Asia/Bangkok', // UTC+7    — Thailand/Vietnam
+      480: 'Asia/Singapore', // UTC+8    — Singapore/Malaysia
+      300: 'Asia/Karachi', // UTC+5    — Pakistan
+      270: 'Asia/Kabul', // UTC+4:30 — Afghanistan
+      240: 'Asia/Dubai', // UTC+4    — UAE
+      180: 'Asia/Riyadh', // UTC+3    — Saudi Arabia
+      120: 'Africa/Cairo', // UTC+2    — Egypt
+      60: 'Europe/Paris', // UTC+1    — Central Europe
+      0: 'Europe/London', // UTC+0    — UK
+      -300: 'America/New_York', // UTC-5    — US Eastern
+      -360: 'America/Chicago', // UTC-6    — US Central
+      -420: 'America/Denver', // UTC-7    — US Mountain
       -480: 'America/Los_Angeles', // UTC-8    — US Pacific
     };
 

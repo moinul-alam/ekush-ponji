@@ -71,9 +71,9 @@ flutter:
   uses-material-design: true
 
   fonts:
-    - family: Kalpurush
+    - family: NotoSerifBengali
       fonts:
-        - asset: assets/fonts/Kalpurush.ttf
+        - asset: assets/fonts/NotoSerifBengali.ttf
 
   # Assets
   assets:
