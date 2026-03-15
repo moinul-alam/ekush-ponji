@@ -9,7 +9,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.ekush_ponji"
+    namespace = "com.eksuhlabs.ekush_ponji"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
