@@ -70,12 +70,10 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # Bundled fonts — loaded from disk on first frame, no network needed.
-  # NotoSerifBengali covers both English and Bengali scripts.
   fonts:
-    - family: NotoSerifBengali
+    - family: Kalpurush
       fonts:
-        - asset: assets/fonts/NotoSerifBengali.ttf
+        - asset: assets/fonts/Kalpurush.ttf
 
   # Assets
   assets:

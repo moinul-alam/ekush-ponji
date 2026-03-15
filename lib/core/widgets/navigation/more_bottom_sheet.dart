@@ -5,8 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 
-/// Shows the "More" bottom sheet.
-/// Call this from AppBottomNav when the More tab is tapped.
 void showMoreBottomSheet(BuildContext context) {
   showModalBottomSheet(
     context: context,
@@ -110,14 +108,6 @@ class _MoreBottomSheet extends StatelessWidget {
                     onTap: () {
                       Navigator.pop(context);
                       context.push(RouteNames.settings);
-                    },
-                  ),
-                  _MoreItem(
-                    icon: Icons.info_outline,
-                    label: l10n.navAbout,
-                    onTap: () {
-                      Navigator.pop(context);
-                      context.push(RouteNames.about);
                     },
                   ),
                 ],

@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'package:ekush_ponji/core/services/data_sync_service.dart';
+import 'package:ekush_ponji/app/router/route_names.dart';
+import 'package:ekush_ponji/features/onboarding/onboarding_viewmodel.dart';
 
 // ── Box and key constants ──────────────────────────────────
 const String settingsBoxName = 'settings';
@@ -209,8 +211,13 @@ final localeProvider =
     NotifierProvider<LocaleNotifier, Locale>(LocaleNotifier.new);
 
 /// Singleton DataSyncService — shared across the entire app.
-/// CalendarRepository, SettingsViewModel, and any future
-/// consumers all read from this one instance.
 final dataSyncServiceProvider = Provider<DataSyncService>((ref) {
   return DataSyncService();
+});
+
+/// Reads onboarding status exactly once from Hive (already open in Phase 1)
+/// and returns the correct initial route. Cached for the lifetime of the
+/// provider — no repeated Hive reads, no UI-thread disk calls.
+final initialDestinationProvider = Provider<String>((ref) {
+  return isOnboardingDone() ? RouteNames.home : RouteNames.onboarding;
 });
