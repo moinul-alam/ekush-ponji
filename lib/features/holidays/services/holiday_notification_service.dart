@@ -1,7 +1,16 @@
 // lib/features/holidays/services/holiday_notification_service.dart
+//
+// CHANGED:
+//   • Replaced private _isPermissionGranted() with
+//     NotificationPermissionService.isGranted() — single source of truth.
+//   • Replaced private _stableId() with NotificationId.forHoliday() —
+//     no more duplication.
+//   • scheduleAll() still never requests permission — silent check only.
 
 import 'package:flutter/material.dart' show Color, debugPrint;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:ekush_ponji/core/notifications/notification_id.dart';
+import 'package:ekush_ponji/core/notifications/notification_permission_service.dart';
 import 'package:ekush_ponji/core/services/local_notification_service.dart';
 import 'package:ekush_ponji/features/holidays/models/holiday.dart';
 import 'package:ekush_ponji/features/holidays/services/holiday_notification_prefs.dart';
@@ -10,22 +19,23 @@ import 'package:ekush_ponji/features/holidays/services/holiday_notification_pref
 /// within the next [_lookaheadDays] days.
 ///
 /// Notification ID range: 600_000_000 – 699_999_999
-///   — well clear of prayers (100–114), events (200M+), reminders (400M+).
-///
 /// Payload: 'holiday' → tap opens the Holidays screen.
 class HolidayNotificationService {
+  HolidayNotificationService._();
+
   static const String _channelId = 'holidays_channel';
   static const String _channelName = 'Holidays';
-  static const int _accentColorValue = 0xFF006B54; // app primary green
+  static const int _accentColorValue = 0xFF006B54;
   static const int _lookaheadDays = 60;
 
   // ── Public API ─────────────────────────────────────────────────────────────
 
-  /// Cancel all existing holiday notifications then reschedule fresh ones
-  /// for every holiday inside the next [_lookaheadDays] days.
+  /// Cancel all existing holiday notifications then reschedule fresh ones.
   ///
-  /// Safe to call on every app launch — duplicate scheduling is prevented
-  /// by first cancelling all IDs in our range.
+  /// Safe to call on every app launch — cancels stale IDs before rescheduling.
+  ///
+  /// Uses a SILENT permission check — called from AppInitializer during splash.
+  /// Never triggers a permission dialog.
   static Future<void> scheduleAll({
     required List<Holiday> holidays,
     required HolidayNotificationPrefs prefs,
@@ -38,15 +48,18 @@ class HolidayNotificationService {
       return;
     }
 
-    final ok = await LocalNotificationService.ensurePermission();
-    if (!ok) return;
+    // Silent check — never prompt the user.
+    final granted = await NotificationPermissionService.isGranted();
+    if (!granted) {
+      debugPrint(
+          'ℹ️ Holiday notifications skipped — permission not yet granted');
+      return;
+    }
 
-    // Cancel stale holiday notifications before rescheduling
     await _cancelAll(holidays);
 
     final now = DateTime.now();
     final cutoff = now.add(const Duration(days: _lookaheadDays));
-
     int scheduled = 0;
 
     for (final holiday in holidays) {
@@ -58,7 +71,6 @@ class HolidayNotificationService {
         prefs.notifyMinute,
       );
 
-      // Only schedule if the fire time is in the future and within lookahead
       if (fireTime.isAfter(now) && fireTime.isBefore(cutoff)) {
         await _scheduleOne(
           holiday: holiday,
@@ -74,14 +86,15 @@ class HolidayNotificationService {
 
   /// Cancel a single holiday notification by holiday ID.
   static Future<void> cancelOne(String holidayId) async {
-    await LocalNotificationService.cancel(_stableId(holidayId));
+    await LocalNotificationService.cancel(NotificationId.forHoliday(holidayId));
   }
 
   // ── Internal ───────────────────────────────────────────────────────────────
 
   static Future<void> _cancelAll(List<Holiday> holidays) async {
     for (final holiday in holidays) {
-      await LocalNotificationService.cancel(_stableId(holiday.id));
+      await LocalNotificationService.cancel(
+          NotificationId.forHoliday(holiday.id));
     }
   }
 
@@ -92,34 +105,22 @@ class HolidayNotificationService {
   }) async {
     final isBn = languageCode == 'bn';
     final name = isBn ? holiday.namebn : holiday.name;
-
-    // ── Notification copy ──────────────────────────────────────────────────
-    //
-    // Bengali: আজ শহীদ দিবস ও আন্তর্জাতিক মাতৃভাষা দিবস 🇧🇩
-    //          একুশ পঞ্জি • জাতীয়
-    //
-    // English: Today is International Mother Language Day 🇧🇩
-    //          Ekush Ponji • National
-    //
     final title = isBn ? 'আজ $name 🇧🇩' : 'Today is $name 🇧🇩';
     final body = isBn
         ? 'একুশ পঞ্জি • ${holiday.category.displayNameBn}'
         : 'Ekush Ponji • ${holiday.category.displayName}';
 
-    final id = _stableId(holiday.id);
-
     await LocalNotificationService.scheduleZoned(
-      id: id,
+      id: NotificationId.forHoliday(holiday.id),
       scheduledTime: fireTime,
       title: title,
       body: body,
-      payload: 'holiday', // tap → Holidays screen
+      payload: 'holiday',
       details: NotificationDetails(
         android: AndroidNotificationDetails(
           _channelId,
           _channelName,
-          channelDescription:
-              'Notifications for national and special holidays',
+          channelDescription: 'Notifications for national and special holidays',
           importance: Importance.high,
           priority: Priority.high,
           icon: '@mipmap/ic_launcher',
@@ -134,18 +135,5 @@ class HolidayNotificationService {
         ),
       ),
     );
-  }
-
-  /// Generates a stable, non-negative notification ID in the range
-  /// 600_000_000 – 699_999_999 from a holiday's raw string ID.
-  ///
-  /// Uses djb2-style hash — same approach as CalendarNotificationService.
-  static int _stableId(String rawId) {
-    int hash = 5381;
-    for (final unit in rawId.codeUnits) {
-      hash = ((hash << 5) + hash) + unit;
-      hash &= 0x7FFFFFFF; // keep positive, 31-bit safe
-    }
-    return (600000000 + (hash % 100000000)).abs();
   }
 }

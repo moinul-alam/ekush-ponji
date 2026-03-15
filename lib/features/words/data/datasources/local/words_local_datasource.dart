@@ -1,4 +1,6 @@
 // lib/features/words/data/datasources/local/words_local_datasource.dart
+//
+// CHANGED: added getDailyWordForDate(DateTime) for word notification service
 
 import 'dart:convert';
 
@@ -24,14 +26,11 @@ class WordsLocalDatasource {
 
   // ── Initialisation ─────────────────────────────────────────
 
-  /// Loads and caches all words. Prefers synced Hive data,
-  /// falls back to bundled asset on first launch.
   Future<void> init() async {
     if (_cachedWords != null) return;
     await _loadWords();
   }
 
-  /// Call after a successful sync to reload from updated Hive data.
   Future<void> reload() async {
     _cachedWords = null;
     await _loadWords();
@@ -40,13 +39,11 @@ class WordsLocalDatasource {
   Future<void> _loadWords() async {
     final String jsonString;
 
-    // Prefer synced data written by WordsSyncService
     final hiveCached = _settingsBox.get(WordsSyncService.wordsEnKey) as String?;
 
     if (hiveCached != null && hiveCached.isNotEmpty) {
       jsonString = hiveCached;
     } else {
-      // First launch — fall back to bundled asset
       jsonString =
           await rootBundle.loadString('assets/data/words/words_en.json');
     }
@@ -71,10 +68,16 @@ class WordsLocalDatasource {
 
   // ── Daily word ─────────────────────────────────────────────
 
+  /// Returns the word for today's date.
   WordModel getDailyWord() {
-    final today = DateTime.now();
+    return getDailyWordForDate(DateTime.now());
+  }
+
+  /// Returns the word matching [date]'s month+day.
+  /// Used by WordNotificationService to fetch today's and tomorrow's word.
+  WordModel getDailyWordForDate(DateTime date) {
     final word = _words.firstWhere(
-      (w) => w.month == today.month && w.day == today.day,
+      (w) => w.month == date.month && w.day == date.day,
       orElse: () => _words.first,
     );
     return word.copyWith(isSaved: _savedBox.containsKey(word.storageKey));

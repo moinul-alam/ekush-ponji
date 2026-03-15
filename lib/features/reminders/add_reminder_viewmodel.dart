@@ -1,4 +1,7 @@
 // lib/features/reminders/add_reminder_viewmodel.dart
+//
+// CHANGED: import updated from calendar_notification_service to
+// reminder_notification_service (calendar_notification_service.dart was deleted)
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ekush_ponji/core/base/base_viewmodel.dart';
@@ -6,7 +9,7 @@ import 'package:ekush_ponji/core/base/view_state.dart';
 import 'package:ekush_ponji/features/reminders/models/reminder.dart';
 import 'package:ekush_ponji/features/reminders/data/reminder_repository.dart';
 import 'package:ekush_ponji/features/calendar/calendar_viewmodel.dart';
-import 'package:ekush_ponji/features/calendar/services/calendar_notification_service.dart';
+import 'package:ekush_ponji/features/reminders/services/reminder_notification_service.dart';
 
 class AddReminderViewModel extends BaseViewModel {
   late final ReminderRepository _repository;
@@ -38,7 +41,6 @@ class AddReminderViewModel extends BaseViewModel {
     state = const ViewStateInitial();
   }
 
-  /// Prefill form with an existing reminder for editing
   void prefillReminder(Reminder reminder) {
     _editingReminderId = reminder.id;
     title = reminder.title;
@@ -93,7 +95,7 @@ class AddReminderViewModel extends BaseViewModel {
     return await executeAsync(
       operation: () async {
         final reminder = Reminder(
-          id: _editingReminderId, // preserves ID in edit mode
+          id: _editingReminderId,
           title: title.trim(),
           description: description?.trim(),
           dateTime: dateTime!,
@@ -111,10 +113,9 @@ class AddReminderViewModel extends BaseViewModel {
             .read(calendarViewModelProvider.notifier)
             .invalidateCacheForDate(dateTime!);
 
-        // Notifications (best-effort)
-        await CalendarNotificationService.cancelReminder(reminder);
+        await ReminderNotificationService.cancel(reminder);
         if (reminder.notificationEnabled) {
-          await CalendarNotificationService.scheduleReminder(reminder);
+          await ReminderNotificationService.schedule(reminder);
         }
       },
       loadingMessage:
@@ -140,7 +141,7 @@ class AddReminderViewModel extends BaseViewModel {
           dateTime: dateTime ?? DateTime.now(),
           notificationEnabled: false,
         );
-        await CalendarNotificationService.cancelReminder(reminder);
+        await ReminderNotificationService.cancel(reminder);
         await _repository.deleteReminder(_editingReminderId!);
 
         if (dateToInvalidate != null) {

@@ -1,18 +1,28 @@
 // lib/features/settings/settings_screen.dart
+//
+// CHANGED (Stage 2):
+//   • Imports notificationPermissionProvider
+//   • Both notification toggles show userPref && osGranted
+//   • Turning ON when OS denied → shows dialog with Open Settings button
+//   • Screen refreshes OS permission status via WidgetsBindingObserver
+//     so toggle updates automatically when user returns from OS settings
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:ekush_ponji/core/base/base_screen.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
+import 'package:ekush_ponji/core/notifications/notification_permission_provider.dart';
 import 'package:ekush_ponji/features/settings/settings_viewmodel.dart';
 import 'package:ekush_ponji/app/providers/app_providers.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/core/constants/app_constants.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
-  import 'package:ekush_ponji/features/holidays/providers/holiday_notification_provider.dart';
-  import 'package:ekush_ponji/features/holidays/holidays_viewmodel.dart';
+import 'package:ekush_ponji/features/holidays/providers/holiday_notification_provider.dart';
+import 'package:ekush_ponji/features/holidays/holidays_viewmodel.dart';
+import 'package:ekush_ponji/features/prayer_times/prayer_settings_viewmodel.dart';
 
 class SettingsScreen extends BaseScreen {
   const SettingsScreen({super.key});
@@ -21,7 +31,28 @@ class SettingsScreen extends BaseScreen {
   BaseScreenState<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
+class _SettingsScreenState extends BaseScreenState<SettingsScreen>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// Refresh OS permission status when user returns from Settings app.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      ref.read(notificationPermissionProvider.notifier).refresh();
+    }
+  }
+
   @override
   NotifierProvider<SettingsViewModel, ViewState> get viewModelProvider =>
       settingsViewModelProvider;
@@ -36,7 +67,6 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
   PreferredSizeWidget? buildAppBar(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
-
     return AppBar(
       title: Text(l10n.settingsTitle),
       centerTitle: false,
@@ -67,8 +97,11 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
     final currentLanguage = currentLocale.languageCode;
     final isBn = l10n.languageCode == 'bn';
 
-    final isSyncing = viewState is ViewStateLoading &&
-        viewState.message == 'Syncing data...';
+    // Real OS permission status — false while loading (safe default)
+    final osGranted = ref.watch(notificationPermissionProvider).value ?? false;
+
+    final isSyncing =
+        viewState is ViewStateLoading && viewState.message == 'Syncing data...';
 
     return ListView(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -101,9 +134,7 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
             style: theme.textTheme.bodyLarge,
           ),
           subtitle: Text(
-            isBn
-                ? 'ছুটির তালিকা, উদ্ধৃতি ও শব্দ'
-                : 'Holidays, quotes & words',
+            isBn ? 'ছুটির তালিকা, উদ্ধৃতি ও শব্দ' : 'Holidays, quotes & words',
             style: theme.textTheme.bodySmall
                 ?.copyWith(color: colorScheme.onSurfaceVariant),
           ),
@@ -123,7 +154,6 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
                   .read(settingsViewModelProvider.notifier)
                   .syncAllData(widgetRef: ref),
         ),
-        // Last sync timestamp row — reads each dataset's key
         Padding(
           padding: const EdgeInsets.fromLTRB(72, 0, 16, 12),
           child: Text(
@@ -135,15 +165,8 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
 
         const Divider(height: 32),
 
-        // ── Notifications & Features ──────────────────────────────
-        _SectionHeader(title: l10n.notifications),
-        _SettingsSwitchTile(
-          icon: Icons.notifications_outlined,
-          title: l10n.notifications,
-          subtitle: l10n.notificationSubtitle,
-          value: viewModel.notificationsEnabled,
-          onChanged: (value) => viewModel.toggleNotifications(value),
-        ),
+        // ── Features ──────────────────────────────────────────────
+        _SectionHeader(title: isBn ? 'ফিচার' : 'Features'),
         _SettingsSwitchTile(
           icon: Icons.mosque_outlined,
           title: isBn ? 'নামাজের সময়' : 'Prayer Times',
@@ -154,25 +177,66 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
           onChanged: (value) => viewModel.togglePrayerTimes(value, ref),
         ),
 
+        const Divider(height: 32),
+
+        // ── Notifications ─────────────────────────────────────────
+        _SectionHeader(title: l10n.notifications),
+
+        // OS permission banner — shown when permission is denied
+        if (!osGranted) _PermissionBanner(isBn: isBn),
+
+        // Prayer notification toggle
         Consumer(
           builder: (context, ref, _) {
-            // Plain state read — HolidayNotificationPrefs is synchronous,
-            // no .value or .valueOrNull needed
-            final notifEnabled =
+            final prayerEnabled = ref
+                .watch(prayerSettingsViewModelProvider)
+                .notificationPrefs
+                .masterEnabled;
+            // Show ON only when both user pref AND OS permission are granted
+            final effectiveValue = prayerEnabled && osGranted;
+            return _SettingsSwitchTile(
+              icon: Icons.access_time_rounded,
+              title: isBn
+                  ? 'নামাজের সময়ের নোটিফিকেশন'
+                  : 'Prayer Time Notifications',
+              subtitle: isBn
+                  ? 'নামাজের সময়ের নোটিফিকেশন চালু/বন্ধ করুন'
+                  : 'Turn prayer time notifications on/off',
+              value: effectiveValue,
+              onChanged: (value) async {
+                if (value && !osGranted) {
+                  _showPermissionDialog(context, ref, isBn);
+                  return;
+                }
+                await ref
+                    .read(prayerSettingsViewModelProvider.notifier)
+                    .setMasterEnabled(value);
+              },
+            );
+          },
+        ),
+
+        // Holiday notification toggle
+        Consumer(
+          builder: (context, ref, _) {
+            final holidayEnabled =
                 ref.watch(holidayNotificationProvider).enabled;
+            final effectiveValue = holidayEnabled && osGranted;
             return _SettingsSwitchTile(
               icon: Icons.celebration_outlined,
-              title: isBn ? 'ছুটির দিনের বিজ্ঞপ্তি' : 'Holiday Notifications',
+              title: isBn ? 'ছুটির দিনের নোটিফিকেশন' : 'Holiday Notifications',
               subtitle: isBn
-                  ? 'প্রতিটি ছুটির সকালে মনে করিয়ে দেবে'
-                  : 'Morning reminder on every holiday',
-              value: notifEnabled,
+                  ? 'ছুটির দিন সম্পর্কে নোটিফিকেশন চালু/বন্ধ করুন'
+                  : 'Turn holiday notifications on/off',
+              value: effectiveValue,
               onChanged: (value) async {
+                if (value && !osGranted) {
+                  _showPermissionDialog(context, ref, isBn);
+                  return;
+                }
                 final holidays =
                     ref.read(holidaysViewModelProvider.notifier).holidays;
-                await ref
-                    .read(holidayNotificationProvider.notifier)
-                    .setEnabled(
+                await ref.read(holidayNotificationProvider.notifier).setEnabled(
                       value,
                       holidays: holidays,
                       languageCode: l10n.languageCode,
@@ -233,6 +297,35 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
     ref.read(settingsViewModelProvider.notifier).loadSettings();
   }
 
+  // ── Permission dialog ─────────────────────────────────────
+
+  void _showPermissionDialog(BuildContext context, WidgetRef ref, bool isBn) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(isBn ? 'নোটিফিকেশন অনুমতি' : 'Notification Permission'),
+        content: Text(
+          isBn
+              ? 'নোটিফিকেশন পাঠাতে অনুমতি প্রয়োজন। সেটিংস থেকে চালু করুন।'
+              : 'Notification permission is required. Please enable it in Settings.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(isBn ? 'বাতিল' : 'Cancel'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              await openAppSettings();
+            },
+            child: Text(isBn ? 'সেটিংস খুলুন' : 'Open Settings'),
+          ),
+        ],
+      ),
+    );
+  }
+
   // ── Helpers ──────────────────────────────────────────────────────
 
   String _getThemeName(ThemeMode mode, AppLocalizations l10n) {
@@ -246,14 +339,13 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
     }
   }
 
-  /// Shows the most recent check across all three datasets.
   String _formatLastSyncLine(bool isBn) {
     try {
       final box = Hive.box('settings');
       final keys = [
         'holidays_last_check',
         'quotes_last_check',
-        'words_last_check',
+        'words_last_check'
       ];
 
       DateTime? latest;
@@ -261,26 +353,19 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
         final raw = box.get(key) as String?;
         if (raw == null) continue;
         final dt = DateTime.tryParse(raw);
-        if (dt != null && (latest == null || dt.isAfter(latest))) {
-          latest = dt;
-        }
+        if (dt != null && (latest == null || dt.isAfter(latest))) latest = dt;
       }
 
-      if (latest == null) {
-        return isBn ? 'কখনো সিঙ্ক করা হয়নি' : 'Never synced';
-      }
+      if (latest == null) return isBn ? 'কখনো সিঙ্ক করা হয়নি' : 'Never synced';
 
       final diff = DateTime.now().difference(latest);
-
       if (diff.inMinutes < 1) return isBn ? 'এইমাত্র' : 'Just now';
-      if (diff.inHours < 1) {
+      if (diff.inHours < 1)
         return isBn
             ? '${diff.inMinutes} মিনিট আগে'
             : '${diff.inMinutes} minutes ago';
-      }
-      if (diff.inDays < 1) {
+      if (diff.inDays < 1)
         return isBn ? '${diff.inHours} ঘণ্টা আগে' : '${diff.inHours} hours ago';
-      }
       if (diff.inDays == 1) return isBn ? 'গতকাল' : 'Yesterday';
       return isBn ? '${diff.inDays} দিন আগে' : '${diff.inDays} days ago';
     } catch (_) {
@@ -294,7 +379,6 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
       BuildContext context, WidgetRef ref, AppLocalizations l10n) {
     final currentTheme = ref.read(themeModeProvider);
     final viewModel = ref.read(settingsViewModelProvider.notifier);
-
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -332,7 +416,6 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
   ) {
     final currentLocale = ref.read(localeProvider);
     final currentLanguage = currentLocale.languageCode;
-
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -402,6 +485,43 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen> {
   }
 }
 
+// ── Permission banner ─────────────────────────────────────────
+
+class _PermissionBanner extends StatelessWidget {
+  final bool isBn;
+  const _PermissionBanner({required this.isBn});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: cs.errorContainer,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.notifications_off_rounded,
+              color: cs.onErrorContainer, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              isBn
+                  ? 'নোটিফিকেশন অনুমতি নেই। নিচের টগলগুলো কাজ করবে না।'
+                  : 'Notification permission denied. Toggles below won\'t work.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: cs.onErrorContainer,
+                  ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // ── Private widgets ──────────────────────────────────────────────────────────
 
 class _SectionHeader extends StatelessWidget {
@@ -449,16 +569,12 @@ class _SettingsTile extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     return ListTile(
       leading: Icon(icon, color: colorScheme.primary),
-      title: Text(
-        title,
-        style: theme.textTheme.bodyLarge?.copyWith(color: titleColor),
-      ),
+      title: Text(title,
+          style: theme.textTheme.bodyLarge?.copyWith(color: titleColor)),
       subtitle: subtitle != null
-          ? Text(
-              subtitle!,
+          ? Text(subtitle!,
               style: theme.textTheme.bodySmall
-                  ?.copyWith(color: colorScheme.onSurfaceVariant),
-            )
+                  ?.copyWith(color: colorScheme.onSurfaceVariant))
           : null,
       trailing: trailing,
       onTap: onTap,
@@ -489,11 +605,9 @@ class _SettingsSwitchTile extends StatelessWidget {
       secondary: Icon(icon, color: colorScheme.primary),
       title: Text(title, style: theme.textTheme.bodyLarge),
       subtitle: subtitle != null
-          ? Text(
-              subtitle!,
+          ? Text(subtitle!,
               style: theme.textTheme.bodySmall
-                  ?.copyWith(color: colorScheme.onSurfaceVariant),
-            )
+                  ?.copyWith(color: colorScheme.onSurfaceVariant))
           : null,
       value: value,
       onChanged: onChanged,

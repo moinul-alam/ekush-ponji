@@ -1,15 +1,21 @@
 // lib/features/prayer_times/prayer_times_screen.dart
 //
 // CHANGED:
-//   • Added _enteredAt timestamp in initState()
-//   • Back button onPressed replaced with _onBack() which checks 30s engagement
-//   • Added import for ad_service.dart
-// Everything else is identical to the original file.
+//   • Removed requestPermission() from initState() — was firing on every mount.
+//   • Added _notificationPermissionTriggered guard flag.
+//   • Added _maybeAskNotificationPermission() — called once when prayer times
+//     first load successfully. Waits 5 seconds then asks for notification
+//     permission, respecting NotificationPermissionPrefs rules:
+//       - First time: always ask.
+//       - Denied: wait 3 days before asking again.
+//       - Granted: never ask again.
+//   • _onBack() and 30-second interstitial logic unchanged.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/core/services/ad_service.dart';
+import 'package:ekush_ponji/core/services/notification_permission_prefs.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:ekush_ponji/features/prayer_times/prayer_times_viewmodel.dart';
 import 'package:ekush_ponji/features/prayer_times/prayer_settings_viewmodel.dart';
@@ -32,20 +38,56 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
   // Track when user entered — used for 30-second engagement check
   late final DateTime _enteredAt;
 
+  // Guards against triggering the notification prompt more than once
+  // per screen lifetime (e.g. if build() is called multiple times while loaded).
+  bool _notificationPermissionTriggered = false;
+
   @override
   void initState() {
     super.initState();
     _enteredAt = DateTime.now();
-    // Initialize notifications, request permission once, then load prayer times
-    PrayerNotificationService.initialize().then((_) async {
-      await PrayerNotificationService.requestPermission();
+    // Only initialize + load. Permission is handled contextually after
+    // prayer times load successfully — see _maybeAskNotificationPermission().
+    PrayerNotificationService.initialize().then((_) {
       if (mounted) {
         ref.read(prayerTimesViewModelProvider.notifier).load();
       }
     });
   }
 
-  // CHANGED: show interstitial if user spent 30+ seconds on screen
+  // ── Notification permission ───────────────────────────────────
+
+  /// Called once after prayer times load successfully.
+  ///
+  /// Waits 5 seconds so the user can see and appreciate the prayer times
+  /// first, then asks for notification permission — but only if
+  /// [NotificationPermissionPrefs.shouldAsk()] allows it.
+  Future<void> _maybeAskNotificationPermission() async {
+    // Flip the flag immediately — prevents re-entry on subsequent builds.
+    _notificationPermissionTriggered = true;
+
+    final should = await NotificationPermissionPrefs.shouldAsk();
+    if (!should) return;
+
+    // Wait 5 seconds so the user sees prayer times before the prompt appears.
+    await Future.delayed(const Duration(seconds: 5));
+    if (!mounted) return;
+
+    // Mark as asked before showing the dialog so even if the app is killed
+    // mid-prompt we don't spam the user on next launch.
+    await NotificationPermissionPrefs.markAsked();
+
+    final granted = await PrayerNotificationService.requestPermission();
+
+    if (granted) {
+      await NotificationPermissionPrefs.markGranted();
+    } else {
+      await NotificationPermissionPrefs.markDenied();
+    }
+  }
+
+  // ── Back / interstitial ───────────────────────────────────────
+
   void _onBack() {
     final elapsed = DateTime.now().difference(_enteredAt);
     if (elapsed.inSeconds >= 30) {
@@ -74,7 +116,7 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: _onBack, // CHANGED
+          onPressed: _onBack,
           tooltip: l10n.back,
         ),
         actions: [
@@ -139,6 +181,11 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
     }
 
     // ── Loaded ────────────────────────────────────────────
+    // Trigger notification permission prompt once per screen lifetime.
+    if (!_notificationPermissionTriggered) {
+      _maybeAskNotificationPermission();
+    }
+
     final times = state.todayTimes!;
 
     return RefreshIndicator(

@@ -1,4 +1,6 @@
 // lib/features/quotes/data/datasources/local/quotes_local_datasource.dart
+//
+// CHANGED: added getDailyQuoteForDate(DateTime) for quote notification service
 
 import 'dart:convert';
 
@@ -24,14 +26,11 @@ class QuotesLocalDatasource {
 
   // ── Initialisation ─────────────────────────────────────────
 
-  /// Loads and caches all quotes. Prefers synced Hive data,
-  /// falls back to bundled asset on first launch.
   Future<void> init() async {
     if (_cachedQuotes != null) return;
     await _loadQuotes();
   }
 
-  /// Call after a successful sync to reload from updated Hive data.
   Future<void> reload() async {
     _cachedQuotes = null;
     await _loadQuotes();
@@ -40,14 +39,12 @@ class QuotesLocalDatasource {
   Future<void> _loadQuotes() async {
     final String jsonString;
 
-    // Prefer synced data written by QuotesSyncService
     final hiveCached =
         _settingsBox.get(QuotesSyncService.quotesEnKey) as String?;
 
     if (hiveCached != null && hiveCached.isNotEmpty) {
       jsonString = hiveCached;
     } else {
-      // First launch — fall back to bundled asset
       jsonString =
           await rootBundle.loadString('assets/data/quotes/quotes_en.json');
     }
@@ -72,10 +69,16 @@ class QuotesLocalDatasource {
 
   // ── Daily quote ────────────────────────────────────────────
 
+  /// Returns the quote for today's date.
   QuoteModel getDailyQuote() {
-    final today = DateTime.now();
+    return getDailyQuoteForDate(DateTime.now());
+  }
+
+  /// Returns the quote matching [date]'s month+day.
+  /// Used by QuoteNotificationService to fetch today's and tomorrow's quote.
+  QuoteModel getDailyQuoteForDate(DateTime date) {
     final quote = _quotes.firstWhere(
-      (q) => q.month == today.month && q.day == today.day,
+      (q) => q.month == date.month && q.day == date.day,
       orElse: () => _quotes.first,
     );
     return quote.copyWith(isSaved: _savedBox.containsKey(quote.storageKey));

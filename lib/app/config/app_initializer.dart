@@ -1,4 +1,11 @@
 // lib/app/config/app_initializer.dart
+//
+// CHANGED:
+//   • Removed quote_notification_prefs.dart and word_notification_prefs.dart
+//     imports — QuoteNotificationPrefs and WordNotificationPrefs are accessed
+//     through their service files to prevent duplicate name errors.
+//   • _initializeWorkManager() registers all three reschedule tasks.
+//   • _scheduleQuoteNotifications() and _scheduleWordNotifications() added.
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -19,25 +26,22 @@ import 'package:ekush_ponji/core/services/background_task_dispatcher.dart';
 import 'package:ekush_ponji/features/calendar/data/calendar_repository.dart';
 import 'package:ekush_ponji/features/holidays/services/holiday_notification_prefs.dart';
 import 'package:ekush_ponji/features/holidays/services/holiday_notification_service.dart';
+// QuoteNotificationPrefs is accessed via quote_notification_service.dart
+import 'package:ekush_ponji/features/quotes/services/quote_notification_service.dart';
+// WordNotificationPrefs is accessed via word_notification_service.dart
+import 'package:ekush_ponji/features/words/services/word_notification_service.dart';
 import 'package:workmanager/workmanager.dart';
 
 class AppInitializer {
   // ── Phase 1: Critical path ─────────────────────────────────
-  /// Everything here must complete BEFORE runApp().
-  /// Hive boxes are cheap local disk ops (~1-2ms each) — open them
-  /// all here so viewmodels can safely call Hive.box() on first frame.
+
   static Future<void> initializeCore() async {
     try {
       await Future.wait([
         _setDeviceOrientation(),
         _initializeHiveAndSettings(),
       ]);
-
-      // ✅ Open ALL Hive boxes before runApp.
-      // viewmodels call Hive.box('saved_quotes') etc. the moment the
-      // home screen renders — those boxes must already be open.
       await _openSecondaryHiveBoxes();
-
       debugPrint('✅ Core initialization completed');
     } catch (e, stackTrace) {
       debugPrint('❌ Core initialization failed: $e');
@@ -47,9 +51,7 @@ class AppInitializer {
   }
 
   // ── Phase 2: Background ────────────────────────────────────
-  /// Heavy work (Firebase, network, WorkManager) runs behind the
-  /// custom splash screen. [container] is passed in so we reuse the
-  /// singleton DataSyncService from the provider graph.
+
   static Future<void> initializeBackground(ProviderContainer container) async {
     try {
       await Future.wait([
@@ -62,10 +64,11 @@ class AppInitializer {
         _performDataSyncWithTimeout(container),
       ]);
 
-      // ── Schedule holiday notifications after sync completes ──────────────
-      // Done here (not inside _performDataSyncWithTimeout) so it always runs
-      // even if sync times out — we still schedule from local cached holidays.
-      await _scheduleHolidayNotifications(container);
+      await Future.wait([
+        _scheduleHolidayNotifications(container),
+        _scheduleQuoteNotifications(),
+        _scheduleWordNotifications(),
+      ]);
 
       debugPrint('✅ Background initialization completed');
     } catch (e, stackTrace) {
@@ -105,9 +108,6 @@ class AppInitializer {
     debugPrint('✅ Hive adapters registered');
   }
 
-  /// Opening boxes is a fast local op. Must be done before runApp()
-  /// so that QuotesViewModel.onInit() and WordsViewModel.onInit()
-  /// can safely call Hive.box('saved_quotes') / Hive.box('saved_words').
   static Future<void> _openSecondaryHiveBoxes() async {
     try {
       await Future.wait([
@@ -118,7 +118,6 @@ class AppInitializer {
       debugPrint('✅ Secondary Hive boxes opened');
     } catch (e) {
       debugPrint('⚠️ Secondary Hive boxes warning: $e');
-      // Non-fatal — app can still function with degraded state
     }
   }
 
@@ -139,14 +138,33 @@ class AppInitializer {
         callbackDispatcher,
         isInDebugMode: false,
       );
-      await Workmanager().registerOneOffTask(
-        kReschedulePrayerTask,
-        kReschedulePrayerTask,
-        initialDelay: const Duration(seconds: 30),
-        existingWorkPolicy: ExistingWorkPolicy.replace,
-        constraints: Constraints(networkType: NetworkType.notRequired),
-      );
-      debugPrint('✅ WorkManager initialized and boot task registered');
+
+      await Future.wait([
+        Workmanager().registerOneOffTask(
+          kReschedulePrayerTask,
+          kReschedulePrayerTask,
+          initialDelay: const Duration(seconds: 30),
+          existingWorkPolicy: ExistingWorkPolicy.replace,
+          constraints: Constraints(networkType: NetworkType.notRequired),
+        ),
+        Workmanager().registerOneOffTask(
+          kRescheduleQuoteTask,
+          kRescheduleQuoteTask,
+          initialDelay: const Duration(seconds: 30),
+          existingWorkPolicy: ExistingWorkPolicy.replace,
+          constraints: Constraints(networkType: NetworkType.notRequired),
+        ),
+        Workmanager().registerOneOffTask(
+          kRescheduleWordTask,
+          kRescheduleWordTask,
+          initialDelay: const Duration(seconds: 30),
+          existingWorkPolicy: ExistingWorkPolicy.replace,
+          constraints: Constraints(networkType: NetworkType.notRequired),
+        ),
+      ]);
+
+      debugPrint(
+          '✅ WorkManager initialized — prayer, quote, word tasks registered');
     } catch (e) {
       debugPrint('⚠️ WorkManager warning: $e');
     }
@@ -161,11 +179,6 @@ class AppInitializer {
     }
   }
 
-  /// Seeds all bundled assets on first launch, then checks for updates.
-  /// Hard 8-second timeout — app proceeds normally if slow/offline.
-  ///
-  /// After seeding completes, viewmodels are reloaded so they pick up
-  /// the freshly written Hive data (quotes_en_json / words_en_json).
   static Future<void> _performDataSyncWithTimeout(
     ProviderContainer container,
   ) async {
@@ -179,10 +192,6 @@ class AppInitializer {
         },
       );
 
-      // ✅ Reload viewmodels after seed/sync completes.
-      // On first launch: seed() just wrote quotes_en_json to Hive,
-      // so reload picks up that data instead of the rootBundle fallback.
-      // On subsequent launches: picks up any newly synced remote data.
       container.read(quotesViewModelProvider.notifier).loadQuotes();
       container.read(wordsViewModelProvider.notifier).loadWords();
 
@@ -192,32 +201,23 @@ class AppInitializer {
     }
   }
 
-  /// Schedule holiday notifications from locally cached data.
-  ///
-  /// Reads holidays for the current year + next year, filters to upcoming ones,
-  /// and schedules a morning notification (8:00 AM) for each — respecting the
-  /// user's saved [HolidayNotificationPrefs] master switch.
-  ///
-  /// This is non-fatal: if it fails or holidays are empty the rest of the app
-  /// is completely unaffected.
+  // ── Notification scheduling ────────────────────────────────
+
   static Future<void> _scheduleHolidayNotifications(
     ProviderContainer container,
   ) async {
     try {
       debugPrint('🔔 Scheduling holiday notifications...');
 
-      // Load user prefs (honours the enabled/disabled toggle)
       final prefs = await HolidayNotificationPrefs.load();
       if (!prefs.enabled) {
-        debugPrint('ℹ️ Holiday notifications disabled — skipping scheduling');
+        debugPrint('ℹ️ Holiday notifications disabled — skipping');
         return;
       }
 
-      // Read language from SharedPreferences (same key prayer notifications use)
       final sp = await SharedPreferences.getInstance();
       final languageCode = sp.getString('languageCode') ?? 'bn';
 
-      // Fetch upcoming holidays from local Hive cache — no network needed
       final calendarRepo = container.read(calendarRepositoryProvider);
       final holidays = await calendarRepo.getUpcomingHolidays(days: 60);
 
@@ -233,9 +233,73 @@ class AppInitializer {
       );
 
       debugPrint(
-          '✅ Holiday notification scheduling complete (${holidays.length} holidays checked)');
+          '✅ Holiday notifications scheduled (${holidays.length} checked)');
     } catch (e) {
       debugPrint('⚠️ Holiday notification scheduling error: $e');
+    }
+  }
+
+  static Future<void> _scheduleQuoteNotifications() async {
+    try {
+      debugPrint('🔔 Scheduling quote notifications...');
+
+      // QuoteNotificationPrefs is accessible via quote_notification_service import
+      final prefs = await QuoteNotificationPrefs.load();
+      if (!prefs.enabled) {
+        debugPrint('ℹ️ Quote notifications disabled — skipping');
+        return;
+      }
+
+      final sp = await SharedPreferences.getInstance();
+      final languageCode = sp.getString('languageCode') ?? 'bn';
+
+      final datasource = QuotesLocalDatasource(
+        savedBox: Hive.box<QuoteModel>(savedQuotesBoxName),
+        settingsBox: Hive.box('settings'),
+      );
+      await datasource.init();
+
+      await QuoteNotificationService.scheduleUpcoming(
+        datasource: datasource,
+        prefs: prefs,
+        languageCode: languageCode,
+      );
+
+      debugPrint('✅ Quote notifications scheduled');
+    } catch (e) {
+      debugPrint('⚠️ Quote notification scheduling error: $e');
+    }
+  }
+
+  static Future<void> _scheduleWordNotifications() async {
+    try {
+      debugPrint('🔔 Scheduling word notifications...');
+
+      // WordNotificationPrefs is accessible via word_notification_service import
+      final prefs = await WordNotificationPrefs.load();
+      if (!prefs.enabled) {
+        debugPrint('ℹ️ Word notifications disabled — skipping');
+        return;
+      }
+
+      final sp = await SharedPreferences.getInstance();
+      final languageCode = sp.getString('languageCode') ?? 'bn';
+
+      final datasource = WordsLocalDatasource(
+        savedBox: Hive.box<WordModel>(savedWordsBoxName),
+        settingsBox: Hive.box('settings'),
+      );
+      await datasource.init();
+
+      await WordNotificationService.scheduleUpcoming(
+        datasource: datasource,
+        prefs: prefs,
+        languageCode: languageCode,
+      );
+
+      debugPrint('✅ Word notifications scheduled');
+    } catch (e) {
+      debugPrint('⚠️ Word notification scheduling error: $e');
     }
   }
 

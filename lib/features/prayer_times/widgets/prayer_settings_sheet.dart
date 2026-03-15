@@ -1,12 +1,19 @@
 // lib/features/prayer_times/widgets/prayer_settings_sheet.dart
+//
+// CHANGED (Stage 2):
+//   • Watches notificationPermissionProvider for real OS permission status
+//   • Master switch value = masterEnabled && osGranted
+//   • Turning ON when OS denied → shows dialog with Open Settings
+//   • Per-prayer toggles also gated behind osGranted
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
+import 'package:ekush_ponji/core/notifications/notification_permission_provider.dart';
 import 'package:ekush_ponji/features/prayer_times/models/prayer_times_model.dart';
 import 'package:ekush_ponji/features/prayer_times/prayer_settings_viewmodel.dart';
 import 'package:ekush_ponji/core/services/local_notification_service.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class PrayerSettingsSheet extends ConsumerWidget {
   final VoidCallback onSettingsChanged;
@@ -23,6 +30,9 @@ class PrayerSettingsSheet extends ConsumerWidget {
     final calc = settings.calculationSettings;
     final notif = settings.notificationPrefs;
 
+    // Real OS permission status
+    final osGranted = ref.watch(notificationPermissionProvider).value ?? false;
+
     return Container(
       decoration: BoxDecoration(
         color: cs.surface,
@@ -31,7 +41,6 @@ class PrayerSettingsSheet extends ConsumerWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // ── Handle ──────────────────────────────────────
           const SizedBox(height: 12),
           Container(
             width: 40,
@@ -42,8 +51,6 @@ class PrayerSettingsSheet extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-
-          // ── Title ────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
@@ -52,16 +59,13 @@ class PrayerSettingsSheet extends ConsumerWidget {
                 const SizedBox(width: 8),
                 Text(
                   l10n.prayerSettingsTitle,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: theme.textTheme.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w700),
                 ),
               ],
             ),
           ),
-
           const SizedBox(height: 20),
-
           Flexible(
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
@@ -70,28 +74,26 @@ class PrayerSettingsSheet extends ConsumerWidget {
                 children: [
                   // ── Calculation method ───────────────────
                   _SectionHeader(
-                    label: l10n.prayerCalculationMethod,
-                    theme: theme,
-                    cs: cs,
-                  ),
+                      label: l10n.prayerCalculationMethod,
+                      theme: theme,
+                      cs: cs),
                   const SizedBox(height: 8),
                   Container(
                     decoration: BoxDecoration(
                       color: cs.surfaceContainerHighest.withOpacity(0.4),
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                          color: cs.outlineVariant.withOpacity(0.4)),
+                      border:
+                          Border.all(color: cs.outlineVariant.withOpacity(0.4)),
                     ),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                     child: DropdownButtonHideUnderline(
                       child: DropdownButton<String>(
                         value: calc.methodKey,
                         isExpanded: true,
                         dropdownColor: cs.surface,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: cs.onSurface,
-                        ),
+                        style: theme.textTheme.bodyMedium
+                            ?.copyWith(color: cs.onSurface),
                         items: PrayerCalculationSettings.methodNames.entries
                             .map((e) => DropdownMenuItem(
                                   value: e.key,
@@ -113,10 +115,7 @@ class PrayerSettingsSheet extends ConsumerWidget {
 
                   // ── Madhab ───────────────────────────────
                   _SectionHeader(
-                    label: l10n.prayerMadhab,
-                    theme: theme,
-                    cs: cs,
-                  ),
+                      label: l10n.prayerMadhab, theme: theme, cs: cs),
                   const SizedBox(height: 8),
                   _SegmentRow(
                     selected: calc.isHanafi,
@@ -140,47 +139,38 @@ class PrayerSettingsSheet extends ConsumerWidget {
 
                   // ── Master notification switch ────────────
                   _SectionHeader(
-                    label: l10n.prayerNotificationsTitle,
-                    theme: theme,
-                    cs: cs,
-                  ),
+                      label: l10n.prayerNotificationsTitle,
+                      theme: theme,
+                      cs: cs),
                   const SizedBox(height: 8),
                   _SettingsTile(
                     label: l10n.prayerEnableNotifications,
                     subtitle: l10n.prayerNotificationsSubtitle,
                     trailing: Switch(
-                      value: notif.masterEnabled,
+                      // Show ON only when user enabled AND OS granted
+                      value: notif.masterEnabled && osGranted,
                       onChanged: (val) async {
+                        if (val && !osGranted) {
+                          // OS denied — show Open Settings dialog
+                          if (context.mounted) {
+                            await _showPermissionDialog(context, l10n);
+                          }
+                          return;
+                        }
                         if (val) {
+                          // OS may not have been asked yet — request now
                           final ok =
                               await LocalNotificationService.ensurePermission();
                           if (!ok) {
                             if (context.mounted) {
-                              await showDialog<void>(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: Text(l10n.notifications),
-                                  content: Text(
-                                      l10n.notificationsPermissionRequired),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.of(context).pop(),
-                                      child: Text(l10n.cancel),
-                                    ),
-                                    TextButton(
-                                      onPressed: () async {
-                                        Navigator.of(context).pop();
-                                        await openAppSettings();
-                                      },
-                                      child: Text(l10n.openSettings),
-                                    ),
-                                  ],
-                                ),
-                              );
+                              await _showPermissionDialog(context, l10n);
                             }
                             return;
                           }
+                          // Refresh provider so other screens update too
+                          ref
+                              .read(notificationPermissionProvider.notifier)
+                              .refresh();
                         }
                         await vm.setMasterEnabled(val);
                         onSettingsChanged();
@@ -191,13 +181,10 @@ class PrayerSettingsSheet extends ConsumerWidget {
                   ),
 
                   // ── Per-prayer toggles ────────────────────
-                  if (notif.masterEnabled) ...[
+                  if (notif.masterEnabled && osGranted) ...[
                     const SizedBox(height: 12),
                     _SectionHeader(
-                      label: l10n.prayerPerPrayerTitle,
-                      theme: theme,
-                      cs: cs,
-                    ),
+                        label: l10n.prayerPerPrayerTitle, theme: theme, cs: cs),
                     const SizedBox(height: 8),
                     Container(
                       decoration: BoxDecoration(
@@ -226,38 +213,6 @@ class PrayerSettingsSheet extends ConsumerWidget {
                                 theme: theme,
                                 cs: cs,
                                 onChanged: (val) async {
-                                  if (val) {
-                                    final ok =
-                                        await LocalNotificationService
-                                            .ensurePermission();
-                                    if (!ok) {
-                                      if (context.mounted) {
-                                        await showDialog<void>(
-                                          context: context,
-                                          builder: (context) => AlertDialog(
-                                            title: Text(l10n.notifications),
-                                            content: Text(l10n
-                                                .notificationsPermissionRequired),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () =>
-                                                    Navigator.of(context).pop(),
-                                                child: Text(l10n.cancel),
-                                              ),
-                                              TextButton(
-                                                onPressed: () async {
-                                                  Navigator.of(context).pop();
-                                                  await openAppSettings();
-                                                },
-                                                child: Text(l10n.openSettings),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      }
-                                      return;
-                                    }
-                                  }
                                   await vm.setPrayerEnabled(prayer, val);
                                   onSettingsChanged();
                                 },
@@ -267,8 +222,7 @@ class PrayerSettingsSheet extends ConsumerWidget {
                                   height: 1,
                                   indent: 16,
                                   endIndent: 16,
-                                  color:
-                                      cs.outlineVariant.withOpacity(0.3),
+                                  color: cs.outlineVariant.withOpacity(0.3),
                                 ),
                             ],
                           );
@@ -280,10 +234,9 @@ class PrayerSettingsSheet extends ConsumerWidget {
 
                     // ── Notification offset ──────────────────
                     _SectionHeader(
-                      label: l10n.prayerNotifyBeforeTitle,
-                      theme: theme,
-                      cs: cs,
-                    ),
+                        label: l10n.prayerNotifyBeforeTitle,
+                        theme: theme,
+                        cs: cs),
                     const SizedBox(height: 8),
                     Row(
                       children: [0, 5, 10].map((minutes) {
@@ -302,8 +255,7 @@ class PrayerSettingsSheet extends ConsumerWidget {
                             },
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 150),
-                              margin:
-                                  const EdgeInsets.symmetric(horizontal: 4),
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
                               padding: const EdgeInsets.symmetric(
                                   vertical: 10, horizontal: 4),
                               decoration: BoxDecoration(
@@ -313,11 +265,10 @@ class PrayerSettingsSheet extends ConsumerWidget {
                                         .withOpacity(0.4),
                                 borderRadius: BorderRadius.circular(10),
                                 border: isSelected
-                                    ? Border.all(
-                                        color: cs.primary, width: 1.5)
+                                    ? Border.all(color: cs.primary, width: 1.5)
                                     : Border.all(
-                                        color: cs.outlineVariant
-                                            .withOpacity(0.4)),
+                                        color:
+                                            cs.outlineVariant.withOpacity(0.4)),
                               ),
                               child: Text(
                                 label,
@@ -345,6 +296,30 @@ class PrayerSettingsSheet extends ConsumerWidget {
       ),
     );
   }
+
+  Future<void> _showPermissionDialog(
+      BuildContext context, AppLocalizations l10n) async {
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.notifications),
+        content: Text(l10n.notificationsPermissionRequired),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              await openAppSettings();
+            },
+            child: Text(l10n.openSettings),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 // ── Helper widgets ─────────────────────────────────────────────
@@ -354,11 +329,8 @@ class _SectionHeader extends StatelessWidget {
   final ThemeData theme;
   final ColorScheme cs;
 
-  const _SectionHeader({
-    required this.label,
-    required this.theme,
-    required this.cs,
-  });
+  const _SectionHeader(
+      {required this.label, required this.theme, required this.cs});
 
   @override
   Widget build(BuildContext context) {
@@ -397,30 +369,23 @@ class _SettingsTile extends StatelessWidget {
         border: Border.all(color: cs.outlineVariant.withOpacity(0.4)),
       ),
       child: ListTile(
-        title: Text(
-          label,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        title: Text(label,
+            style: theme.textTheme.bodyMedium
+                ?.copyWith(fontWeight: FontWeight.w600)),
         subtitle: subtitle != null
-            ? Text(
-                subtitle!,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: cs.onSurfaceVariant,
-                ),
-              )
+            ? Text(subtitle!,
+                style: theme.textTheme.bodySmall
+                    ?.copyWith(color: cs.onSurfaceVariant))
             : null,
         trailing: trailing,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       ),
     );
   }
 }
 
 class _SegmentRow extends StatelessWidget {
-  final bool selected; // true = left selected
+  final bool selected;
   final String leftLabel;
   final String rightLabel;
   final VoidCallback onLeft;
@@ -440,26 +405,22 @@ class _SegmentRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        _Segment(
+    return Row(children: [
+      _Segment(
           label: leftLabel,
           isSelected: selected,
           onTap: onLeft,
           isLeft: true,
           theme: theme,
-          cs: cs,
-        ),
-        _Segment(
+          cs: cs),
+      _Segment(
           label: rightLabel,
           isSelected: !selected,
           onTap: onRight,
           isLeft: false,
           theme: theme,
-          cs: cs,
-        ),
-      ],
-    );
+          cs: cs),
+    ]);
   }
 }
 
@@ -489,13 +450,16 @@ class _Segment extends StatelessWidget {
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: isSelected ? cs.primary : cs.surfaceContainerHighest.withOpacity(0.4),
+            color: isSelected
+                ? cs.primary
+                : cs.surfaceContainerHighest.withOpacity(0.4),
             borderRadius: BorderRadius.horizontal(
               left: isLeft ? const Radius.circular(12) : Radius.zero,
               right: !isLeft ? const Radius.circular(12) : Radius.zero,
             ),
             border: Border.all(
-              color: isSelected ? cs.primary : cs.outlineVariant.withOpacity(0.4),
+              color:
+                  isSelected ? cs.primary : cs.outlineVariant.withOpacity(0.4),
             ),
           ),
           child: Text(
@@ -543,10 +507,7 @@ class _PrayerToggleRow extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          Switch(
-            value: enabled,
-            onChanged: onChanged,
-          ),
+          Switch(value: enabled, onChanged: onChanged),
         ],
       ),
     );

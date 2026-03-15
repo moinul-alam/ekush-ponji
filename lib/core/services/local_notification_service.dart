@@ -1,7 +1,9 @@
 // lib/core/services/local_notification_service.dart
 //
-// Change from original: added 'holiday' case in _onNotificationTapped
-// and updated the payload format comment to document it.
+// CHANGED:
+//   • Added 'quote' case in _onNotificationTapped → navigates to Quotes screen
+//   • Added 'word' case in _onNotificationTapped → navigates to Words screen
+//   • Updated payload format comment to document all cases
 
 import 'dart:io';
 
@@ -24,12 +26,8 @@ class LocalNotificationService {
   static Future<void> initialize() async {
     if (_initialized) return;
 
-    // Step 1: Initialize timezone database
     tz.initializeTimeZones();
 
-    // Step 2: Resolve device timezone using Dart's built-in DateTime —
-    // no native plugin needed. DateTime.now() always reflects the host OS
-    // timezone, so we match its UTC offset against the tz database.
     try {
       final String tzName = _resolveLocalTimezoneName();
       tz.setLocalLocation(tz.getLocation(tzName));
@@ -40,7 +38,6 @@ class LocalNotificationService {
       tz.setLocalLocation(tz.getLocation('Asia/Dhaka'));
     }
 
-    // Step 3: Configure platform initialization settings
     const androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosSettings = DarwinInitializationSettings(
@@ -63,12 +60,11 @@ class LocalNotificationService {
 
   // ── Permission ────────────────────────────────────────────────────────────
 
-  /// Request all permissions required for scheduled notifications.
-  /// Returns true only if all required permissions are granted.
+  /// Requests all required notification permissions.
+  /// Returns true only if ALL permissions are granted.
   static Future<bool> ensurePermission() async {
     await initialize();
 
-    // 1. Notification permission (Android 13+ / API 33+)
     final notifStatus = await Permission.notification.status;
     if (!notifStatus.isGranted) {
       final result = await Permission.notification.request();
@@ -78,9 +74,6 @@ class LocalNotificationService {
       }
     }
 
-    // 2. Exact alarm permission (Android 12+ / API 31+)
-    // SCHEDULE_EXACT_ALARM can be revoked by the user in Settings,
-    // so we must check at runtime — not just at install time.
     if (Platform.isAndroid) {
       final exactAlarmStatus = await Permission.scheduleExactAlarm.status;
       if (!exactAlarmStatus.isGranted) {
@@ -111,13 +104,13 @@ class LocalNotificationService {
 
   /// Schedule a notification at [scheduledTime] in the device's local timezone.
   ///
-  /// [payload] is an optional string embedded in the notification.
-  /// When the user taps the notification, [_onNotificationTapped] reads
-  /// this payload to decide where to navigate. Format:
-  ///   - 'prayer'          → navigates to Prayer Times screen
-  ///   - 'holiday'         → navigates to Holidays screen        ← NEW
-  ///   - 'event:id'        → navigates to Calendar screen
-  ///   - 'reminder:id'     → navigates to Reminders screen
+  /// Payload format — determines navigation on tap:
+  ///   'prayer'      → Prayer Times screen
+  ///   'holiday'     → Holidays screen
+  ///   'quote'       → Quotes screen
+  ///   'word'        → Words screen
+  ///   'event:id'    → Calendar screen
+  ///   'reminder:id' → Reminders screen
   static Future<void> scheduleZoned({
     required int id,
     required DateTime scheduledTime,
@@ -128,10 +121,8 @@ class LocalNotificationService {
   }) async {
     await initialize();
 
-    // Convert to TZDateTime using the device's local timezone (set during init)
     final tz.TZDateTime tzTime = tz.TZDateTime.from(scheduledTime, tz.local);
 
-    // Guard: don't schedule notifications in the past
     final now = tz.TZDateTime.now(tz.local);
     if (tzTime.isBefore(now)) {
       debugPrint(
@@ -157,8 +148,7 @@ class LocalNotificationService {
   // ── Tap Handler ───────────────────────────────────────────────────────────
 
   /// Called when the user taps a notification.
-  /// Reads the payload and navigates using AppRouter.router directly —
-  /// no BuildContext needed since GoRouter holds a static reference.
+  /// Navigates using AppRouter.router — no BuildContext needed.
   static void _onNotificationTapped(NotificationResponse response) {
     final payload = response.payload;
     debugPrint('🔔 Notification tapped: id=${response.id}, payload=$payload');
@@ -173,14 +163,22 @@ class LocalNotificationService {
       return;
     }
 
-    // ── Holiday — tap opens Holidays screen ──────────────────────────────
     if (payload == 'holiday') {
       AppRouter.router.go(RouteNames.holidays);
       return;
     }
 
+    if (payload == 'quote') {
+      AppRouter.router.go(RouteNames.quotes);
+      return;
+    }
+
+    if (payload == 'word') {
+      AppRouter.router.go(RouteNames.words);
+      return;
+    }
+
     if (payload.startsWith('event:')) {
-      // Navigate to calendar — deep link to specific event can be added later
       AppRouter.router.go(RouteNames.calendar);
       return;
     }
@@ -190,39 +188,32 @@ class LocalNotificationService {
       return;
     }
 
-    // Unknown payload — fall back to home
     AppRouter.router.go(RouteNames.home);
   }
 
   // ── Timezone Resolution ───────────────────────────────────────────────────
 
-  /// Resolves the device's IANA timezone name without any native plugin.
-  ///
-  /// Strategy: Dart's [DateTime.now()] always uses the host OS local timezone.
-  /// We read its UTC offset and match it against known IANA timezone names
-  /// from the tz database. For devices in Bangladesh (UTC+6) this will always
-  /// return 'Asia/Dhaka'. For other offsets a best-effort match is returned.
   static String _resolveLocalTimezoneName() {
     final offsetMinutes = DateTime.now().timeZoneOffset.inMinutes;
 
     const Map<int, String> offsetToTimezone = {
-      330: 'Asia/Kolkata', // UTC+5:30 — India
-      345: 'Asia/Kathmandu', // UTC+5:45 — Nepal
-      360: 'Asia/Dhaka', // UTC+6    — Bangladesh ✓
-      390: 'Asia/Yangon', // UTC+6:30 — Myanmar
-      420: 'Asia/Bangkok', // UTC+7    — Thailand/Vietnam
-      480: 'Asia/Singapore', // UTC+8    — Singapore/Malaysia
-      300: 'Asia/Karachi', // UTC+5    — Pakistan
-      270: 'Asia/Kabul', // UTC+4:30 — Afghanistan
-      240: 'Asia/Dubai', // UTC+4    — UAE
-      180: 'Asia/Riyadh', // UTC+3    — Saudi Arabia
-      120: 'Africa/Cairo', // UTC+2    — Egypt
-      60: 'Europe/Paris', // UTC+1    — Central Europe
-      0: 'Europe/London', // UTC+0    — UK
-      -300: 'America/New_York', // UTC-5    — US Eastern
-      -360: 'America/Chicago', // UTC-6    — US Central
-      -420: 'America/Denver', // UTC-7    — US Mountain
-      -480: 'America/Los_Angeles', // UTC-8    — US Pacific
+      330: 'Asia/Kolkata',
+      345: 'Asia/Kathmandu',
+      360: 'Asia/Dhaka',
+      390: 'Asia/Yangon',
+      420: 'Asia/Bangkok',
+      480: 'Asia/Singapore',
+      300: 'Asia/Karachi',
+      270: 'Asia/Kabul',
+      240: 'Asia/Dubai',
+      180: 'Asia/Riyadh',
+      120: 'Africa/Cairo',
+      60: 'Europe/Paris',
+      0: 'Europe/London',
+      -300: 'America/New_York',
+      -360: 'America/Chicago',
+      -420: 'America/Denver',
+      -480: 'America/Los_Angeles',
     };
 
     return offsetToTimezone[offsetMinutes] ?? 'Asia/Dhaka';

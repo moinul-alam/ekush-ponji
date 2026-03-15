@@ -1,4 +1,7 @@
 // lib/features/events/add_event_viewmodel.dart
+//
+// CHANGED: import updated from calendar_notification_service to
+// event_notification_service (calendar_notification_service.dart was deleted)
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ekush_ponji/core/base/base_viewmodel.dart';
@@ -6,7 +9,7 @@ import 'package:ekush_ponji/core/base/view_state.dart';
 import 'package:ekush_ponji/features/events/models/event.dart';
 import 'package:ekush_ponji/features/events/data/event_repository.dart';
 import 'package:ekush_ponji/features/calendar/calendar_viewmodel.dart';
-import 'package:ekush_ponji/features/calendar/services/calendar_notification_service.dart';
+import 'package:ekush_ponji/features/events/services/event_notification_service.dart';
 
 class AddEventViewModel extends BaseViewModel {
   late final EventRepository _repository;
@@ -46,7 +49,6 @@ class AddEventViewModel extends BaseViewModel {
     state = const ViewStateInitial();
   }
 
-  /// Prefill form with an existing event for editing
   void prefillEvent(Event event) {
     _editingEventId = event.id;
     title = event.title;
@@ -133,7 +135,7 @@ class AddEventViewModel extends BaseViewModel {
     return await executeAsync(
       operation: () async {
         final event = Event(
-          id: _editingEventId, // preserves ID in edit mode
+          id: _editingEventId,
           title: title.trim(),
           description: description?.trim(),
           startTime: startTime!,
@@ -155,10 +157,9 @@ class AddEventViewModel extends BaseViewModel {
             .read(calendarViewModelProvider.notifier)
             .invalidateCacheForDate(startTime!);
 
-        // Notifications (best-effort; event still saves even if permission denied)
-        await CalendarNotificationService.cancelEvent(event);
+        await EventNotificationService.cancel(event);
         if (event.notifyAtStartTime) {
-          await CalendarNotificationService.scheduleEvent(event);
+          await EventNotificationService.schedule(event);
         }
       },
       loadingMessage: isEditMode ? 'Updating event...' : 'Saving event...',
@@ -183,7 +184,7 @@ class AddEventViewModel extends BaseViewModel {
           startTime: startTime ?? DateTime.now(),
           notifyAtStartTime: false,
         );
-        await CalendarNotificationService.cancelEvent(event);
+        await EventNotificationService.cancel(event);
         await _repository.deleteEvent(_editingEventId!);
 
         if (dateToInvalidate != null) {

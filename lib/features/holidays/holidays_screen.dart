@@ -1,10 +1,18 @@
 // lib/features/holidays/holidays_screen.dart
+//
+// CHANGED (Stage 2):
+//   • Watches notificationPermissionProvider for real OS permission status
+//   • Bell icon in AppBar reflects enabled && osGranted
+//   • Toggle dialog checks OS permission first — shows Open Settings if denied
+//   • WidgetsBindingObserver refreshes permission on app resume
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:ekush_ponji/core/base/base_screen.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
+import 'package:ekush_ponji/core/notifications/notification_permission_provider.dart';
 import 'package:ekush_ponji/features/holidays/models/holiday.dart';
 import 'package:ekush_ponji/features/holidays/holidays_viewmodel.dart';
 import 'package:ekush_ponji/features/holidays/widgets/holiday_gazette_section_widget.dart';
@@ -18,7 +26,28 @@ class HolidaysScreen extends BaseScreen {
   BaseScreenState<HolidaysScreen> createState() => _HolidaysScreenState();
 }
 
-class _HolidaysScreenState extends BaseScreenState<HolidaysScreen> {
+class _HolidaysScreenState extends BaseScreenState<HolidaysScreen>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// Refresh OS permission when user returns from OS Settings.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      ref.read(notificationPermissionProvider.notifier).refresh();
+    }
+  }
+
   @override
   NotifierProvider<dynamic, ViewState> get viewModelProvider =>
       holidaysViewModelProvider;
@@ -46,9 +75,11 @@ class _HolidaysScreenState extends BaseScreenState<HolidaysScreen> {
     final vm = ref.watch(holidaysViewModelProvider.notifier);
     final isBn = l10n.languageCode == 'bn';
 
-    // HolidayNotificationPrefs is plain state — no .value / .valueOrNull needed
     final notifPrefs = ref.watch(holidayNotificationProvider);
-    final notifEnabled = notifPrefs.enabled;
+    final osGranted = ref.watch(notificationPermissionProvider).value ?? false;
+
+    // Effective state: user wants it AND OS allows it
+    final notifEffective = notifPrefs.enabled && osGranted;
 
     return AppBar(
       title: Text(
@@ -58,18 +89,19 @@ class _HolidaysScreenState extends BaseScreenState<HolidaysScreen> {
       centerTitle: false,
       actions: [
         IconButton(
-          tooltip: notifEnabled
+          tooltip: notifEffective
               ? (isBn ? 'বিজ্ঞপ্তি চালু আছে' : 'Notifications on')
               : (isBn ? 'বিজ্ঞপ্তি বন্ধ আছে' : 'Notifications off'),
           icon: Icon(
-            notifEnabled
+            notifEffective
                 ? Icons.notifications_active_outlined
                 : Icons.notifications_off_outlined,
-            color: notifEnabled
+            color: notifEffective
                 ? theme.colorScheme.primary
                 : theme.colorScheme.onSurfaceVariant,
           ),
-          onPressed: () => _showNotificationDialog(context, ref, l10n, isBn),
+          onPressed: () =>
+              _showNotificationDialog(context, ref, l10n, isBn, osGranted),
         ),
       ],
       bottom: PreferredSize(
@@ -84,17 +116,47 @@ class _HolidaysScreenState extends BaseScreenState<HolidaysScreen> {
     );
   }
 
-  // ── Notification toggle dialog ───────────────────────────
+  // ── Notification dialog ───────────────────────────────────
 
   void _showNotificationDialog(
     BuildContext context,
     WidgetRef ref,
     AppLocalizations l10n,
     bool isBn,
+    bool osGranted,
   ) {
-    // Read current state directly — plain HolidayNotificationPrefs
     final currentlyEnabled = ref.read(holidayNotificationProvider).enabled;
 
+    // If OS permission denied, show Open Settings dialog instead
+    if (!osGranted) {
+      showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(isBn ? 'নোটিফিকেশন অনুমতি' : 'Notification Permission'),
+          content: Text(
+            isBn
+                ? 'নোটিফিকেশন পাঠাতে অনুমতি প্রয়োজন। সেটিংস থেকে চালু করুন।'
+                : 'Notification permission is required. Please enable it in Settings.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: Text(isBn ? 'বাতিল' : 'Cancel'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                Navigator.of(ctx).pop();
+                await openAppSettings();
+              },
+              child: Text(isBn ? 'সেটিংস খুলুন' : 'Open Settings'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    // OS permission granted — show normal toggle dialog
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -203,16 +265,12 @@ class _YearNavigatorBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     return Container(
       height: 56,
       padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
         border: Border(
-          bottom: BorderSide(
-            color: theme.colorScheme.outlineVariant,
-            width: 1,
-          ),
+          bottom: BorderSide(color: theme.colorScheme.outlineVariant, width: 1),
         ),
       ),
       child: Row(
@@ -223,8 +281,7 @@ class _YearNavigatorBar extends StatelessWidget {
             icon: const Icon(Icons.chevron_left_rounded),
             tooltip: l10n.previous,
             style: IconButton.styleFrom(
-              foregroundColor: theme.colorScheme.primary,
-            ),
+                foregroundColor: theme.colorScheme.primary),
           ),
           const SizedBox(width: 8),
           Text(
@@ -240,8 +297,7 @@ class _YearNavigatorBar extends StatelessWidget {
             icon: const Icon(Icons.chevron_right_rounded),
             tooltip: l10n.next,
             style: IconButton.styleFrom(
-              foregroundColor: theme.colorScheme.primary,
-            ),
+                foregroundColor: theme.colorScheme.primary),
           ),
         ],
       ),
@@ -281,8 +337,7 @@ class _ControlsBar extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         border: Border(
-          bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
-        ),
+            bottom: BorderSide(color: colorScheme.outlineVariant, width: 1)),
       ),
       child: Row(
         children: [
@@ -298,19 +353,15 @@ class _ControlsBar extends StatelessWidget {
                     width: 14,
                     height: 14,
                     child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: colorScheme.primary,
-                    ),
+                        strokeWidth: 2, color: colorScheme.primary),
                   )
                 : Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(Icons.sync_rounded, size: 16),
                       const SizedBox(width: 6),
-                      Text(
-                        isBn ? 'আপডেট' : 'Sync',
-                        style: theme.textTheme.labelMedium,
-                      ),
+                      Text(isBn ? 'আপডেট' : 'Sync',
+                          style: theme.textTheme.labelMedium),
                     ],
                   ),
           ),
