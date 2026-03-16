@@ -1,9 +1,4 @@
 // lib/core/services/local_notification_service.dart
-//
-// CHANGED:
-//   • Added 'quote' case in _onNotificationTapped → navigates to Quotes screen
-//   • Added 'word' case in _onNotificationTapped → navigates to Words screen
-//   • Updated payload format comment to document all cases
 
 import 'dart:io';
 

@@ -1,10 +1,4 @@
 // lib/features/holidays/holidays_screen.dart
-//
-// CHANGED (Stage 2):
-//   • Watches notificationPermissionProvider for real OS permission status
-//   • Bell icon in AppBar reflects enabled && osGranted
-//   • Toggle dialog checks OS permission first — shows Open Settings if denied
-//   • WidgetsBindingObserver refreshes permission on app resume
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

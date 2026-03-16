@@ -6,8 +6,9 @@ import 'package:ekush_ponji/core/themes/color_schemes.dart';
 class AppTheme {
   AppTheme._();
 
-  // Font family name — must match the 'family' key in pubspec.yaml exactly
-  static const String appFont = 'NotoSerifBengali';
+  // Font families
+  static const String _fontEn = 'Montserrat';   // English, numbers, symbols
+  static const String _fontBn = 'Kalpurush';    // Bengali characters (fallback)
 
   // Cache the text theme — built once, shared by light and dark
   static final TextTheme _cachedTextTheme = _buildTextTheme();
@@ -53,14 +54,17 @@ class AppTheme {
   }
 
   // ── Text Style Helper ──────────────────────────────────────
-  // Single font covers both English and Bengali — no fallback needed.
+  // Montserrat renders English & numbers.
+  // Kalpurush is the fallback — Flutter automatically uses it
+  // for any Unicode codepoint Montserrat doesn't cover (Bengali script).
   static TextStyle _s({
     required double fontSize,
     required FontWeight fontWeight,
     double letterSpacing = 0,
   }) {
     return TextStyle(
-      fontFamily: appFont,
+      fontFamily: _fontEn,
+      fontFamilyFallback: const [_fontBn],
       fontSize: fontSize,
       fontWeight: fontWeight,
       letterSpacing: letterSpacing,

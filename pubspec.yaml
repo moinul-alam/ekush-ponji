@@ -25,7 +25,6 @@ dependencies:
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   shared_preferences: ^2.2.3
-
   # Network
   dio: ^5.7.0
   # UI
@@ -52,7 +51,6 @@ dependencies:
   workmanager: ^0.9.0
   flutter_native_splash: ^2.4.1
   google_mobile_ads: ^7.0.0
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -63,15 +61,17 @@ dev_dependencies:
   riverpod_lint: ^3.0.0-dev.4
   # Linting
   flutter_lints: ^6.0.0
-
 flutter:
   uses-material-design: true
-
   fonts:
-    - family: NotoSerifBengali
+    # Primary font for English & numbers
+    - family: Montserrat
       fonts:
-        - asset: assets/fonts/NotoSerifBengali.ttf
-
+        - asset: assets/fonts/Montserrat.ttf
+    # Primary font for Bengali text
+    - family: Kalpurush
+      fonts:
+        - asset: assets/fonts/Kalpurush.ttf
   # Assets
   assets:
     - assets/images/
@@ -80,7 +80,6 @@ flutter:
     - assets/data/holidays/
     - assets/data/quotes/
     - assets/data/words/
-
 flutter_native_splash:
   color: "#FFFFFF"
   image: assets/images/app_icon_foreground.png

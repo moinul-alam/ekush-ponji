@@ -1,11 +1,4 @@
 // lib/app/config/app_initializer.dart
-//
-// CHANGED:
-//   • Removed quote_notification_prefs.dart and word_notification_prefs.dart
-//     imports — QuoteNotificationPrefs and WordNotificationPrefs are accessed
-//     through their service files to prevent duplicate name errors.
-//   • _initializeWorkManager() registers all three reschedule tasks.
-//   • _scheduleQuoteNotifications() and _scheduleWordNotifications() added.
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

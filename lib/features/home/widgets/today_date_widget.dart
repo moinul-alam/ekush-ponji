@@ -11,6 +11,20 @@ import 'package:ekush_ponji/features/calendar/models/hijri_date.dart';
 import 'package:ekush_ponji/features/home/widgets/home_section_widget.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
 
+// English month names — always used for the Gregorian row regardless of locale
+const List<String> _enMonths = [
+  '', 'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+
+// Always-English Gregorian season — used only for the Gregorian row
+String _enGregorianSeason(int month) {
+  if (month >= 3 && month <= 5) return 'Spring';
+  if (month >= 6 && month <= 8) return 'Summer';
+  if (month >= 9 && month <= 11) return 'Autumn';
+  return 'Winter';
+}
+
 class TodayDateWidget extends ConsumerWidget {
   const TodayDateWidget({super.key});
 
@@ -58,13 +72,13 @@ class _MergedDateCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(16),
       child: Column(
         children: [
-          // ── Row 1: Gregorian ────────────────────────────
+          // ── Row 1: Gregorian — always English ───────────
           _DateRow(
-            dayNum: l10n.localizeNumber(gregorianDate.day),
-            month: l10n.getMonthName(gregorianDate.month),
-            year: l10n.localizeNumber(gregorianDate.year),
-            era: l10n.calendarShortGregorian,
-            season: l10n.getGregorianSeasonName(gregorianDate.month),
+            dayNum: gregorianDate.day.toString(),
+            monthYearEra:
+                '${_enMonths[gregorianDate.month]} ${gregorianDate.year} AD',
+            seasonOrIcon: _SeasonOrIcon.season(
+                _enGregorianSeason(gregorianDate.month)),
             backgroundColor: cs.tertiaryContainer,
             textColor: cs.onTertiaryContainer,
           ),
@@ -72,10 +86,12 @@ class _MergedDateCard extends StatelessWidget {
           // ── Row 2: Bengali ──────────────────────────────
           _DateRow(
             dayNum: isBn ? bengaliDate.dayBn : bengaliDate.day.toString(),
-            month: isBn ? bengaliDate.monthNameBn : bengaliDate.monthName,
-            year: isBn ? bengaliDate.yearBn : bengaliDate.year.toString(),
-            era: l10n.calendarShortBangla,
-            season: l10n.getBengaliSeasonName(bengaliDate.monthNumber),
+            monthYearEra:
+                '${isBn ? bengaliDate.monthNameBn : bengaliDate.monthName} '
+                '${isBn ? bengaliDate.yearBn : bengaliDate.year} '
+                '${l10n.calendarShortBangla}',
+            seasonOrIcon: _SeasonOrIcon.season(
+                l10n.getBengaliSeasonName(bengaliDate.monthNumber)),
             backgroundColor: cs.primaryContainer,
             textColor: cs.onPrimaryContainer,
           ),
@@ -83,10 +99,11 @@ class _MergedDateCard extends StatelessWidget {
           // ── Row 3: Hijri ────────────────────────────────
           _DateRow(
             dayNum: hijriDate.dayForLocale(l10n.languageCode),
-            month: hijriDate.monthNameForLocale(l10n.languageCode),
-            year: hijriDate.yearForLocale(l10n.languageCode),
-            era: l10n.calendarShortHijri,
-            season: '',
+            monthYearEra:
+                '${hijriDate.monthNameForLocale(l10n.languageCode)} '
+                '${hijriDate.yearForLocale(l10n.languageCode)} '
+                '${l10n.calendarShortHijri}',
+            seasonOrIcon: _SeasonOrIcon.icon(),
             backgroundColor: cs.secondaryContainer,
             textColor: cs.onSecondaryContainer,
           ),
@@ -97,26 +114,38 @@ class _MergedDateCard extends StatelessWidget {
 }
 
 // ============================================================================
+// SEASON OR ICON
+// ============================================================================
+
+class _SeasonOrIcon {
+  final String? season;
+  final bool isIcon;
+
+  const _SeasonOrIcon.season(this.season) : isIcon = false;
+  const _SeasonOrIcon.icon()
+      : season = null,
+        isIcon = true;
+}
+
+// ============================================================================
 // DATE ROW
-// Layout: [day month] | [year era] | [season]
-// e.g.:   ১ মার্চ    | ২০২৬ খ্রিস্টাব্দ | বসন্ত
+//
+// Layout:
+//  [ big day ] | [ month  year  era (single line, uniform weight) ] [ season ]
+//
 // ============================================================================
 
 class _DateRow extends StatelessWidget {
   final String dayNum;
-  final String month;
-  final String year;
-  final String era;
-  final String season;
+  final String monthYearEra; // all on one line
+  final _SeasonOrIcon seasonOrIcon;
   final Color backgroundColor;
   final Color textColor;
 
   const _DateRow({
     required this.dayNum,
-    required this.month,
-    required this.year,
-    required this.era,
-    required this.season,
+    required this.monthYearEra,
+    required this.seasonOrIcon,
     required this.backgroundColor,
     required this.textColor,
   });
@@ -124,17 +153,26 @@ class _DateRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final dividerColor = textColor.withValues(alpha: 0.2);
+    final dividerColor = textColor.withValues(alpha: 0.15);
 
-    final dateStyle = theme.textTheme.headlineMedium?.copyWith(
+    // Big anchored day number — headlineLarge (32px)
+    final dayStyle = theme.textTheme.headlineLarge?.copyWith(
       color: textColor,
-      fontWeight: FontWeight.bold,
+      fontWeight: FontWeight.w800,
       height: 1.0,
     );
 
-    final secondaryStyle = theme.textTheme.titleSmall?.copyWith(
-      color: textColor.withValues(alpha: 0.85),
-      fontWeight: FontWeight.w500,
+    // Month + year + era — single line, uniform size and weight
+    final dateLineStyle = theme.textTheme.titleMedium?.copyWith(
+      color: textColor,
+      fontWeight: FontWeight.w600,
+      height: 1.0,
+    );
+
+    // Season pill label
+    final seasonStyle = theme.textTheme.labelMedium?.copyWith(
+      color: textColor,
+      fontWeight: FontWeight.w600,
     );
 
     return Container(
@@ -144,93 +182,70 @@ class _DateRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // ── Section 1: day + month ───────────────────────
-          Expanded(
-            flex: 3,
-            child: Center(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  Text(
-                    dayNum,
-                    style: dateStyle, // headlineMedium — bigger
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    month,
-                    style: secondaryStyle, // titleSmall — smaller
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          _VerticalDivider(color: dividerColor),
-
-          // ── Section 2: year + era ────────────────────────
-          Expanded(
-            flex: 3,
+          // ── Big day number (fixed width, centered) ───────
+          SizedBox(
+            width: 60,
             child: Center(
               child: Text(
-                '$year $era',
-                style: secondaryStyle,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
+                dayNum,
+                style: dayStyle,
               ),
             ),
           ),
 
-          _VerticalDivider(color: dividerColor),
-
-          // ── Section 3: season / hijri icon ───────────────
-          Expanded(
-            flex: 2,
-            child: Center(
-              child: season.isEmpty
-                  ? Icon(
-                      Icons.mosque_outlined,
-                      color: textColor.withValues(alpha: 0.4),
-                      size: 20,
-                    )
-                  : Text(
-                      season,
-                      style: secondaryStyle,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                    ),
+          // ── Gradient vertical divider ────────────────────
+          Container(
+            width: 1,
+            height: 44,
+            margin: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  dividerColor.withValues(alpha: 0.0),
+                  dividerColor,
+                  dividerColor.withValues(alpha: 0.0),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
             ),
           ),
+
+          // ── Month year era — single line ─────────────────
+          Expanded(
+            child: Text(
+              monthYearEra,
+              style: dateLineStyle,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
+          ),
+
+          const SizedBox(width: 8),
+
+          // ── Season pill or mosque icon ───────────────────
+          if (seasonOrIcon.isIcon)
+            Icon(
+              Icons.mosque_outlined,
+              color: textColor.withValues(alpha: 0.4),
+              size: 22,
+            )
+          else if (seasonOrIcon.season != null &&
+              seasonOrIcon.season!.isNotEmpty)
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: textColor.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(99),
+              ),
+              child: Text(
+                seasonOrIcon.season!,
+                style: seasonStyle,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
         ],
-      ),
-    );
-  }
-}
-
-// ============================================================================
-// VERTICAL DIVIDER
-// ============================================================================
-
-class _VerticalDivider extends StatelessWidget {
-  final Color color;
-  const _VerticalDivider({required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 1,
-      height: 36,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            color.withValues(alpha: 0.0),
-            color,
-            color.withValues(alpha: 0.0),
-          ],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
       ),
     );
   }

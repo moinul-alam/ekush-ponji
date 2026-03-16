@@ -215,9 +215,6 @@ final dataSyncServiceProvider = Provider<DataSyncService>((ref) {
   return DataSyncService();
 });
 
-/// Reads onboarding status exactly once from Hive (already open in Phase 1)
-/// and returns the correct initial route. Cached for the lifetime of the
-/// provider — no repeated Hive reads, no UI-thread disk calls.
 final initialDestinationProvider = Provider<String>((ref) {
   return isOnboardingDone() ? RouteNames.home : RouteNames.onboarding;
 });

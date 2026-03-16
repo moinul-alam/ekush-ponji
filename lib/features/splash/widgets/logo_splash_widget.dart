@@ -2,9 +2,6 @@
 
 import 'package:flutter/material.dart';
 
-// ── File-level color constants ─────────────────────────────────────────────
-// Defined here so all private subwidgets share them without constructor params.
-
 const Color _kGlowBlue     = Color(0xFF3A8EF6);
 const Color _kGlowCyan     = Color(0xFF29C5F6);
 const Color _kTextColor    = Color(0xFFE8F1FF);

@@ -28,7 +28,7 @@ class _HomeHolidaysWidgetState extends State<HomeHolidaysWidget> {
     final monthName = l10n.getMonthName(DateTime.now().month);
 
     final mandatoryHolidays =
-    widget.holidays.where((h) => h.isMandatory).toList();
+        widget.holidays.where((h) => h.isMandatory).toList();
 
     final visibleHolidays = _showAll
         ? mandatoryHolidays
@@ -60,25 +60,20 @@ class _HomeHolidaysWidgetState extends State<HomeHolidaysWidget> {
                   children: [
                     Container(
                       width: 4,
-                      height: 22,
+                      height: 24,
                       decoration: BoxDecoration(
                         color: cs.primary,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
                     const SizedBox(width: 10),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          l10n.formatUpcomingHolidaysInMonth(monthName),
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            color: cs.onSurface,
-                            letterSpacing: -0.3,
-                          ),
-                        ),
-                      ],
+                    Text(
+                      l10n.formatUpcomingHolidaysInMonth(monthName),
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: cs.onSurface,
+                        letterSpacing: -0.3,
+                      ),
                     ),
                   ],
                 ),
@@ -94,11 +89,11 @@ class _HomeHolidaysWidgetState extends State<HomeHolidaysWidget> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.celebration_outlined,
-                          size: 12, color: cs.onPrimaryContainer),
+                          size: 13, color: cs.onPrimaryContainer),
                       const SizedBox(width: 4),
                       Text(
                         l10n.localizeNumber(mandatoryHolidays.length),
-                        style: theme.textTheme.labelSmall?.copyWith(
+                        style: theme.textTheme.labelMedium?.copyWith(
                           color: cs.onPrimaryContainer,
                           fontWeight: FontWeight.w800,
                         ),
@@ -118,7 +113,7 @@ class _HomeHolidaysWidgetState extends State<HomeHolidaysWidget> {
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 20),
+                padding: const EdgeInsets.symmetric(vertical: 24),
                 decoration: BoxDecoration(
                   color: cs.surface,
                   borderRadius: BorderRadius.circular(12),
@@ -126,11 +121,11 @@ class _HomeHolidaysWidgetState extends State<HomeHolidaysWidget> {
                 child: Column(
                   children: [
                     Icon(Icons.event_busy_outlined,
-                        color: cs.onSurfaceVariant, size: 28),
-                    const SizedBox(height: 8),
+                        color: cs.onSurfaceVariant, size: 32),
+                    const SizedBox(height: 10),
                     Text(
                       l10n.noUpcomingHolidays,
-                      style: theme.textTheme.bodyMedium?.copyWith(
+                      style: theme.textTheme.bodyLarge?.copyWith(
                         color: cs.onSurfaceVariant,
                       ),
                     ),
@@ -150,7 +145,7 @@ class _HomeHolidaysWidgetState extends State<HomeHolidaysWidget> {
                     final holiday = entry.value;
                     return Padding(
                       padding: EdgeInsets.only(
-                        bottom: index < visibleHolidays.length - 1 ? 8 : 0,
+                        bottom: index < visibleHolidays.length - 1 ? 10 : 0,
                       ),
                       child: _HolidayListItem(
                         holiday: holiday,
@@ -162,12 +157,12 @@ class _HomeHolidaysWidgetState extends State<HomeHolidaysWidget> {
 
                   // ── Show more / less button ────────────────
                   if (hasMore) ...[
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 10),
                     GestureDetector(
                       onTap: () => setState(() => _showAll = !_showAll),
                       child: Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
                           color: cs.surface,
                           borderRadius: BorderRadius.circular(10),
@@ -187,7 +182,7 @@ class _HomeHolidaysWidgetState extends State<HomeHolidaysWidget> {
                                   : (l10n.languageCode == 'bn'
                                       ? 'আরও ${l10n.localizeNumber(mandatoryHolidays.length - _collapseThreshold)}টি দেখাও'
                                       : 'Show ${mandatoryHolidays.length - _collapseThreshold} more'),
-                              style: theme.textTheme.labelMedium?.copyWith(
+                              style: theme.textTheme.labelLarge?.copyWith(
                                 color: cs.primary,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -197,7 +192,7 @@ class _HomeHolidaysWidgetState extends State<HomeHolidaysWidget> {
                               _showAll
                                   ? Icons.keyboard_arrow_up_rounded
                                   : Icons.keyboard_arrow_down_rounded,
-                              size: 18,
+                              size: 20,
                               color: cs.primary,
                             ),
                           ],
@@ -216,7 +211,7 @@ class _HomeHolidaysWidgetState extends State<HomeHolidaysWidget> {
   }
 }
 
-// ─── List Item ────────────────────────────────────────────────
+// ─── List Item ────────────────────────────────────────────────────────────────
 class _HolidayListItem extends StatelessWidget {
   final Holiday holiday;
   final AppLocalizations l10n;
@@ -240,7 +235,7 @@ class _HolidayListItem extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: cs.surface,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: isToday
                 ? typeColor.withOpacity(0.5)
@@ -259,39 +254,39 @@ class _HolidayListItem extends StatelessWidget {
           children: [
             // ── Left color bar ────────────────────────────
             Container(
-              width: 4,
-              height: 64,
+              width: 5,
+              height: 72,
               decoration: BoxDecoration(
                 color: typeColor,
                 borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(12),
-                  bottomLeft: Radius.circular(12),
+                  topLeft: Radius.circular(14),
+                  bottomLeft: Radius.circular(14),
                 ),
               ),
             ),
 
             // ── Date badge ────────────────────────────────
             Container(
-              width: 52,
+              width: 58,
               padding: const EdgeInsets.symmetric(vertical: 10),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     _dateLabel(),
-                    style: theme.textTheme.titleLarge?.copyWith(
+                    style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.w900,
                       color: typeColor,
-                      fontSize: holiday.isMultiDay ? 13 : 22,
+                      fontSize: holiday.isMultiDay ? 15 : null,
                       height: 1.0,
                     ),
                   ),
+                  const SizedBox(height: 2),
                   Text(
                     l10n.getMonthAbbreviation(holiday.startDate.month),
-                    style: theme.textTheme.labelSmall?.copyWith(
+                    style: theme.textTheme.labelMedium?.copyWith(
                       color: cs.onSurfaceVariant,
                       fontWeight: FontWeight.w600,
-                      fontSize: 10,
                     ),
                   ),
                 ],
@@ -301,16 +296,16 @@ class _HolidayListItem extends StatelessWidget {
             // ── Divider ───────────────────────────────────
             Container(
               width: 1,
-              height: 40,
+              height: 44,
               color: cs.outlineVariant.withOpacity(0.4),
             ),
 
-            const SizedBox(width: 12),
+            const SizedBox(width: 14),
 
             // ── Holiday info ──────────────────────────────
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10),
+                padding: const EdgeInsets.symmetric(vertical: 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -318,7 +313,7 @@ class _HolidayListItem extends StatelessWidget {
                     // Type chip
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
+                          horizontal: 7, vertical: 3),
                       decoration: BoxDecoration(
                         color: typeColor.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(4),
@@ -327,29 +322,31 @@ class _HolidayListItem extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(_typeIcon(holiday.category),
-                              color: typeColor, size: 9),
-                          const SizedBox(width: 3),
+                              color: typeColor, size: 11),
+                          const SizedBox(width: 4),
                           Text(
                             _typeLabel(holiday.category),
                             style: theme.textTheme.labelSmall?.copyWith(
                               color: typeColor,
                               fontWeight: FontWeight.w700,
-                              fontSize: 9,
+                              fontSize: 11,
                             ),
                           ),
                         ],
                       ),
                     ),
 
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 5),
 
                     // Holiday name
                     Text(
-                      l10n.languageCode == 'bn' ? holiday.namebn : holiday.name,
-                      style: theme.textTheme.bodyMedium?.copyWith(
+                      l10n.languageCode == 'bn'
+                          ? holiday.namebn
+                          : holiday.name,
+                      style: theme.textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w700,
                         color: cs.onSurface,
-                        height: 1.25,
+                        height: 1.3,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -361,7 +358,7 @@ class _HolidayListItem extends StatelessWidget {
 
             // ── Days-until / status pill ──────────────────
             Padding(
-              padding: const EdgeInsets.only(right: 12),
+              padding: const EdgeInsets.only(right: 14),
               child: _buildStatusPill(isToday, isPast, typeColor, cs),
             ),
           ],
@@ -374,17 +371,16 @@ class _HolidayListItem extends StatelessWidget {
       bool isToday, bool isPast, Color typeColor, ColorScheme cs) {
     if (isToday) {
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
           color: typeColor,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
           l10n.today,
-          style: theme.textTheme.labelSmall?.copyWith(
+          style: theme.textTheme.labelMedium?.copyWith(
             color: Colors.white,
             fontWeight: FontWeight.w700,
-            fontSize: 10,
           ),
         ),
       );
@@ -392,24 +388,23 @@ class _HolidayListItem extends StatelessWidget {
 
     if (isPast) {
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
           color: cs.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
           l10n.passed,
-          style: theme.textTheme.labelSmall?.copyWith(
+          style: theme.textTheme.labelMedium?.copyWith(
             color: cs.onSurfaceVariant,
             fontWeight: FontWeight.w600,
-            fontSize: 10,
           ),
         ),
       );
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: typeColor.withOpacity(0.08),
         borderRadius: BorderRadius.circular(20),
@@ -417,10 +412,9 @@ class _HolidayListItem extends StatelessWidget {
       ),
       child: Text(
         l10n.formatDaysDistance(holiday.daysUntil),
-        style: theme.textTheme.labelSmall?.copyWith(
+        style: theme.textTheme.labelMedium?.copyWith(
           color: typeColor,
           fontWeight: FontWeight.w600,
-          fontSize: 10,
         ),
       ),
     );

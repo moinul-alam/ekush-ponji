@@ -1,11 +1,4 @@
 // lib/features/settings/settings_screen.dart
-//
-// CHANGED (Stage 2):
-//   • Imports notificationPermissionProvider
-//   • Both notification toggles show userPref && osGranted
-//   • Turning ON when OS denied → shows dialog with Open Settings button
-//   • Screen refreshes OS permission status via WidgetsBindingObserver
-//     so toggle updates automatically when user returns from OS settings
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
