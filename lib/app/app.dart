@@ -1,3 +1,5 @@
+// lib/app/app.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -18,11 +20,9 @@ class EkushPonjiApp extends ConsumerStatefulWidget {
 }
 
 class _EkushPonjiAppState extends ConsumerState<EkushPonjiApp> {
-
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Set system UI overlay style once after first frame — no rebuild needed
     AppInitializer.updateSystemUIFromTheme(
       context,
       ref.read(themeModeProvider),
@@ -34,7 +34,6 @@ class _EkushPonjiAppState extends ConsumerState<EkushPonjiApp> {
     final themeMode = ref.watch(themeModeProvider);
     final locale = ref.watch(localeProvider);
 
-    // Update system UI whenever theme changes
     ref.listen<ThemeMode>(themeModeProvider, (previous, next) {
       if (previous != next && mounted) {
         AppInitializer.updateSystemUIFromTheme(context, next);
@@ -75,10 +74,9 @@ class _EkushPonjiAppState extends ConsumerState<EkushPonjiApp> {
           return AppConstants.defaultLocale;
         },
 
-        // Router
+        // Router — wrapped in RootScaffold for persistent banner + nav bar
         routerConfig: AppRouter.router,
 
-        // Clamp text scaling to prevent layout breaks on accessibility sizes
         builder: (context, widget) => MediaQuery(
           data: MediaQuery.of(context).copyWith(
             textScaler: MediaQuery.textScalerOf(context).clamp(

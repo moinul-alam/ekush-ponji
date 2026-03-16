@@ -7,7 +7,6 @@ import 'package:ekush_ponji/app/router/route_names.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/features/words/models/word.dart';
-import 'package:ekush_ponji/features/home/widgets/home_section_widget.dart';
 import 'package:ekush_ponji/features/words/words_viewmodel.dart';
 
 class DailyWordWidget extends ConsumerWidget {
@@ -16,66 +15,89 @@ class DailyWordWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final cs = theme.colorScheme;
     final l10n = AppLocalizations.of(context);
     final viewState = ref.watch(wordsViewModelProvider);
     final vm = ref.read(wordsViewModelProvider.notifier);
 
-    return HomeSectionWidget(
-      padding: const EdgeInsets.all(20),
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest.withOpacity(0.35),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: cs.outlineVariant.withOpacity(0.4),
+          width: 1,
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: colorScheme.tertiaryContainer,
-                  borderRadius: BorderRadius.circular(8),
+          // ── Header ────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 4,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: cs.tertiary,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      l10n.wordOfTheDay,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: cs.onSurface,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                  ],
                 ),
-                child: Icon(
-                  Icons.book_rounded,
-                  color: colorScheme.tertiary,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  l10n.wordOfTheDay,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: colorScheme.onSurface,
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: cs.tertiaryContainer,
+                    borderRadius: BorderRadius.circular(20),
                   ),
+                  child: Icon(Icons.book_rounded,
+                      size: 14, color: cs.onTertiaryContainer),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
 
-          // Content
-          if (viewState is ViewStateLoading)
-            const Center(child: CircularProgressIndicator())
-          else if (viewState is ViewStateError)
-            Center(
-              child: Text(
-                l10n.failedToLoadData,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.error,
-                ),
-              ),
-            )
-          else
-            _WordContent(
-              word: vm.dailyWord,
-              onOpen: () => context.push(RouteNames.words),
-              onToggleSave: vm.dailyWord != null
-                  ? () => vm.toggleSave(vm.dailyWord!)
-                  : null,
-            ),
+          // ── Content ───────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            child: viewState is ViewStateLoading
+                ? const Center(child: CircularProgressIndicator())
+                : viewState is ViewStateError
+                    ? Center(
+                        child: Text(
+                          l10n.failedToLoadData,
+                          style: theme.textTheme.bodyMedium
+                              ?.copyWith(color: cs.error),
+                        ),
+                      )
+                    : _WordContent(
+                        word: vm.dailyWord,
+                        onOpen: () => context.push(RouteNames.words),
+                        onToggleSave: vm.dailyWord != null
+                            ? () => vm.toggleSave(vm.dailyWord!)
+                            : null,
+                      ),
+          ),
         ],
       ),
     );
@@ -92,7 +114,7 @@ class _WordContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final cs = theme.colorScheme;
     final l10n = AppLocalizations.of(context);
 
     if (word == null) return const SizedBox.shrink();
@@ -103,25 +125,22 @@ class _WordContent extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            colorScheme.tertiaryContainer.withValues(alpha: 0.4),
-            colorScheme.primaryContainer.withValues(alpha: 0.4),
+            cs.tertiaryContainer.withValues(alpha: 0.4),
+            cs.primaryContainer.withValues(alpha: 0.4),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: colorScheme.outline.withValues(alpha: 0.2),
-        ),
+        border: Border.all(color: cs.outline.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Word + chip inline + love icon ───────────────
+          // ── Word + chip + save icon ───────────────────────
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Word (tappable)
               InkWell(
                 onTap: onOpen,
                 borderRadius: BorderRadius.circular(8),
@@ -131,35 +150,29 @@ class _WordContent extends StatelessWidget {
                     word!.word,
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: colorScheme.tertiary,
+                      color: cs.tertiary,
                       letterSpacing: 0.5,
                     ),
                   ),
                 ),
               ),
-
               const SizedBox(width: 8),
-
-              // Part of speech chip — immediately after word
               Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: colorScheme.tertiary,
+                  color: cs.tertiary,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   word!.partOfSpeech,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onTertiary,
+                    color: cs.onTertiary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
-
               const Spacer(),
-
-              // Love icon
               if (onToggleSave != null)
                 IconButton(
                   onPressed: onToggleSave,
@@ -167,9 +180,8 @@ class _WordContent extends StatelessWidget {
                     word!.isSaved
                         ? Icons.favorite_rounded
                         : Icons.favorite_border_rounded,
-                    color: word!.isSaved
-                        ? colorScheme.error
-                        : colorScheme.onSurfaceVariant,
+                    color:
+                        word!.isSaved ? cs.error : cs.onSurfaceVariant,
                     size: 28,
                   ),
                   visualDensity: VisualDensity.compact,
@@ -177,61 +189,39 @@ class _WordContent extends StatelessWidget {
             ],
           ),
 
-          // Pronunciation
           const SizedBox(height: 4),
           Text(
             word!.pronunciation,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: colorScheme.onSurfaceVariant,
+              color: cs.onSurfaceVariant,
               fontStyle: FontStyle.italic,
             ),
           ),
 
           const SizedBox(height: 16),
-
-          Divider(
-              color: colorScheme.outline.withValues(alpha: 0.3), height: 1),
-
+          Divider(color: cs.outline.withValues(alpha: 0.3), height: 1),
           const SizedBox(height: 16),
 
-          // Meaning EN
-          _buildSection(
-            context,
-            icon: Icons.lightbulb_outline_rounded,
-            title: l10n.meaningEnglish,
-            content: word!.meaningEn,
-          ),
-
+          _buildSection(context,
+              icon: Icons.lightbulb_outline_rounded,
+              title: l10n.meaningEnglish,
+              content: word!.meaningEn),
           const SizedBox(height: 4),
-
-          // Meaning BN
-          _buildSection(
-            context,
-            icon: Icons.translate_rounded,
-            title: l10n.meaningBengali,
-            content: word!.meaningBn,
-          ),
-
+          _buildSection(context,
+              icon: Icons.translate_rounded,
+              title: l10n.meaningBengali,
+              content: word!.meaningBn),
           const SizedBox(height: 12),
-
-          // Synonym
-          _buildSection(
-            context,
-            icon: Icons.sync_alt_rounded,
-            title: l10n.synonym,
-            content: word!.synonym,
-          ),
-
+          _buildSection(context,
+              icon: Icons.sync_alt_rounded,
+              title: l10n.synonym,
+              content: word!.synonym),
           const SizedBox(height: 12),
-
-          // Example
-          _buildSection(
-            context,
-            icon: Icons.chat_bubble_outline_rounded,
-            title: l10n.example,
-            content: word!.example,
-            isItalic: true,
-          ),
+          _buildSection(context,
+              icon: Icons.chat_bubble_outline_rounded,
+              title: l10n.example,
+              content: word!.example,
+              isItalic: true),
         ],
       ),
     );
@@ -245,19 +235,19 @@ class _WordContent extends StatelessWidget {
     bool isItalic = false,
   }) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final cs = theme.colorScheme;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Icon(icon, size: 16, color: colorScheme.tertiary),
+            Icon(icon, size: 16, color: cs.tertiary),
             const SizedBox(width: 6),
             Text(
               title,
               style: theme.textTheme.labelLarge?.copyWith(
-                color: colorScheme.tertiary,
+                color: cs.tertiary,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -267,7 +257,7 @@ class _WordContent extends StatelessWidget {
         Text(
           content,
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: colorScheme.onSurface,
+            color: cs.onSurface,
             fontStyle: isItalic ? FontStyle.italic : FontStyle.normal,
             height: 1.5,
           ),

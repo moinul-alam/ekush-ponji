@@ -12,10 +12,14 @@ import 'package:ekush_ponji/features/words/words_viewmodel.dart';
 import 'package:ekush_ponji/features/words/widgets/word_share_card.dart';
 import 'package:ekush_ponji/core/services/share_service.dart';
 import 'package:ekush_ponji/core/services/ad_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:ekush_ponji/features/words/services/word_notification_service.dart';
+import 'package:ekush_ponji/features/words/data/datasources/local/words_local_datasource.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:ekush_ponji/app/providers/app_providers.dart';
 
 class WordsScreen extends BaseScreen {
   final int initialIndex;
-
   const WordsScreen({super.key, this.initialIndex = 0});
 
   @override
@@ -30,8 +34,13 @@ class _WordsScreenState extends BaseScreenState<WordsScreen>
   late Animation<Offset> _slideInAnimation;
   bool _isAnimating = false;
   bool _slideFromRight = true;
+  double _wordFontScale = 1.0;
   int _wordsViewed = 0;
   bool _interstitialTriggered = false;
+
+  // ── Notification state ─────────────────────────────────────
+  bool _notifEnabled = false;
+  WordNotificationPrefs _notifPrefs = const WordNotificationPrefs(enabled: false);
 
   @override
   NotifierProvider<dynamic, ViewState> get viewModelProvider =>
@@ -45,6 +54,8 @@ class _WordsScreenState extends BaseScreenState<WordsScreen>
       duration: const Duration(milliseconds: 350),
     );
     _setupAnimations(fromRight: true);
+    _loadFontScale();
+    _loadNotifPrefs();
   }
 
   @override
@@ -52,9 +63,83 @@ class _WordsScreenState extends BaseScreenState<WordsScreen>
     _animationController.dispose();
   }
 
+  // ── Font scale ─────────────────────────────────────────────
+
+  Future<void> _loadFontScale() async {
+    final prefs = await SharedPreferences.getInstance();
+    final v = prefs.getDouble('word_font_scale') ?? 1.0;
+    if (!mounted) return;
+    setState(() => _wordFontScale = v.clamp(0.8, 1.6));
+  }
+
+  Future<void> _saveFontScale(double v) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('word_font_scale', v);
+  }
+
+  void _increaseFontSize() {
+    if (_wordFontScale >= 1.6) return;
+    final next = (_wordFontScale + 0.1).clamp(0.8, 1.6);
+    setState(() => _wordFontScale = next);
+    _saveFontScale(next);
+  }
+
+  void _decreaseFontSize() {
+    if (_wordFontScale <= 0.8) return;
+    final next = (_wordFontScale - 0.1).clamp(0.8, 1.6);
+    setState(() => _wordFontScale = next);
+    _saveFontScale(next);
+  }
+
+  // ── Notification prefs ─────────────────────────────────────
+
+  Future<void> _loadNotifPrefs() async {
+    final prefs = await WordNotificationPrefs.load();
+    if (!mounted) return;
+    setState(() {
+      _notifPrefs = prefs;
+      _notifEnabled = prefs.enabled;
+    });
+  }
+
+  Future<void> _toggleNotification() async {
+    final newEnabled = !_notifEnabled;
+    setState(() => _notifEnabled = newEnabled);
+
+    final updated = _notifPrefs.copyWith(enabled: newEnabled);
+    _notifPrefs = updated;
+    await updated.save();
+
+    final l10n = AppLocalizations.of(context);
+    final datasource = WordsLocalDatasource(
+      savedBox: Hive.box<WordModel>(savedWordsBoxName),
+      settingsBox: Hive.box(settingsBoxName),
+    );
+    await datasource.init();
+    await WordNotificationService.scheduleUpcoming(
+      datasource: datasource,
+      prefs: updated,
+      languageCode: l10n.languageCode,
+    );
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(newEnabled
+            ? (l10n.languageCode == 'bn'
+                ? 'শব্দের বিজ্ঞপ্তি চালু হয়েছে'
+                : 'Word notifications enabled')
+            : (l10n.languageCode == 'bn'
+                ? 'শব্দের বিজ্ঞপ্তি বন্ধ হয়েছে'
+                : 'Word notifications disabled')),
+        duration: const Duration(seconds: 2),
+      ));
+    }
+  }
+
+  // ── Animations ─────────────────────────────────────────────
+
   void _setupAnimations({required bool fromRight}) {
     _slideFromRight = fromRight;
-
     _slideOutAnimation = Tween<Offset>(
       begin: Offset.zero,
       end: Offset(fromRight ? -1.2 : 1.2, 0),
@@ -62,7 +147,6 @@ class _WordsScreenState extends BaseScreenState<WordsScreen>
       parent: _animationController,
       curve: Curves.easeInCubic,
     ));
-
     _slideInAnimation = Tween<Offset>(
       begin: Offset(fromRight ? 1.2 : -1.2, 0),
       end: Offset.zero,
@@ -104,9 +188,13 @@ class _WordsScreenState extends BaseScreenState<WordsScreen>
     _isAnimating = false;
   }
 
+  // ── AppBar ─────────────────────────────────────────────────
+
   @override
   PreferredSizeWidget? buildAppBar(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final cs = Theme.of(context).colorScheme;
+
     return AppBar(
       leading: IconButton(
         icon: const Icon(Icons.arrow_back_ios_new_rounded),
@@ -114,6 +202,32 @@ class _WordsScreenState extends BaseScreenState<WordsScreen>
       ),
       title: Text(l10n.wordOfTheDay),
       actions: [
+        // ── Font size: decrease ──────────────────────────
+        IconButton(
+          icon: const Icon(Icons.text_decrease_rounded),
+          tooltip: 'Decrease font size',
+          onPressed: _wordFontScale <= 0.8 ? null : _decreaseFontSize,
+        ),
+        // ── Font size: increase ──────────────────────────
+        IconButton(
+          icon: const Icon(Icons.text_increase_rounded),
+          tooltip: 'Increase font size',
+          onPressed: _wordFontScale >= 1.6 ? null : _increaseFontSize,
+        ),
+        // ── Notification toggle ──────────────────────────
+        IconButton(
+          icon: Icon(
+            _notifEnabled
+                ? Icons.notifications_active_rounded
+                : Icons.notifications_off_outlined,
+            color: _notifEnabled ? cs.primary : cs.onSurfaceVariant,
+          ),
+          tooltip: _notifEnabled
+              ? (l10n.languageCode == 'bn' ? 'বিজ্ঞপ্তি বন্ধ করুন' : 'Disable notifications')
+              : (l10n.languageCode == 'bn' ? 'বিজ্ঞপ্তি চালু করুন' : 'Enable notifications'),
+          onPressed: _toggleNotification,
+        ),
+        // ── Saved words ──────────────────────────────────
         IconButton(
           icon: const Icon(Icons.favorite_border_rounded),
           tooltip: l10n.savedWords,
@@ -122,6 +236,8 @@ class _WordsScreenState extends BaseScreenState<WordsScreen>
       ],
     );
   }
+
+  // ── Body ───────────────────────────────────────────────────
 
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
@@ -137,9 +253,7 @@ class _WordsScreenState extends BaseScreenState<WordsScreen>
       return buildEmptyWidget(const ViewStateEmpty('No words available'));
     }
 
-    if (_currentIndex >= words.length) {
-      _currentIndex = words.length - 1;
-    }
+    if (_currentIndex >= words.length) _currentIndex = words.length - 1;
 
     final word = words[_currentIndex];
     final canGoPrev = _currentIndex > 0;
@@ -148,15 +262,11 @@ class _WordsScreenState extends BaseScreenState<WordsScreen>
     return GestureDetector(
       onHorizontalDragEnd: (details) {
         if (details.primaryVelocity == null) return;
-        if (details.primaryVelocity! < -300) {
-          _goToNext(words);
-        } else if (details.primaryVelocity! > 300) {
-          _goToPrevious(words);
-        }
+        if (details.primaryVelocity! < -300) _goToNext(words);
+        else if (details.primaryVelocity! > 300) _goToPrevious(words);
       },
       child: Stack(
         children: [
-          // ── Animated card ──────────────────────────────────────
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             child: AnimatedBuilder(
@@ -171,6 +281,7 @@ class _WordsScreenState extends BaseScreenState<WordsScreen>
                         child: _WordCard(
                           word: word,
                           onToggleSave: () => vm.toggleSave(word),
+                          fontScale: _wordFontScale,
                         ),
                       ),
                     if (isForwarding)
@@ -178,32 +289,26 @@ class _WordsScreenState extends BaseScreenState<WordsScreen>
                         position: _slideInAnimation,
                         child: _WordCard(
                           word: words[_slideFromRight
-                              ? (_currentIndex < words.length - 1
-                                  ? _currentIndex + 1
-                                  : _currentIndex)
-                              : (_currentIndex > 0
-                                  ? _currentIndex - 1
-                                  : _currentIndex)],
+                              ? (_currentIndex < words.length - 1 ? _currentIndex + 1 : _currentIndex)
+                              : (_currentIndex > 0 ? _currentIndex - 1 : _currentIndex)],
                           onToggleSave: () => vm.toggleSave(word),
+                          fontScale: _wordFontScale,
                         ),
                       ),
                     if (!isForwarding)
                       _WordCard(
                         word: word,
                         onToggleSave: () => vm.toggleSave(word),
+                        fontScale: _wordFontScale,
                       ),
                   ],
                 );
               },
             ),
           ),
-
-          // ── Floating prev arrow ────────────────────────────────
           if (canGoPrev)
             Positioned(
-              left: 0,
-              top: 0,
-              bottom: 0,
+              left: 0, top: 0, bottom: 0,
               child: Center(
                 child: GestureDetector(
                   onTap: () => _goToPrevious(words),
@@ -214,22 +319,15 @@ class _WordsScreenState extends BaseScreenState<WordsScreen>
                       color: Colors.black.withValues(alpha: 0.18),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
-                      Icons.arrow_back_ios_new_rounded,
-                      color: Colors.white,
-                      size: 20,
-                    ),
+                    child: const Icon(Icons.arrow_back_ios_new_rounded,
+                        color: Colors.white, size: 20),
                   ),
                 ),
               ),
             ),
-
-          // ── Floating next arrow ────────────────────────────────
           if (canGoNext)
             Positioned(
-              right: 0,
-              top: 0,
-              bottom: 0,
+              right: 0, top: 0, bottom: 0,
               child: Center(
                 child: GestureDetector(
                   onTap: () => _goToNext(words),
@@ -240,11 +338,8 @@ class _WordsScreenState extends BaseScreenState<WordsScreen>
                       color: Colors.black.withValues(alpha: 0.18),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      color: Colors.white,
-                      size: 20,
-                    ),
+                    child: const Icon(Icons.arrow_forward_ios_rounded,
+                        color: Colors.white, size: 20),
                   ),
                 ),
               ),
@@ -259,8 +354,13 @@ class _WordsScreenState extends BaseScreenState<WordsScreen>
 class _WordCard extends StatelessWidget {
   final WordModel word;
   final VoidCallback onToggleSave;
+  final double fontScale;
 
-  const _WordCard({required this.word, required this.onToggleSave});
+  const _WordCard({
+    required this.word,
+    required this.onToggleSave,
+    required this.fontScale,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -315,7 +415,8 @@ class _WordCard extends StatelessWidget {
                         IconButton(
                           onPressed: () => ShareService.shareWidget(
                             widget: WordShareCard(word: word),
-                            fileBaseName: 'ekush_ponji_word_${word.storageKey}',
+                            fileBaseName:
+                                'ekush_ponji_word_${word.storageKey}',
                           ),
                           icon: Icon(Icons.share_rounded,
                               color: colorScheme.onSurfaceVariant),
@@ -340,12 +441,13 @@ class _WordCard extends StatelessWidget {
 
                 const SizedBox(height: 16),
 
-                // Word + pronunciation
+                // Word + pronunciation — scaled
                 Text(
                   word.word,
                   style: theme.textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: colorScheme.tertiary,
+                    fontSize: (28 * fontScale).roundToDouble(),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -354,37 +456,40 @@ class _WordCard extends StatelessWidget {
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                     fontStyle: FontStyle.italic,
+                    fontSize: (14 * fontScale).roundToDouble(),
                   ),
                 ),
 
                 const SizedBox(height: 20),
-
                 Divider(
                     color: colorScheme.outline.withValues(alpha: 0.3),
                     height: 1),
-
                 const SizedBox(height: 20),
 
                 _buildSection(context,
                     icon: Icons.lightbulb_outline_rounded,
                     title: l10n.meaningEnglish,
-                    content: word.meaningEn),
+                    content: word.meaningEn,
+                    fontScale: fontScale),
                 const SizedBox(height: 4),
                 _buildSection(context,
                     icon: Icons.translate_rounded,
                     title: l10n.meaningBengali,
-                    content: word.meaningBn),
+                    content: word.meaningBn,
+                    fontScale: fontScale),
                 const SizedBox(height: 16),
                 _buildSection(context,
                     icon: Icons.sync_alt_rounded,
                     title: l10n.synonym,
-                    content: word.synonym),
+                    content: word.synonym,
+                    fontScale: fontScale),
                 const SizedBox(height: 16),
                 _buildSection(context,
                     icon: Icons.chat_bubble_outline_rounded,
                     title: l10n.example,
                     content: word.example,
-                    isItalic: true),
+                    isItalic: true,
+                    fontScale: fontScale),
 
                 const SizedBox(height: 18),
                 Align(
@@ -392,8 +497,8 @@ class _WordCard extends StatelessWidget {
                   child: Text(
                     'Ekush Ponji',
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color:
-                          colorScheme.onSurfaceVariant.withValues(alpha: 0.55),
+                      color: colorScheme.onSurfaceVariant
+                          .withValues(alpha: 0.55),
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0.6,
                     ),
@@ -412,6 +517,7 @@ class _WordCard extends StatelessWidget {
     required IconData icon,
     required String title,
     required String content,
+    required double fontScale,
     bool isItalic = false,
   }) {
     final theme = Theme.of(context);
@@ -439,6 +545,7 @@ class _WordCard extends StatelessWidget {
             color: colorScheme.onSurface,
             fontStyle: isItalic ? FontStyle.italic : FontStyle.normal,
             height: 1.5,
+            fontSize: (14 * fontScale).roundToDouble(),
           ),
         ),
       ],

@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:ekush_ponji/features/splash/splash_screen.dart';
 import 'package:ekush_ponji/features/home/home_screen.dart';
 import 'package:ekush_ponji/features/calendar/calendar_screen.dart';
@@ -20,13 +19,14 @@ import 'package:ekush_ponji/features/words/saved_words_screen.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
 import 'package:ekush_ponji/core/widgets/navigation/app_bottom_nav.dart';
 import 'package:ekush_ponji/core/widgets/navigation/more_bottom_sheet.dart';
-import 'package:ekush_ponji/core/services/ad_service.dart';
+import 'package:ekush_ponji/core/widgets/ads/app_ad_banner_bottom.dart';
 import 'package:ekush_ponji/features/events/models/event.dart';
 import 'package:ekush_ponji/features/reminders/models/reminder.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/features/holidays/holidays_screen.dart';
 import 'package:ekush_ponji/features/about/about_screen.dart';
 import 'package:ekush_ponji/features/onboarding/onboarding_screen.dart';
+import 'package:ekush_ponji/app/providers/app_providers.dart';
 
 class AppRouter {
   AppRouter._();
@@ -34,12 +34,18 @@ class AppRouter {
   static final GlobalKey<NavigatorState> navigatorKey =
       GlobalKey<NavigatorState>();
 
+  // Routes that should NOT show the bottom bar + banner
+  static const _noBarRoutes = {
+    RouteNames.splash,
+    RouteNames.onboarding,
+  };
+
   static final GoRouter router = GoRouter(
     navigatorKey: navigatorKey,
     initialLocation: RouteNames.splash,
     debugLogDiagnostics: false,
     routes: [
-      // ── No nav bar routes ────────────────────────────────────
+      // ── Splash & Onboarding — no nav bar ────────────────────
       GoRoute(
         path: RouteNames.splash,
         name: 'splash',
@@ -50,102 +56,109 @@ class AppRouter {
         name: 'onboarding',
         builder: (context, state) => const OnboardingScreen(),
       ),
-      GoRoute(
-        path: RouteNames.settings,
-        name: 'settings',
-        builder: (context, state) => const SettingsScreen(),
-      ),
-      GoRoute(
-        path: RouteNames.about,
-        name: 'about',
-        builder: (context, state) => const AboutScreen(),
-      ),
 
-      // ── Tab Shell — Home, Calendar, Holidays, Prayer ─────────
-      StatefulShellRoute.indexedStack(
-        builder: (context, state, navigationShell) {
-          return _ScaffoldWithNavBar(navigationShell: navigationShell);
+      // ── Root shell — persistent banner + nav bar ─────────────
+      // Wraps every route that needs the bottom bar.
+      ShellRoute(
+        builder: (context, state, child) {
+          final location = state.uri.toString();
+          final showBar = !_noBarRoutes.contains(location);
+          return RootScaffold(showBar: showBar, child: child);
         },
-        branches: [
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: RouteNames.home,
-                name: 'home',
-                builder: (context, state) => const HomeScreen(),
-              ),
-            ],
+        routes: [
+          // ── Settings & About (no tab highlight) ───────────────
+          GoRoute(
+            path: RouteNames.settings,
+            name: 'settings',
+            builder: (context, state) => const SettingsScreen(),
           ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: RouteNames.calendar,
-                name: 'calendar',
-                builder: (context, state) => const CalendarScreen(),
+          GoRoute(
+            path: RouteNames.about,
+            name: 'about',
+            builder: (context, state) => const AboutScreen(),
+          ),
+
+          // ── Tab Shell — Home, Calendar, Holidays, Prayer ──────
+          StatefulShellRoute.indexedStack(
+            builder: (context, state, navigationShell) {
+              return _TabShellBody(navigationShell: navigationShell);
+            },
+            branches: [
+              StatefulShellBranch(
                 routes: [
                   GoRoute(
-                    path: 'day-details',
-                    name: 'calendarDayDetails',
-                    builder: (context, state) => const DayDetailsScreen(),
+                    path: RouteNames.home,
+                    name: 'home',
+                    builder: (context, state) => const HomeScreen(),
                   ),
+                ],
+              ),
+              StatefulShellBranch(
+                routes: [
                   GoRoute(
-                    path: 'add-event',
-                    name: 'calendarAddEvent',
-                    builder: (context, state) => AddEventScreen(
-                      prefilledDate: state.extra as DateTime?,
-                    ),
+                    path: RouteNames.calendar,
+                    name: 'calendar',
+                    builder: (context, state) => const CalendarScreen(),
+                    routes: [
+                      GoRoute(
+                        path: 'day-details',
+                        name: 'calendarDayDetails',
+                        builder: (context, state) => const DayDetailsScreen(),
+                      ),
+                      GoRoute(
+                        path: 'add-event',
+                        name: 'calendarAddEvent',
+                        builder: (context, state) => AddEventScreen(
+                          prefilledDate: state.extra as DateTime?,
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'add-reminder',
+                        name: 'calendarAddReminder',
+                        builder: (context, state) => AddReminderScreen(
+                          prefilledDate: state.extra as DateTime?,
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'edit-event',
+                        name: 'calendarEditEvent',
+                        builder: (context, state) => AddEventScreen(
+                          eventToEdit: state.extra as Event,
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'edit-reminder',
+                        name: 'calendarEditReminder',
+                        builder: (context, state) => AddReminderScreen(
+                          reminderToEdit: state.extra as Reminder,
+                        ),
+                      ),
+                    ],
                   ),
+                ],
+              ),
+              StatefulShellBranch(
+                routes: [
                   GoRoute(
-                    path: 'add-reminder',
-                    name: 'calendarAddReminder',
-                    builder: (context, state) => AddReminderScreen(
-                      prefilledDate: state.extra as DateTime?,
-                    ),
+                    path: RouteNames.holidays,
+                    name: 'holidays',
+                    builder: (context, state) => const HolidaysScreen(),
                   ),
+                ],
+              ),
+              StatefulShellBranch(
+                routes: [
                   GoRoute(
-                    path: 'edit-event',
-                    name: 'calendarEditEvent',
-                    builder: (context, state) => AddEventScreen(
-                      eventToEdit: state.extra as Event,
-                    ),
-                  ),
-                  GoRoute(
-                    path: 'edit-reminder',
-                    name: 'calendarEditReminder',
-                    builder: (context, state) => AddReminderScreen(
-                      reminderToEdit: state.extra as Reminder,
-                    ),
+                    path: RouteNames.prayerTimes,
+                    name: 'prayerTimes',
+                    builder: (context, state) => const PrayerTimesScreen(),
                   ),
                 ],
               ),
             ],
           ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: RouteNames.holidays,
-                name: 'holidays',
-                builder: (context, state) => const HolidaysScreen(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: RouteNames.prayerTimes,
-                name: 'prayerTimes',
-                builder: (context, state) => const PrayerTimesScreen(),
-              ),
-            ],
-          ),
-        ],
-      ),
 
-      // ── Standalone Shell ─────────────────────────────────────
-      ShellRoute(
-        builder: (context, state, child) =>
-            _StandaloneScaffoldWithNavBar(child: child),
-        routes: [
+          // ── Standalone routes ─────────────────────────────────
           GoRoute(
             path: RouteNames.calculator,
             name: 'calculator',
@@ -215,157 +228,90 @@ class AppRouter {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// BANNER AD SLOT
-// Watches bannerLoadedProvider (NotifierProvider<bool>) — rebuilds
-// automatically when banner finishes loading.
-// Always shows 50dp so layout never jumps.
+// ROOT SCAFFOLD
+// The single persistent scaffold that owns the banner + nav bar.
+// Lives inside the router tree so GoRouterState is always available.
+// Never rebuilt on screen changes — banner stays alive continuously.
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _BannerAdSlot extends ConsumerWidget {
-  const _BannerAdSlot();
+class RootScaffold extends ConsumerWidget {
+  final Widget child;
+  final bool showBar;
+
+  const RootScaffold({
+    super.key,
+    required this.child,
+    required this.showBar,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final bannerLoaded = ref.watch(bannerLoadedProvider);
-    final adService = ref.read(adServiceProvider);
+    final currentTab = ref.watch(currentTabProvider);
 
-    if (bannerLoaded && adService.bannerAd != null) {
-      final banner = adService.bannerAd!;
-      return SizedBox(
-        width: banner.size.width.toDouble(),
-        height: banner.size.height.toDouble(),
-        child: AdWidget(ad: banner),
-      );
-    }
-
-    // Placeholder — always reserves 50dp so layout never jumps
-    return Container(
-      height: 50,
-      width: double.infinity,
-      color: Theme.of(context)
-          .colorScheme
-          .surfaceContainerHighest
-          .withOpacity(0.4),
-      child: Center(
-        child: Text(
-          'Advertisement',
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurfaceVariant
-                    .withOpacity(0.4),
-                letterSpacing: 1.2,
-              ),
-        ),
-      ),
+    return Scaffold(
+      body: child,
+      bottomNavigationBar: showBar
+          ? Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const AppAdBannerBottom(),
+                AppBottomNav(
+                  currentIndex: currentTab,
+                  onTap: (logicalIndex) {
+                    ref.read(currentTabProvider.notifier).setTab(logicalIndex);
+                    switch (logicalIndex) {
+                      case AppTab.home:
+                        context.go(RouteNames.home);
+                        break;
+                      case AppTab.calendar:
+                        context.go(RouteNames.calendar);
+                        break;
+                      case AppTab.holidays:
+                        context.go(RouteNames.holidays);
+                        break;
+                      case AppTab.prayerTimes:
+                        context.go(RouteNames.prayerTimes);
+                        break;
+                    }
+                  },
+                  onMoreTap: () => showMoreBottomSheet(context),
+                ),
+              ],
+            )
+          : null,
     );
   }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TAB SCAFFOLD
+// TAB SHELL BODY
+// Provides the indexed stack — no nav bar, no banner.
+// Syncs currentTabProvider so RootScaffold highlights the correct tab.
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _ScaffoldWithNavBar extends ConsumerWidget {
+class _TabShellBody extends ConsumerWidget {
   final StatefulNavigationShell navigationShell;
 
-  const _ScaffoldWithNavBar({required this.navigationShell});
+  const _TabShellBody({required this.navigationShell});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      body: navigationShell,
-      bottomNavigationBar: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const _BannerAdSlot(),
-          AppBottomNav(
-            currentIndex: _toLogical(navigationShell.currentIndex),
-            onTap: (logicalIndex) {
-              navigationShell.goBranch(
-                _toBranch(logicalIndex),
-                initialLocation:
-                    _toBranch(logicalIndex) == navigationShell.currentIndex,
-              );
-            },
-            onMoreTap: () => showMoreBottomSheet(context),
-          ),
-        ],
-      ),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref
+          .read(currentTabProvider.notifier)
+          .setTab(_toLogical(navigationShell.currentIndex));
+    });
+    return navigationShell;
   }
 
   int _toLogical(int branch) {
     switch (branch) {
-      case 0:
-        return AppTab.home;
-      case 1:
-        return AppTab.calendar;
-      case 2:
-        return AppTab.holidays;
-      case 3:
-        return AppTab.prayerTimes;
-      default:
-        return AppTab.home;
+      case 0: return AppTab.home;
+      case 1: return AppTab.calendar;
+      case 2: return AppTab.holidays;
+      case 3: return AppTab.prayerTimes;
+      default: return AppTab.home;
     }
-  }
-
-  int _toBranch(int logical) {
-    switch (logical) {
-      case AppTab.home:
-        return 0;
-      case AppTab.calendar:
-        return 1;
-      case AppTab.holidays:
-        return 2;
-      case AppTab.prayerTimes:
-        return 3;
-      default:
-        return 0;
-    }
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// STANDALONE SCAFFOLD
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _StandaloneScaffoldWithNavBar extends ConsumerWidget {
-  final Widget child;
-
-  const _StandaloneScaffoldWithNavBar({required this.child});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      body: child,
-      bottomNavigationBar: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const _BannerAdSlot(),
-          AppBottomNav(
-            currentIndex: AppTab.none,
-            onTap: (logicalIndex) {
-              switch (logicalIndex) {
-                case AppTab.home:
-                  context.go(RouteNames.home);
-                  break;
-                case AppTab.calendar:
-                  context.go(RouteNames.calendar);
-                  break;
-                case AppTab.holidays:
-                  context.go(RouteNames.holidays);
-                  break;
-                case AppTab.prayerTimes:
-                  context.go(RouteNames.prayerTimes);
-                  break;
-              }
-            },
-            onMoreTap: () => showMoreBottomSheet(context),
-          ),
-        ],
-      ),
-    );
   }
 }
 
@@ -423,8 +369,7 @@ class _PlaceholderScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.construction,
-                size: 64, color: theme.colorScheme.primary),
+            Icon(Icons.construction, size: 64, color: theme.colorScheme.primary),
             const SizedBox(height: 16),
             Text(title, style: theme.textTheme.headlineSmall),
             const SizedBox(height: 8),

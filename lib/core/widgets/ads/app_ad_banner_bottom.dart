@@ -1,74 +1,51 @@
+// lib/core/widgets/ads/app_ad_banner_bottom.dart
+//
+// Persistent banner ad slot. Lives in RootScaffold — never rebuilt on
+// screen changes so AdWidget is always attached to exactly one place
+// in the widget tree.
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:ekush_ponji/core/services/ad_service.dart';
 
-/// Placeholder for advertisement banner at the bottom
-/// TODO: Integrate with AdMob or other ad providers
-class AppAdBannerBottom extends StatelessWidget {
-  final double height;
-  final bool showPlaceholder;
-
-  const AppAdBannerBottom({
-    super.key,
-    this.height = 60,
-    this.showPlaceholder = true,
-  });
+class AppAdBannerBottom extends ConsumerWidget {
+  const AppAdBannerBottom({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bannerLoaded = ref.watch(bannerLoadedProvider);
+    final adService = ref.read(adServiceProvider);
 
-    // TODO: Replace with actual ad implementation
-    // Example integration points:
-    // - Google AdMob: BannerAd
-    // - Facebook Audience Network
-    // - Unity Ads
-    
-    if (!showPlaceholder) {
-      return const SizedBox.shrink();
+    if (bannerLoaded && adService.bannerAd != null) {
+      final banner = adService.bannerAd!;
+      return SizedBox(
+        width: double.infinity,
+        height: banner.size.height.toDouble(),
+        child: AdWidget(ad: banner),
+      );
     }
 
+    // Placeholder — always reserves 50dp so layout never jumps
     return Container(
-      height: height,
+      height: 50,
       width: double.infinity,
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest,
-        border: Border(
-          top: BorderSide(
-            color: colorScheme.outlineVariant,
-            width: 1,
-          ),
-        ),
-      ),
+      color: Theme.of(context)
+          .colorScheme
+          .surfaceContainerHighest
+          .withOpacity(0.4),
       child: Center(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.ads_click_outlined,
-              color: colorScheme.onSurfaceVariant,
-              size: 20,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              'Your Ads Here',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w500,
+        child: Text(
+          'Advertisement',
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurfaceVariant
+                    .withOpacity(0.4),
+                letterSpacing: 1.2,
               ),
-            ),
-          ],
         ),
       ),
     );
   }
-
-  // TODO: Implement ad loading logic
-  // Future<void> _loadAd() async {
-  //   // Load banner ad from ad network
-  // }
-  
-  // TODO: Implement ad disposal
-  // void dispose() {
-  //   // Dispose ad resources
-  // }
 }

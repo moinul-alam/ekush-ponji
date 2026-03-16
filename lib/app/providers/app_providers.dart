@@ -7,6 +7,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:ekush_ponji/core/services/data_sync_service.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
 import 'package:ekush_ponji/features/onboarding/onboarding_viewmodel.dart';
+import 'package:ekush_ponji/core/widgets/navigation/app_bottom_nav.dart';
 
 // ── Box and key constants ──────────────────────────────────
 const String settingsBoxName = 'settings';
@@ -198,6 +199,28 @@ class AppReadyNotifier extends Notifier<bool> {
   void setReady() => state = true;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// CURRENT TAB NOTIFIER
+// Tracks the active shell tab so the root scaffold's AppBottomNav
+// can highlight the correct tab regardless of which scaffold rendered it.
+// Use AppTab constants as values. AppTab.none (-1) = standalone screen.
+// ─────────────────────────────────────────────────────────────────────────────
+
+class CurrentTabNotifier extends Notifier<int> {
+  @override
+  int build() => AppTab.home;
+
+  void setTab(int tab) {
+    if (state == tab) return;
+    state = tab;
+  }
+
+  void setStandalone() {
+    if (state == AppTab.none) return;
+    state = AppTab.none;
+  }
+}
+
 // ── Providers ──────────────────────────────────────────────
 
 final appReadyProvider = NotifierProvider<AppReadyNotifier, bool>(
@@ -209,6 +232,10 @@ final themeModeProvider =
 
 final localeProvider =
     NotifierProvider<LocaleNotifier, Locale>(LocaleNotifier.new);
+
+/// Tracks the currently active shell tab for the persistent root nav bar.
+final currentTabProvider =
+    NotifierProvider<CurrentTabNotifier, int>(CurrentTabNotifier.new);
 
 /// Singleton DataSyncService — shared across the entire app.
 final dataSyncServiceProvider = Provider<DataSyncService>((ref) {

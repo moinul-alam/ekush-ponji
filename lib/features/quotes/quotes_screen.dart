@@ -10,16 +10,16 @@ import 'package:ekush_ponji/app/router/route_names.dart';
 import 'package:ekush_ponji/features/quotes/models/quote.dart';
 import 'package:ekush_ponji/features/quotes/quotes_viewmodel.dart';
 import 'package:ekush_ponji/features/quotes/widgets/quote_share_card.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ekush_ponji/core/services/share_service.dart';
 import 'package:ekush_ponji/core/services/ad_service.dart';
+import 'package:ekush_ponji/features/quotes/services/quote_notification_service.dart';
+import 'package:ekush_ponji/features/quotes/data/datasources/local/quotes_local_datasource.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:ekush_ponji/app/providers/app_providers.dart';
 
 class QuotesScreen extends BaseScreen {
-  /// When navigating from home, pass the daily quote's index so the screen
-  /// opens directly on that quote instead of always starting at index 0.
   final int initialIndex;
-
   const QuotesScreen({super.key, this.initialIndex = 0});
 
   @override
@@ -38,6 +38,10 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
   int _quotesViewed = 0;
   bool _interstitialTriggered = false;
 
+  // ── Notification state ─────────────────────────────────────
+  bool _notifEnabled = false;
+  QuoteNotificationPrefs _notifPrefs = const QuoteNotificationPrefs(enabled: false);
+
   @override
   NotifierProvider<dynamic, ViewState> get viewModelProvider =>
       quotesViewModelProvider;
@@ -50,7 +54,8 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
       duration: const Duration(milliseconds: 350),
     );
     _setupAnimations(fromRight: true);
-    _loadQuoteFontScale();
+    _loadFontScale();
+    _loadNotifPrefs();
   }
 
   @override
@@ -58,69 +63,83 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
     _animationController.dispose();
   }
 
-  Future<void> _loadQuoteFontScale() async {
+  // ── Font scale ─────────────────────────────────────────────
+
+  Future<void> _loadFontScale() async {
     final prefs = await SharedPreferences.getInstance();
     final v = prefs.getDouble('quote_font_scale') ?? 1.0;
     if (!mounted) return;
     setState(() => _quoteFontScale = v.clamp(0.8, 1.6));
   }
 
-  Future<void> _saveQuoteFontScale(double v) async {
+  Future<void> _saveFontScale(double v) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble('quote_font_scale', v);
   }
 
-  void _showFontSizeSheet(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    showModalBottomSheet(
-      context: context,
-      showDragHandle: true,
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                l10n.adjustFontSize,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Text('A', style: Theme.of(context).textTheme.bodyMedium),
-                  Expanded(
-                    child: Slider(
-                      value: _quoteFontScale,
-                      min: 0.8,
-                      max: 1.6,
-                      divisions: 8,
-                      onChanged: (v) => setState(() => _quoteFontScale = v),
-                      onChangeEnd: _saveQuoteFontScale,
-                    ),
-                  ),
-                  Text(
-                    'A',
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleLarge
-                        ?.copyWith(fontWeight: FontWeight.w700),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
-    );
+  void _increaseFontSize() {
+    if (_quoteFontScale >= 1.6) return;
+    final next = (_quoteFontScale + 0.1).clamp(0.8, 1.6);
+    setState(() => _quoteFontScale = next);
+    _saveFontScale(next);
   }
+
+  void _decreaseFontSize() {
+    if (_quoteFontScale <= 0.8) return;
+    final next = (_quoteFontScale - 0.1).clamp(0.8, 1.6);
+    setState(() => _quoteFontScale = next);
+    _saveFontScale(next);
+  }
+
+  // ── Notification prefs ─────────────────────────────────────
+
+  Future<void> _loadNotifPrefs() async {
+    final prefs = await QuoteNotificationPrefs.load();
+    if (!mounted) return;
+    setState(() {
+      _notifPrefs = prefs;
+      _notifEnabled = prefs.enabled;
+    });
+  }
+
+  Future<void> _toggleNotification() async {
+    final newEnabled = !_notifEnabled;
+    setState(() => _notifEnabled = newEnabled);
+
+    final updated = _notifPrefs.copyWith(enabled: newEnabled);
+    _notifPrefs = updated;
+    await updated.save();
+
+    final l10n = AppLocalizations.of(context);
+    final datasource = QuotesLocalDatasource(
+      savedBox: Hive.box<QuoteModel>(savedQuotesBoxName),
+      settingsBox: Hive.box(settingsBoxName),
+    );
+    await datasource.init();
+    await QuoteNotificationService.scheduleUpcoming(
+      datasource: datasource,
+      prefs: updated,
+      languageCode: l10n.languageCode,
+    );
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(newEnabled
+            ? (l10n.languageCode == 'bn'
+                ? 'উদ্ধৃতির বিজ্ঞপ্তি চালু হয়েছে'
+                : 'Quote notifications enabled')
+            : (l10n.languageCode == 'bn'
+                ? 'উদ্ধৃতির বিজ্ঞপ্তি বন্ধ হয়েছে'
+                : 'Quote notifications disabled')),
+        duration: const Duration(seconds: 2),
+      ));
+    }
+  }
+
+  // ── Animations ─────────────────────────────────────────────
 
   void _setupAnimations({required bool fromRight}) {
     _slideFromRight = fromRight;
-
     _slideOutAnimation = Tween<Offset>(
       begin: Offset.zero,
       end: Offset(fromRight ? -1.2 : 1.2, 0),
@@ -128,7 +147,6 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
       parent: _animationController,
       curve: Curves.easeInCubic,
     ));
-
     _slideInAnimation = Tween<Offset>(
       begin: Offset(fromRight ? 1.2 : -1.2, 0),
       end: Offset.zero,
@@ -170,23 +188,46 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
     _isAnimating = false;
   }
 
+  // ── AppBar ─────────────────────────────────────────────────
+
   @override
   PreferredSizeWidget? buildAppBar(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final cs = Theme.of(context).colorScheme;
+
     return AppBar(
-      // Back button is shown automatically because this screen is pushed
-      // onto the navigator stack via context.pushNamed()
       leading: IconButton(
         icon: const Icon(Icons.arrow_back_ios_new_rounded),
         onPressed: () => context.pop(),
       ),
       title: Text(l10n.quoteOfTheDay),
       actions: [
+        // ── Font size: decrease ──────────────────────────
         IconButton(
-          icon: const Icon(Icons.text_fields_rounded),
-          tooltip: l10n.adjustFontSize,
-          onPressed: () => _showFontSizeSheet(context),
+          icon: const Icon(Icons.text_decrease_rounded),
+          tooltip: 'Decrease font size',
+          onPressed: _quoteFontScale <= 0.8 ? null : _decreaseFontSize,
         ),
+        // ── Font size: increase ──────────────────────────
+        IconButton(
+          icon: const Icon(Icons.text_increase_rounded),
+          tooltip: 'Increase font size',
+          onPressed: _quoteFontScale >= 1.6 ? null : _increaseFontSize,
+        ),
+        // ── Notification toggle ──────────────────────────
+        IconButton(
+          icon: Icon(
+            _notifEnabled
+                ? Icons.notifications_active_rounded
+                : Icons.notifications_off_outlined,
+            color: _notifEnabled ? cs.primary : cs.onSurfaceVariant,
+          ),
+          tooltip: _notifEnabled
+              ? (l10n.languageCode == 'bn' ? 'বিজ্ঞপ্তি বন্ধ করুন' : 'Disable notifications')
+              : (l10n.languageCode == 'bn' ? 'বিজ্ঞপ্তি চালু করুন' : 'Enable notifications'),
+          onPressed: _toggleNotification,
+        ),
+        // ── Saved quotes ─────────────────────────────────
         IconButton(
           icon: const Icon(Icons.favorite_outline_rounded),
           tooltip: l10n.savedQuotes,
@@ -195,6 +236,8 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
       ],
     );
   }
+
+  // ── Body ───────────────────────────────────────────────────
 
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
@@ -210,9 +253,7 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
       return buildEmptyWidget(const ViewStateEmpty('No quotes available'));
     }
 
-    if (_currentIndex >= quotes.length) {
-      _currentIndex = quotes.length - 1;
-    }
+    if (_currentIndex >= quotes.length) _currentIndex = quotes.length - 1;
 
     final quote = quotes[_currentIndex];
     final canGoPrev = _currentIndex > 0;
@@ -221,15 +262,11 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
     return GestureDetector(
       onHorizontalDragEnd: (details) {
         if (details.primaryVelocity == null) return;
-        if (details.primaryVelocity! < -300) {
-          _goToNext(quotes);
-        } else if (details.primaryVelocity! > 300) {
-          _goToPrevious(quotes);
-        }
+        if (details.primaryVelocity! < -300) _goToNext(quotes);
+        else if (details.primaryVelocity! > 300) _goToPrevious(quotes);
       },
       child: Stack(
         children: [
-          // ── Animated card ──────────────────────────────────────
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             child: AnimatedBuilder(
@@ -252,12 +289,8 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
                         position: _slideInAnimation,
                         child: _QuoteCard(
                           quote: quotes[_slideFromRight
-                              ? (_currentIndex < quotes.length - 1
-                                  ? _currentIndex + 1
-                                  : _currentIndex)
-                              : (_currentIndex > 0
-                                  ? _currentIndex - 1
-                                  : _currentIndex)],
+                              ? (_currentIndex < quotes.length - 1 ? _currentIndex + 1 : _currentIndex)
+                              : (_currentIndex > 0 ? _currentIndex - 1 : _currentIndex)],
                           onToggleSave: () => vm.toggleSave(quote),
                           quoteFontScale: _quoteFontScale,
                         ),
@@ -273,13 +306,9 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
               },
             ),
           ),
-
-          // ── Floating prev arrow ────────────────────────────────
           if (canGoPrev)
             Positioned(
-              left: 0,
-              top: 0,
-              bottom: 0,
+              left: 0, top: 0, bottom: 0,
               child: Center(
                 child: GestureDetector(
                   onTap: () => _goToPrevious(quotes),
@@ -290,22 +319,15 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
                       color: Colors.black.withValues(alpha: 0.18),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
-                      Icons.arrow_back_ios_new_rounded,
-                      color: Colors.white,
-                      size: 20,
-                    ),
+                    child: const Icon(Icons.arrow_back_ios_new_rounded,
+                        color: Colors.white, size: 20),
                   ),
                 ),
               ),
             ),
-
-          // ── Floating next arrow ────────────────────────────────
           if (canGoNext)
             Positioned(
-              right: 0,
-              top: 0,
-              bottom: 0,
+              right: 0, top: 0, bottom: 0,
               child: Center(
                 child: GestureDetector(
                   onTap: () => _goToNext(quotes),
@@ -316,11 +338,8 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
                       color: Colors.black.withValues(alpha: 0.18),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      color: Colors.white,
-                      size: 20,
-                    ),
+                    child: const Icon(Icons.arrow_forward_ios_rounded,
+                        color: Colors.white, size: 20),
                   ),
                 ),
               ),
@@ -354,9 +373,7 @@ class _QuoteCard extends StatelessWidget {
       height: double.infinity,
       child: Card(
         elevation: 3,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
@@ -378,8 +395,8 @@ class _QuoteCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: colorScheme.primaryContainer,
                       borderRadius: BorderRadius.circular(20),
@@ -397,7 +414,8 @@ class _QuoteCard extends StatelessWidget {
                       IconButton(
                         onPressed: () => ShareService.shareWidget(
                           widget: QuoteShareCard(quote: quote),
-                          fileBaseName: 'ekush_ponji_quote_${quote.storageKey}',
+                          fileBaseName:
+                              'ekush_ponji_quote_${quote.storageKey}',
                         ),
                         icon: Icon(Icons.share_rounded,
                             color: colorScheme.onSurfaceVariant),
@@ -422,7 +440,6 @@ class _QuoteCard extends StatelessWidget {
 
               const SizedBox(height: 12),
 
-              // Quote body
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -434,15 +451,15 @@ class _QuoteCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 10),
                     Expanded(
-                      child: AutoSizeText(
-                        quote.text,
-                        maxLines: 12,
-                        minFontSize: 14 * quoteFontScale,
-                        maxFontSize: 34 * quoteFontScale,
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          color: colorScheme.onSurface,
-                          fontStyle: FontStyle.italic,
-                          height: 1.5,
+                      child: SingleChildScrollView(
+                        child: Text(
+                          quote.text,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            color: colorScheme.onSurface,
+                            fontStyle: FontStyle.italic,
+                            height: 1.5,
+                            fontSize: (22 * quoteFontScale).roundToDouble(),
+                          ),
                         ),
                       ),
                     ),
@@ -452,10 +469,10 @@ class _QuoteCard extends StatelessWidget {
 
               const SizedBox(height: 12),
 
-              // Author + watermark
               Row(
                 children: [
-                  Container(width: 32, height: 2, color: colorScheme.primary),
+                  Container(
+                      width: 32, height: 2, color: colorScheme.primary),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
@@ -470,8 +487,8 @@ class _QuoteCard extends StatelessWidget {
                   Text(
                     'Ekush Ponji',
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color:
-                          colorScheme.onSurfaceVariant.withValues(alpha: 0.55),
+                      color: colorScheme.onSurfaceVariant
+                          .withValues(alpha: 0.55),
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0.6,
                     ),

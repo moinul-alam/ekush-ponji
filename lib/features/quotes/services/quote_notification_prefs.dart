@@ -3,7 +3,7 @@
 // Stores and loads quote notification preferences.
 // Persisted as a single JSON blob in SharedPreferences.
 //
-// Defaults: enabled=true, notifyHour=9, notifyMinute=0 (9:00 AM)
+// Defaults: enabled=false (user must opt-in), notifyHour=9, notifyMinute=0 (9:00 AM)
 // Chosen to not interfere with holiday notifications (8:00 AM).
 
 import 'dart:convert';
@@ -18,7 +18,7 @@ class QuoteNotificationPrefs {
   final int notifyMinute;
 
   const QuoteNotificationPrefs({
-    this.enabled = true,
+    this.enabled = false, // off by default — user must opt-in
     this.notifyHour = 9,
     this.notifyMinute = 0,
   });
@@ -45,7 +45,7 @@ class QuoteNotificationPrefs {
 
   factory QuoteNotificationPrefs.fromJson(Map<String, dynamic> json) {
     return QuoteNotificationPrefs(
-      enabled: json['enabled'] as bool? ?? true,
+      enabled: json['enabled'] as bool? ?? false,
       notifyHour: json['notifyHour'] as int? ?? 9,
       notifyMinute: json['notifyMinute'] as int? ?? 0,
     );

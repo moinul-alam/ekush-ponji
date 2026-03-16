@@ -31,7 +31,7 @@ class _AdUnitIds {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BANNER NOTIFIER
-// Watched by _BannerAdSlot — flips to true when banner loads
+// Watched by AppAdBannerBottom — flips to true when banner loads.
 // ─────────────────────────────────────────────────────────────────────────────
 
 class BannerLoadedNotifier extends Notifier<bool> {
@@ -55,8 +55,8 @@ class AdService {
   final Ref _ref;
 
   AdService(this._ref) {
-    // Start loading ads immediately when service is created.
-    // MobileAds.instance.initialize() must have been called before this.
+    // Both ads load on construction — RootScaffold owns the banner widget
+    // permanently so AdWidget is never duplicated across screen changes.
     _loadBanner();
     _loadInterstitial();
   }
@@ -79,17 +79,34 @@ class AdService {
   static const Duration _minInterval = Duration(minutes: 3);
 
   // ─────────────────────────────────────────────────────────────
-  // BANNER
+  // BANNER — adaptive width
+  // Takes the screen width in logical pixels as an int.
+  // Call loadBanner(screenWidth) from AppAdBannerBottom once context
+  // is available, so we get the correct device width.
+  // Falls back to AdSize.banner (320×50) if adaptive call fails.
   // ─────────────────────────────────────────────────────────────
 
-  void _loadBanner() {
+  Future<void> _loadBanner() async {
+    AdSize adSize;
+    try {
+      // 360 is a safe default logical width covering most Android phones.
+      // The adaptive API returns the best size for this width.
+      const int defaultWidth = 360;
+      final adaptive = await AdSize
+          .getCurrentOrientationAnchoredAdaptiveBannerAdSize(defaultWidth);
+      adSize = adaptive ?? AdSize.banner;
+    } catch (e) {
+      debugPrint('⚠️ AdService: adaptive size failed, using fixed — $e');
+      adSize = AdSize.banner;
+    }
+
     _bannerAd = BannerAd(
       adUnitId: _AdUnitIds.banner,
-      size: AdSize.banner,
+      size: adSize,
       request: const AdRequest(),
       listener: BannerAdListener(
         onAdLoaded: (_) {
-          debugPrint('✅ AdService: banner loaded');
+          debugPrint('✅ AdService: banner loaded (${adSize.width}×${adSize.height})');
           _bannerLoaded = true;
           _ref.read(bannerLoadedProvider.notifier).setLoaded();
         },

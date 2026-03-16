@@ -3,7 +3,7 @@
 // Stores and loads word-of-the-day notification preferences.
 // Persisted as a single JSON blob in SharedPreferences.
 //
-// Defaults: enabled=true, notifyHour=10, notifyMinute=0 (10:00 AM)
+// Defaults: enabled=false (user must opt-in), notifyHour=10, notifyMinute=0 (10:00 AM)
 // Chosen to not interfere with holiday (8:00 AM) or quote (9:00 AM) notifications.
 
 import 'dart:convert';
@@ -18,7 +18,7 @@ class WordNotificationPrefs {
   final int notifyMinute;
 
   const WordNotificationPrefs({
-    this.enabled = true,
+    this.enabled = false, // off by default — user must opt-in
     this.notifyHour = 10,
     this.notifyMinute = 0,
   });
@@ -45,7 +45,7 @@ class WordNotificationPrefs {
 
   factory WordNotificationPrefs.fromJson(Map<String, dynamic> json) {
     return WordNotificationPrefs(
-      enabled: json['enabled'] as bool? ?? true,
+      enabled: json['enabled'] as bool? ?? false,
       notifyHour: json['notifyHour'] as int? ?? 10,
       notifyMinute: json['notifyMinute'] as int? ?? 0,
     );
