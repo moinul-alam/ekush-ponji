@@ -3,31 +3,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-
-// ─────────────────────────────────────────────────────────────────────────────
-// AD UNIT IDs — test IDs, TODO: replace before release
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _AdUnitIds {
-  _AdUnitIds._();
-
-  static const String androidBanner =
-      'ca-app-pub-3940256099942544/6300978111'; // TODO: replace with real ID
-  static const String androidInterstitial =
-      'ca-app-pub-3940256099942544/1033173712'; // TODO: replace with real ID
-
-  static const String iosBanner =
-      'ca-app-pub-3940256099942544/2934735716'; // TODO: replace with real ID
-  static const String iosInterstitial =
-      'ca-app-pub-3940256099942544/4411468910'; // TODO: replace with real ID
-
-  static String get banner =>
-      defaultTargetPlatform == TargetPlatform.iOS ? iosBanner : androidBanner;
-
-  static String get interstitial => defaultTargetPlatform == TargetPlatform.iOS
-      ? iosInterstitial
-      : androidInterstitial;
-}
+import 'package:ekush_ponji/app/config/ad_config.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BANNER NOTIFIER
@@ -101,7 +77,7 @@ class AdService {
     }
 
     _bannerAd = BannerAd(
-      adUnitId: _AdUnitIds.banner,
+      adUnitId: AdConfig.banner,
       size: adSize,
       request: const AdRequest(),
       listener: BannerAdListener(
@@ -129,7 +105,7 @@ class AdService {
 
   void _loadInterstitial() {
     InterstitialAd.load(
-      adUnitId: _AdUnitIds.interstitial,
+      adUnitId: AdConfig.interstitial,
       request: const AdRequest(),
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (ad) {
