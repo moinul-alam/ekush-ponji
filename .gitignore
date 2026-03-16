@@ -65,3 +65,6 @@ android/key.properties
 
 # AdMob unit IDs — never commit real IDs
 lib/app/config/ad_config.dart
+
+# Kotlin compiler session files
+android/.kotlin/

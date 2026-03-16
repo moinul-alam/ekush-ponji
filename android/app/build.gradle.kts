@@ -47,7 +47,39 @@ android {
 
     buildTypes {
         release {
+            // ── Signing ───────────────────────────────────────
             signingConfig = signingConfigs.getByName("release")
+
+            // ── Code & resource shrinking ─────────────────────
+            // Removes unused code from your app and all libraries (incl. AdMob).
+            isMinifyEnabled = true
+            // Removes unused Android resources — saves 1–2 MB from AdMob alone.
+            isShrinkResources = true
+
+            // ── ProGuard rules ────────────────────────────────
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+
+        debug {
+            // Keep debug fast — no shrinking, no obfuscation
+            isMinifyEnabled = false
+            isShrinkResources = false
+        }
+    }
+
+    // ── Split APKs by ABI ─────────────────────────────────────
+    // When building APK (not AAB), generate a separate APK per CPU
+    // architecture so each user downloads only what their device needs.
+    // Has no effect on AAB builds — Play Store handles splits automatically.
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("arm64-v8a", "armeabi-v7a", "x86_64")
+            isUniversalApk = false
         }
     }
 }
