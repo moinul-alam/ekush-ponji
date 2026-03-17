@@ -7,7 +7,7 @@ class RouteNames {
   static const String splash = '/';
   static const String home = '/home';
 
-  // Calendar
+  // Calendar (nested under /calendar shell branch)
   static const String calendar = '/calendar';
   static const String calendarDayDetails = '/calendar/day-details';
   static const String calendarAddEvent = '/calendar/add-event';
@@ -18,14 +18,15 @@ class RouteNames {
   // Calculator
   static const String calculator = '/calculator';
 
-  // Events
+  // Events — standalone routes used by EventsListScreen
   static const String eventsList = '/events';
   static const String addEvent = '/events/add';
   static const String editEvent = '/events/edit';
 
-  // Reminders
+  // Reminders — standalone routes used by RemindersListScreen
   static const String reminders = '/reminders';
   static const String addReminder = '/reminders/add';
+  static const String editReminder = '/reminders/edit';
 
   // Quotes
   static const String quotes = '/quotes';
@@ -38,12 +39,12 @@ class RouteNames {
   // Settings
   static const String settings = '/settings';
 
-  //holidays
+  // Holidays
   static const String holidays = '/holidays';
 
-  //about
+  // About
   static const String about = '/about';
 
-  //onboarding
+  // Onboarding
   static const String onboarding = '/onboarding';
 }

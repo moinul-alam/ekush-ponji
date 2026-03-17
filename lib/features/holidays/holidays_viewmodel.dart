@@ -1,5 +1,6 @@
 // lib/features/holidays/holidays_viewmodel.dart
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ekush_ponji/core/base/base_viewmodel.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
@@ -16,10 +17,13 @@ class HolidaysViewModel extends BaseViewModel {
 
   List<Holiday> _holidays = [];
   int _selectedYear = DateTime.now().year;
-  HolidaysViewMode _viewMode = HolidaysViewMode.gazetteType;
+
+  /// Default is monthWise — more natural for users landing on the screen.
+  HolidaysViewMode _viewMode = HolidaysViewMode.monthWise;
+
   bool _isSyncing = false;
 
-  // ── Getters ──────────────────────────────────────────────
+  // ── Getters ──────────────────────────────────────────────────────────────
 
   int get selectedYear => _selectedYear;
   HolidaysViewMode get viewMode => _viewMode;
@@ -49,7 +53,7 @@ class HolidaysViewModel extends BaseViewModel {
     );
   }
 
-  // ── Lifecycle ─────────────────────────────────────────────
+  // ── Lifecycle ────────────────────────────────────────────────────────────
 
   @override
   void onInit() {
@@ -59,18 +63,48 @@ class HolidaysViewModel extends BaseViewModel {
     loadHolidaysForYear(_selectedYear);
   }
 
-  // ── Load ──────────────────────────────────────────────────
+  // ── Load ─────────────────────────────────────────────────────────────────
 
+  /// Step 1: Instantly read from Hive and show the UI.
+  /// Step 2: Fire background sync — non-blocking, no spinner.
+  ///         If sync updates holidays, reload silently.
   Future<void> loadHolidaysForYear(int year) async {
-    await executeAsync(
-      operation: () async {
-        await _repository.syncHolidaysIfNeeded(year);
-        _holidays = await _repository.getHolidaysForYear(year);
-        _selectedYear = year;
-      },
-      loadingMessage: 'Loading holidays...',
-      errorMessage: 'Failed to load holidays',
-    );
+    // ── Instant load from Hive ──────────────────────────────
+    setLoading(message: 'Loading holidays...');
+    try {
+      _holidays = await _repository.getHolidaysForYear(year);
+      _selectedYear = year;
+      setSuccess();
+    } catch (e, st) {
+      handleError(e, st, customMessage: 'Failed to load holidays');
+      return;
+    }
+
+    // ── Background sync (non-blocking, fire and forget) ─────
+    _backgroundSyncIfNeeded();
+  }
+
+  /// Background sync — does not show a loading state on the screen.
+  /// If new data arrives, silently reloads the holiday list.
+  Future<void> _backgroundSyncIfNeeded() async {
+    try {
+      final updated = await _syncService.syncHolidaysOnly().timeout(
+        const Duration(seconds: 20),
+        onTimeout: () {
+          debugPrint('⏱️ HolidaysViewModel: background sync timed out');
+          return false;
+        },
+      );
+
+      if (updated) {
+        _holidays = await _repository.getHolidaysForYear(_selectedYear);
+        setSuccess();
+        debugPrint('✅ HolidaysViewModel: UI updated after background sync');
+      }
+    } catch (e) {
+      // Background sync failures are silent — the user already sees cached data
+      debugPrint('⚠️ HolidaysViewModel: background sync failed silently — $e');
+    }
   }
 
   Future<void> goToPreviousYear() async {
@@ -88,18 +122,16 @@ class HolidaysViewModel extends BaseViewModel {
     setSuccess();
   }
 
-  // ── Sync ──────────────────────────────────────────────────
+  // ── Manual sync (sync button in AppBar) ──────────────────────────────────
 
-  /// Force-syncs holidays only, then reloads the current year.
-  /// Uses a separate [_isSyncing] flag so the list stays visible
-  /// while the spinner shows — doesn't replace the whole screen state.
+  /// Explicitly triggered by the user. Shows a spinner, awaits result.
   Future<void> syncHolidays() async {
     if (_isSyncing) return;
     _isSyncing = true;
     setSuccess(); // rebuild to show spinner without wiping list
 
     try {
-      final updated = await _syncService.forceHolidaySync().timeout(
+      final updated = await _syncService.syncHolidaysOnly().timeout(
             const Duration(seconds: 15),
             onTimeout: () => false,
           );
@@ -116,15 +148,21 @@ class HolidaysViewModel extends BaseViewModel {
     }
   }
 
-  // ── Refresh ───────────────────────────────────────────────
+  // ── Pull-to-refresh ───────────────────────────────────────────────────────
 
   @override
   Future<bool> refresh() async {
+    // Show pull-to-refresh indicator
     setLoading(isRefreshing: true);
+
     try {
-      await _repository.syncHolidaysIfNeeded(_selectedYear);
+      // Always reload from Hive first so UI updates instantly
       _holidays = await _repository.getHolidaysForYear(_selectedYear);
       setSuccess();
+
+      // Then background-sync (non-blocking)
+      _backgroundSyncIfNeeded();
+
       return true;
     } catch (e, st) {
       handleError(e, st, customMessage: 'Failed to refresh holidays');

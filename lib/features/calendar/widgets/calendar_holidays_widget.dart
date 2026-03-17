@@ -1,3 +1,5 @@
+// lib/features/calendar/widgets/calendar_holidays_widget.dart
+
 import 'package:flutter/material.dart';
 import 'package:ekush_ponji/features/holidays/models/holiday.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
@@ -25,14 +27,10 @@ class CalendarHolidaysWidget extends StatelessWidget {
     final optional = holidays.where((h) => h.isOptional).toList();
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: theme.colorScheme.outlineVariant.withOpacity(0.4),
-          width: 1,
-        ),
+        borderRadius: BorderRadius.zero,
         boxShadow: [
           BoxShadow(
             color: theme.colorScheme.shadow.withOpacity(0.05),
@@ -120,6 +118,16 @@ class _HolidaySection extends StatelessWidget {
         : 'No optional holidays in $monthName';
   }
 
+  // Total calendar days covered by all holidays in this section
+  int get _totalDays => holidays.fold(0, (sum, h) => sum + h.durationDays);
+
+  String get _totalDaysLabel {
+    if (isBangla) {
+      return '(মোট ${localizations.localizeNumber(_totalDays)} দিন)';
+    }
+    return '(Total $_totalDays days)';
+  }
+
   // Mandatory uses primary; optional uses tertiary
   Color get _headerColor =>
       isMandatory ? theme.colorScheme.primary : theme.colorScheme.tertiary;
@@ -135,6 +143,7 @@ class _HolidaySection extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              // Left: icon + title + total days
               Row(
                 children: [
                   Icon(
@@ -145,15 +154,30 @@ class _HolidaySection extends StatelessWidget {
                     size: 18,
                   ),
                   const SizedBox(width: 8),
-                  Text(
-                    _title,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
+                  RichText(
+                    text: TextSpan(
+                      children: [
+                        TextSpan(
+                          text: '$_title  ',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                        if (holidays.isNotEmpty)
+                          TextSpan(
+                            text: _totalDaysLabel,
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: _headerColor.withOpacity(0.75),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                 ],
               ),
-              // Count badge
+              // Right: count badge
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
@@ -203,8 +227,8 @@ class _HolidaySection extends StatelessWidget {
             ),
           ),
 
-        // ─── List ────────────────────────────────────────────
-        if (holidays.isNotEmpty)
+        // ─── List + footnote ─────────────────────────────────
+        if (holidays.isNotEmpty) ...[
           ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -222,6 +246,32 @@ class _HolidaySection extends StatelessWidget {
               theme: theme,
             ),
           ),
+
+          // ─── Moon-sighting footnote ───────────────────────
+          if (holidays.any((h) => h.isApproximate))
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.star_rounded,
+                    size: 11,
+                    color: theme.colorScheme.primary,
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    isBangla
+                        ? 'চাঁদ দেখার উপর নির্ভরশীল'
+                        : 'Subject to moon sighting',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
       ],
     );
   }
@@ -252,17 +302,6 @@ class _HolidayItem extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         child: Row(
           children: [
-            // ─── Left accent bar ────────────────────────────
-            Container(
-              width: 4,
-              height: 48,
-              decoration: BoxDecoration(
-                color: catColor,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(width: 12),
-
             // ─── Date block ─────────────────────────────────
             Container(
               width: 44,
@@ -289,7 +328,7 @@ class _HolidayItem extends StatelessWidget {
                     localizations.getMonthAbbreviation(holiday.startDate.month),
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: catColor.withOpacity(0.8),
-                      fontSize: 10,
+                      fontSize: 11,
                     ),
                   ),
                 ],
@@ -308,37 +347,32 @@ class _HolidayItem extends StatelessWidget {
                       Expanded(
                         child: Text(
                           isBangla ? holiday.namebn : holiday.name,
-                          style: theme.textTheme.bodyMedium?.copyWith(
+                          style: theme.textTheme.bodyLarge?.copyWith(
                             fontWeight: FontWeight.w600,
                             color: theme.colorScheme.onSurface,
                           ),
                         ),
                       ),
-                      // Moon icon for moon-sighting-dependent dates (e.g. Eid)
+                      // Star icon for moon-sighting-dependent dates
                       if (holiday.isApproximate) ...[
                         const SizedBox(width: 4),
-                        Tooltip(
-                          message: isBangla
-                              ? 'চাঁদ দেখার উপর নির্ভরশীল'
-                              : 'Subject to moon sighting',
-                          child: Icon(
-                            Icons.brightness_3_rounded,
-                            size: 12,
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
+                        Icon(
+                          Icons.star_rounded,
+                          size: 13,
+                          color: theme.colorScheme.primary,
                         ),
                       ],
                     ],
                   ),
                   const SizedBox(height: 3),
-                  // Gazette type — সরকারি শ্রেণিবিন্যাস
+                  // Gazette type
                   Text(
                     isBangla
                         ? holiday.gazetteType.displayNameBn
                         : holiday.gazetteType.displayName,
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
-                      fontSize: 10,
+                      fontSize: 12,
                     ),
                   ),
                   // Regional note if applicable
@@ -400,7 +434,7 @@ class _HolidayItem extends StatelessWidget {
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: catColor,
                           fontWeight: FontWeight.w600,
-                          fontSize: 9,
+                          fontSize: 11,
                         ),
                       ),
                     ],
@@ -419,7 +453,7 @@ class _HolidayItem extends StatelessWidget {
                         ? theme.colorScheme.onSurfaceVariant
                         : theme.colorScheme.primary,
                     fontWeight: FontWeight.w500,
-                    fontSize: 10,
+                    fontSize: 12,
                   ),
                 ),
               ],

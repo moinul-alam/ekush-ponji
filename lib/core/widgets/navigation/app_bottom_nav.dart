@@ -93,40 +93,63 @@ class _AppBottomNavInnerState extends State<_AppBottomNavInner> {
 
     final moreVisualIndex = shellTabs.length;
 
-    return NavigationBar(
-      selectedIndex: visualIndex,
-      onDestinationSelected: (visualIdx) {
-        if (visualIdx == moreVisualIndex) {
-          widget.onMoreTap();
-          return;
-        }
-        widget.onTap(shellTabs[visualIdx]);
-      },
-      backgroundColor: colorScheme.surface,
-      elevation: 3,
-      animationDuration: const Duration(milliseconds: 200),
-      destinations: [
-        NavigationDestination(
-          icon: const Icon(Icons.home_outlined),
-          selectedIcon: const Icon(Icons.home_rounded),
-          label: l10n.navHome,
+    return Theme(
+      data: Theme.of(context).copyWith(
+        navigationBarTheme: NavigationBarThemeData(
+          labelTextStyle: WidgetStateProperty.resolveWith((states) {
+            final selected = states.contains(WidgetState.selected);
+            return TextStyle(
+              fontSize: 12,
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+              color:
+                  selected ? colorScheme.primary : colorScheme.onSurfaceVariant,
+            );
+          }),
+          iconTheme: WidgetStateProperty.resolveWith((states) {
+            final selected = states.contains(WidgetState.selected);
+            return IconThemeData(
+              color:
+                  selected ? colorScheme.primary : colorScheme.onSurfaceVariant,
+            );
+          }),
+          indicatorColor: colorScheme.primary.withOpacity(0.12),
         ),
-        NavigationDestination(
-          icon: const Icon(Icons.calendar_today_outlined),
-          selectedIcon: const Icon(Icons.calendar_today_rounded),
-          label: l10n.navCalendar,
-        ),
-        NavigationDestination(
-          icon: const Icon(Icons.beach_access_outlined),
-          selectedIcon: const Icon(Icons.beach_access_rounded),
-          label: l10n.navHolidays,
-        ),
-        NavigationDestination(
-          icon: const Icon(Icons.more_horiz_outlined),
-          selectedIcon: const Icon(Icons.more_horiz_rounded),
-          label: l10n.navMore,
-        ),
-      ],
+      ),
+      child: NavigationBar(
+        selectedIndex: visualIndex,
+        onDestinationSelected: (visualIdx) {
+          if (visualIdx == moreVisualIndex) {
+            widget.onMoreTap();
+            return;
+          }
+          widget.onTap(shellTabs[visualIdx]);
+        },
+        backgroundColor: colorScheme.surface,
+        elevation: 3,
+        animationDuration: const Duration(milliseconds: 200),
+        destinations: [
+          NavigationDestination(
+            icon: const Icon(Icons.home_outlined),
+            selectedIcon: const Icon(Icons.home_rounded),
+            label: l10n.navHome,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.calendar_today_outlined),
+            selectedIcon: const Icon(Icons.calendar_today_rounded),
+            label: l10n.navCalendar,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.celebration_rounded),
+            selectedIcon: const Icon(Icons.celebration_rounded),
+            label: l10n.navHolidays,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.more_horiz_outlined),
+            selectedIcon: const Icon(Icons.more_horiz_rounded),
+            label: l10n.navMore,
+          ),
+        ],
+      ),
     );
   }
 }

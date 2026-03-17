@@ -22,38 +22,27 @@ class CalendarDayCell extends StatelessWidget {
     required this.onTap,
   });
 
-  Color _holidayAccentColor(HolidayCategory category) {
-    switch (category) {
-      case HolidayCategory.national:
-        return const Color(0xFF1565C0); // deep blue
-      case HolidayCategory.islamic:
-        return const Color(0xFF2E7D32); // green
-      case HolidayCategory.hindu:
-        return const Color(0xFFE65100); // deep orange
-      case HolidayCategory.christian:
-        return const Color(0xFF6A1B9A); // purple
-      case HolidayCategory.buddhist:
-        return const Color(0xFFF9A825); // amber
-      case HolidayCategory.ethnicMinority:
-        return const Color(0xFF00838F); // teal
-      case HolidayCategory.cultural:
-        return const Color(0xFFC62828); // deep red
-    }
-  }
-
   // ─── Font Sizes ────────────────────────────────────────
   static const double gregorianFontSize = 18;
   static const double gregorianTodayFontSize = 20;
   static const double gregorianSelectedFontSize = 18;
   static const double subDateFontSize = 14;
 
+  // ─── Special Day Colors ─────────────────────────────────
+// Change these two to try different holiday/weekend color schemes.
+  static const Color _specialBgLight = Color(0xFFB83232); // warm crimson
+  static const Color _specialBgDark = Color(0xFF8B2020); // deep crimson
+  static const Color _specialTextColor = Colors.white;
+  static const double _specialTextOpacity = 0.90;
+
   // ─── Color Slots ───────────────────────────────────────
   static const _BengaliColorSlot bengaliColorSlot = _BengaliColorSlot.primary;
-  static const _HijriColorSlot hijriColorSlot = _HijriColorSlot.tertiary;
+  static const _HijriColorSlot hijriColorSlot =
+      _HijriColorSlot.onSurfaceVariant;
 
-  // Holiday background: fixed clean colors — no opacity mixing with surface
-  static const Color _holidayBgLight = Color(0xFFFFF5F5); // barely-there blush
-  static const Color _holidayBgDark = Color(0xFF251A1A); // very dark warm
+  // // Holiday background: fixed clean colors — no opacity mixing with surface
+  // static const Color _holidayBgLight = Color(0xFFFFF5F5); // barely-there blush
+  // static const Color _holidayBgDark = Color(0xFF251A1A); // very dark warm
 
   static const Color gregorianSpecialColor = Color(0xFFCC0000);
   static const double cellBorderRadius = 4;
@@ -64,7 +53,7 @@ class CalendarDayCell extends StatelessWidget {
       day.gregorianDate.weekday == DateTime.friday ||
       day.gregorianDate.weekday == DateTime.saturday;
 
-  bool get _isSpecial => _isWeekend || day.hasHoliday;
+  bool get _isSpecial => day.isCurrentMonth && (_isWeekend || day.hasHoliday);
 
   @override
   Widget build(BuildContext context) {
@@ -88,22 +77,6 @@ class CalendarDayCell extends StatelessWidget {
           decoration: _buildDecoration(theme),
           child: Stack(
             children: [
-              // ── Holiday left accent bar ─────────────────
-              if (day.hasHoliday && !day.isToday && !day.isSelected)
-                Positioned(
-                  left: 0,
-                  top: 4,
-                  bottom: 4,
-                  child: Container(
-                    width: 3,
-                    decoration: BoxDecoration(
-                      color: _holidayAccentColor(day.firstHoliday!.category)
-                          .withOpacity(0.85),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
-
               // ── Main content ────────────────────────────
               _buildContent(theme, gregorianText, bengaliText, hijriText),
             ],
@@ -334,22 +307,9 @@ class CalendarDayCell extends StatelessWidget {
       );
     }
 
-    if (day.hasHoliday) {
+    if (_isSpecial) {
       return BoxDecoration(
-        // Fixed solid color — no opacity blending with surface, always clean
-        color: isDark ? _holidayBgDark : _holidayBgLight,
-        borderRadius: BorderRadius.circular(cellBorderRadius),
-        border: Border.all(
-          color: theme.colorScheme.outlineVariant.withOpacity(0.25),
-          width: 0.5,
-        ),
-        boxShadow: tileShadows,
-      );
-    }
-
-    if (_isWeekend) {
-      return BoxDecoration(
-        color: isDark ? _holidayBgDark : _holidayBgLight,
+        color: isDark ? _specialBgDark : _specialBgLight,
         borderRadius: BorderRadius.circular(cellBorderRadius),
         border: Border.all(
           color: theme.colorScheme.outlineVariant.withOpacity(0.25),
@@ -374,20 +334,18 @@ class CalendarDayCell extends StatelessWidget {
   Color _gregorianTextColor(ThemeData theme) {
     if (!day.isCurrentMonth) {
       return _isSpecial
-          ? gregorianSpecialColor.withOpacity(0.4)
+          ? const Color.fromARGB(255, 138, 3, 3).withOpacity(0.4)
           : theme.colorScheme.onSurface.withOpacity(0.3);
     }
-    // Actual holidays: deep red to signal significance
-    if (day.hasHoliday) return gregorianSpecialColor;
-    // Weekends only: softer red — background tint is enough, text stays readable
-    if (_isWeekend) return gregorianSpecialColor.withOpacity(0.65);
+
+    if (_isSpecial) return _specialTextColor;
     return theme.colorScheme.onSurface;
   }
 
   Color _bengaliTextColor(ThemeData theme) {
     final base = _resolveBengaliColor(theme);
     if (!day.isCurrentMonth) return base.withOpacity(0.3);
-    if (day.isToday) return theme.colorScheme.onPrimary.withOpacity(0.75);
+    if (_isSpecial) return _specialTextColor.withOpacity(_specialTextOpacity);
     if (day.isSelected) return base.withOpacity(0.9);
     if (_isSpecial) return base.withOpacity(0.7);
     return base;
@@ -396,7 +354,7 @@ class CalendarDayCell extends StatelessWidget {
   Color _hijriTextColor(ThemeData theme) {
     final base = _resolveHijriColor(theme);
     if (!day.isCurrentMonth) return base.withOpacity(0.3);
-    if (day.isToday) return theme.colorScheme.onPrimary.withOpacity(0.75);
+    if (_isSpecial) return _specialTextColor.withOpacity(_specialTextOpacity);
     if (day.isSelected) return base.withOpacity(0.9);
     if (_isSpecial) return base.withOpacity(0.7);
     return base;

@@ -32,7 +32,7 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
     if (widget.selectedDay == null) return const SizedBox.shrink();
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      margin: EdgeInsets.zero,
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
@@ -65,8 +65,8 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          localizations.formatDate(
-                              widget.selectedDay!.gregorianDate),
+                          localizations
+                              .formatDate(widget.selectedDay!.gregorianDate),
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: theme.colorScheme.primary,
@@ -103,11 +103,12 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
                 children: [
                   // ─── Holidays ──────────────────────────────
                   if (widget.selectedDay!.hasHoliday) ...[
-                    _buildSectionTitle(
-                        context, localizations.sectionHolidays, Icons.celebration),
+                    _buildSectionTitle(context, localizations.sectionHolidays,
+                        Icons.celebration),
                     const SizedBox(height: 8),
                     ...widget.selectedDay!.holidays.map(
-                      (holiday) => _buildHolidayItem(context, holiday, localizations),
+                      (holiday) =>
+                          _buildHolidayItem(context, holiday, localizations),
                     ),
                     const SizedBox(height: 16),
                   ],
@@ -125,11 +126,12 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
 
                   // ─── Reminders ─────────────────────────────
                   if (widget.selectedDay!.hasReminder) ...[
-                    _buildSectionTitle(context,
-                        localizations.sectionReminders, Icons.notifications),
+                    _buildSectionTitle(context, localizations.sectionReminders,
+                        Icons.notifications),
                     const SizedBox(height: 8),
                     ...widget.selectedDay!.reminders.map(
-                      (reminder) => _buildReminderItem(context, reminder, localizations),
+                      (reminder) =>
+                          _buildReminderItem(context, reminder, localizations),
                     ),
                     const SizedBox(height: 16),
                   ],
@@ -149,20 +151,6 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
                     ),
 
                   // ─── Action Buttons ────────────────────────
-                  const SizedBox(height: 8),
-
-                  // Show Details — full width
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: () => context.push(RouteNames.calendarDayDetails),
-                      icon: const Icon(Icons.info_outline, size: 18),
-                      label: Text(localizations.showDetails),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    ),
-                  ),
                   const SizedBox(height: 8),
 
                   // Add Event + Add Reminder — side by side
@@ -197,6 +185,21 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
                       ),
                     ],
                   ),
+
+                  // Show Details — full width
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () =>
+                          context.push(RouteNames.calendarDayDetails),
+                      icon: const Icon(Icons.info_outline, size: 18),
+                      label: Text(localizations.showDetails),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
                 ],
               ),
             ),
@@ -328,8 +331,7 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
                   Row(
                     children: [
                       Icon(Icons.location_on,
-                          size: 12,
-                          color: theme.colorScheme.onSurfaceVariant),
+                          size: 12, color: theme.colorScheme.onSurfaceVariant),
                       const SizedBox(width: 4),
                       Text(
                         event.location!,

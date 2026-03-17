@@ -18,12 +18,13 @@ class AppDrawer extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context);
+    final isBn = l10n.languageCode == 'bn';
 
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
-          // Drawer Header
+          // ── Header ────────────────────────────────────────────
           DrawerHeader(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -73,7 +74,7 @@ class AppDrawer extends StatelessWidget {
             ),
           ),
 
-          // ── Main Navigation ───────────────────────────────
+          // ── Main Navigation ───────────────────────────────────
           ListTile(
             leading: const Icon(Icons.calendar_month_outlined),
             title: Text(l10n.navCalendar),
@@ -101,7 +102,29 @@ class AppDrawer extends StatelessWidget {
 
           const Divider(),
 
-          // ── Quotes ────────────────────────────────────────
+          // ── Events & Reminders ────────────────────────────────
+          _SectionLabel(
+              label: isBn ? 'ইভেন্ট ও রিমাইন্ডার' : 'Events & Reminders'),
+          ListTile(
+            leading: const Icon(Icons.event_rounded),
+            title: Text(isBn ? 'সব ইভেন্ট' : 'All Events'),
+            onTap: () {
+              Navigator.pop(context);
+              context.push(RouteNames.eventsList);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.alarm_rounded),
+            title: Text(isBn ? 'সব রিমাইন্ডার' : 'All Reminders'),
+            onTap: () {
+              Navigator.pop(context);
+              context.push(RouteNames.reminders);
+            },
+          ),
+
+          const Divider(),
+
+          // ── Quotes ────────────────────────────────────────────
           _SectionLabel(label: l10n.quoteOfTheDay),
           ListTile(
             leading: const Icon(Icons.format_quote_rounded),
@@ -122,7 +145,7 @@ class AppDrawer extends StatelessWidget {
 
           const Divider(),
 
-          // ── Words ─────────────────────────────────────────
+          // ── Words ─────────────────────────────────────────────
           _SectionLabel(label: l10n.wordOfTheDay),
           ListTile(
             leading: const Icon(Icons.book_rounded),
@@ -143,7 +166,7 @@ class AppDrawer extends StatelessWidget {
 
           const Divider(),
 
-          // ── App ───────────────────────────────────────────
+          // ── App ───────────────────────────────────────────────
           ListTile(
             leading: const Icon(Icons.settings_outlined),
             title: Text(l10n.settings),
@@ -157,25 +180,16 @@ class AppDrawer extends StatelessWidget {
             title: Text(l10n.about),
             onTap: () {
               Navigator.pop(context);
-              _showComingSoon(context, l10n.about);
+              context.push(RouteNames.about);
             },
           ),
         ],
       ),
     );
   }
-
-  void _showComingSoon(BuildContext context, String feature) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$feature - ${AppLocalizations.of(context).comingSoon}'),
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
 }
 
-// ─── Section Label ────────────────────────────────────────────
+// ─── Section Label ────────────────────────────────────────────────────────────
 class _SectionLabel extends StatelessWidget {
   final String label;
   const _SectionLabel({required this.label});

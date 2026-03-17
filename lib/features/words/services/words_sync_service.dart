@@ -1,4 +1,13 @@
 // lib/features/words/services/words_sync_service.dart
+//
+// Worker service for words dataset.
+// Responsible ONLY for: seed, fetch from GitHub, save to Hive.
+// Does NOT own scheduling logic — that belongs to DataSyncService.
+//
+// SYNC BEHAVIOUR:
+//   • force=false → skip if interval not due OR remote version <= local
+//   • force=true  → skip interval check only; version check always runs
+//   • Downloads only if remote version > localVersion (always, no exceptions)
 
 import 'dart:convert';
 
@@ -17,11 +26,11 @@ class WordsSyncService implements BaseSyncService {
   static const String _versionKey = 'words_version';
   static const String _lastCheckKey = 'words_last_check';
 
-  /// Key under which the synced words JSON string is stored in Hive.
-  /// WordsLocalDatasource reads from this key after a sync.
+  /// Public key used by WordsLocalDatasource to read the stored JSON.
   static const String wordsEnKey = 'words_en_json';
 
   // ── Config ─────────────────────────────────────────────────
+  /// Words change infrequently — check every 30 days is appropriate.
   static const int _checkIntervalDays = 30;
 
   final Dio _dio;
@@ -77,24 +86,31 @@ class WordsSyncService implements BaseSyncService {
     AppManifest manifest, {
     bool force = false,
   }) async {
+    // Step 1 — Time interval gate (skipped when force=true)
     if (!force && !isSyncDue) {
-      debugPrint('ℹ️ Words sync not due yet');
+      debugPrint('ℹ️ Words: sync interval not due yet — skipping');
       return false;
     }
 
+    // Step 2 — Always record the check time so the interval resets
     await _settingsBox.put(_lastCheckKey, DateTime.now().toIso8601String());
 
+    // Step 3 — Version gate (ALWAYS checked, even when force=true)
     final remote = manifest.words;
     debugPrint('📋 Words: remote v${remote.version} / local v$localVersion');
 
-    if (!force && remote.version <= localVersion) {
-      debugPrint('✅ Words up to date');
+    if (remote.version <= localVersion) {
+      debugPrint('✅ Words: already at latest version — no download needed');
       return false;
     }
 
+    // Step 4 — Download
+    debugPrint(
+        '⬇️ Words: new version ${remote.version} available — downloading...');
+
     final url = remote.urlForLanguage('en');
     if (url == null) {
-      debugPrint('⚠️ No words URL found for language: en');
+      debugPrint('⚠️ Words: no URL found for language "en"');
       return false;
     }
 
@@ -109,9 +125,9 @@ class WordsSyncService implements BaseSyncService {
         return true;
       }
     } on DioException catch (e) {
-      debugPrint('⚠️ Network error syncing words: ${e.message}');
+      debugPrint('⚠️ Words: network error — ${e.message}');
     } catch (e) {
-      debugPrint('⚠️ Failed to sync words: $e');
+      debugPrint('⚠️ Words: failed to sync — $e');
     }
 
     return false;

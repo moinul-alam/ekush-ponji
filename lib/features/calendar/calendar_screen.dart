@@ -14,7 +14,7 @@ import 'package:ekush_ponji/features/calendar/calendar_viewmodel.dart';
 import 'package:ekush_ponji/features/calendar/widgets/calendar_header.dart';
 import 'package:ekush_ponji/features/calendar/widgets/week_days_row.dart';
 import 'package:ekush_ponji/features/calendar/widgets/calendar_grid.dart';
-import 'package:ekush_ponji/features/calendar/widgets/calendar_legend.dart';
+import 'package:ekush_ponji/features/calendar/widgets/calendar_visibilities.dart';
 import 'package:ekush_ponji/features/calendar/widgets/day_details_panel.dart';
 import 'package:ekush_ponji/features/calendar/widgets/calendar_holidays_widget.dart';
 import 'package:ekush_ponji/features/calendar/widgets/custom_month_year_picker.dart';
@@ -149,10 +149,10 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
           children: [
             // ─── Unified Calendar Card ───────────────────────
             Container(
-              margin: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+              margin: EdgeInsets.zero,
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(10),
                 boxShadow: [
                   BoxShadow(
                     color:

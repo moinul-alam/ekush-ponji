@@ -18,11 +18,11 @@ class CalendarLegend extends ConsumerWidget {
     final colorScheme = theme.colorScheme;
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      margin: EdgeInsets.zero,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
             color: colorScheme.shadow.withOpacity(0.06),
@@ -41,12 +41,12 @@ class CalendarLegend extends ConsumerWidget {
             child: _DateToggleChip(
               label: visibility.showBengaliDate
                   ? (isBn ? 'বাংলা তারিখ লুকান' : 'Hide Bengali Date')
-                  : (isBn ? 'বাংলা তারিখ দেখান' : 'Show Bengali Date'),
+                  : (isBn ? 'বাংলা তারিখ দেখুন' : 'Show Bengali Date'),
               isActive: visibility.showBengaliDate,
               activeColor: colorScheme.primaryContainer,
               activeLabelColor: colorScheme.onPrimaryContainer,
               activeIconColor: colorScheme.primary,
-              icon: Icons.language_rounded,
+              icon: Icons.wb_sunny_rounded,
               onTap: notifier.toggleBengaliDate,
             ),
           ),
@@ -54,13 +54,13 @@ class CalendarLegend extends ConsumerWidget {
           Expanded(
             child: _DateToggleChip(
               label: visibility.showHijriDate
-                  ? (isBn ? 'আরবি তারিখ লুকান' : 'Hide Arabic Date')
-                  : (isBn ? 'আরবি তারিখ দেখান' : 'Show Arabic Date'),
+                  ? (isBn ? 'হিজরি তারিখ লুকান' : 'Hide Hijri Date')
+                  : (isBn ? 'হিজরি তারিখ দেখুন' : 'Show Hijri Date'),
               isActive: visibility.showHijriDate,
               activeColor: colorScheme.tertiaryContainer,
               activeLabelColor: colorScheme.onTertiaryContainer,
               activeIconColor: colorScheme.tertiary,
-              icon: Icons.brightness_3_rounded,
+              icon: Icons.dark_mode_rounded,
               onTap: notifier.toggleHijriDate,
             ),
           ),

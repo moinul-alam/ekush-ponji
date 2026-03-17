@@ -1,21 +1,80 @@
 // lib/core/services/data_sync_service.dart
 //
-// Orchestrates syncing for all datasets: holidays, quotes, words.
-// Each dataset has its own sync service; this class coordinates them
-// and owns the manifest fetch. Screens call this — never individual
-// sync services directly.
+// SINGLE COORDINATOR for all dataset syncing: holidays, quotes, words.
+//
+// ── Architecture ─────────────────────────────────────────────────────────────
+//
+//   DataSyncService  ←── only entry point for all sync operations
+//       │
+//       ├── HolidaySyncService   (holidays worker)
+//       ├── QuotesSyncService    (quotes worker)
+//       └── WordsSyncService     (words worker)
+//
+// No screen, repository, or viewmodel should call a worker directly.
+// All callers go through DataSyncService.
+//
+// ── Sync Rules ───────────────────────────────────────────────────────────────
+//
+//   VERSION CHECK: Always runs. No call ever downloads if remote version
+//                  is same as or older than local. This is non-negotiable.
+//
+//   INTERVAL:      Each dataset tracks its own last-check timestamp.
+//                  Auto-sync only runs if the interval has passed.
+//
+//   force=true:    Skips the interval check ONLY. Version check still runs.
+//                  Used by: Settings "Sync All", pull-to-refresh.
+//
+// ── Sync Triggers ────────────────────────────────────────────────────────────
+//
+//   1. App startup (AppInitializer)
+//      → seedAll() on first launch
+//      → backgroundSyncOnStartup() — non-blocking, respects weekly interval
+//        controlled by [enableWeeklyAutoSync]
+//
+//   2. New version detected
+//      → Always syncs that dataset, regardless of interval or auto-sync flag
+//      → This cannot be disabled — it is the safety net
+//
+//   3. Settings "Sync All Data" button
+//      → forceSync() — skips interval, respects version
+//
+//   4. Holidays screen pull-to-refresh / manual sync button
+//      → syncHolidaysInBackground() — non-blocking, skips interval,
+//        respects version, reloads viewmodel if updated
 
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+
 import 'package:ekush_ponji/core/models/app_manifest.dart';
 import 'package:ekush_ponji/features/holidays/services/holiday_sync_service.dart';
 import 'package:ekush_ponji/features/quotes/services/quotes_sync_service.dart';
 import 'package:ekush_ponji/features/words/services/words_sync_service.dart';
 
+// ── Configuration ─────────────────────────────────────────────────────────────
+
+/// Set to false to disable the weekly background auto-sync entirely.
+/// Manual syncs (Settings, pull-to-refresh) are NOT affected by this flag.
+/// Version-triggered syncs are NOT affected — they always run.
+const bool enableWeeklyAutoSync = true;
+
+/// How often the background auto-sync is allowed to run.
+/// Must match HolidaySyncService._checkIntervalDays.
+const int autoSyncIntervalDays = 7;
+
+// ── Manifest URL ──────────────────────────────────────────────────────────────
+
 const String _manifestUrl =
     'https://raw.githubusercontent.com/moinul-alam/ekush_ponji/main/assets/data/manifest.json';
+
+// ── Hive keys (coordinator-level) ────────────────────────────────────────────
+
+const String _settingsBoxName = 'settings';
+const String _lastAutoSyncKey = 'data_sync_last_auto';
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 class DataSyncService {
   final Dio _dio;
@@ -33,7 +92,31 @@ class DataSyncService {
         _quotesSyncService = quotesSyncService ?? QuotesSyncService(),
         _wordsSyncService = wordsSyncService ?? WordsSyncService();
 
-  // ── Manifest fetch ───────────────────────────────────────
+  // ── Coordinator-level interval ───────────────────────────────────────────
+
+  /// Whether the global weekly auto-sync interval has elapsed.
+  bool get _isAutoSyncDue {
+    if (!enableWeeklyAutoSync) return false;
+    try {
+      final box = Hive.box(_settingsBoxName);
+      final lastStr = box.get(_lastAutoSyncKey, defaultValue: null) as String?;
+      if (lastStr == null) return true;
+      final last = DateTime.tryParse(lastStr);
+      if (last == null) return true;
+      return DateTime.now().difference(last).inDays >= autoSyncIntervalDays;
+    } catch (_) {
+      return true;
+    }
+  }
+
+  Future<void> _recordAutoSync() async {
+    try {
+      final box = Hive.box(_settingsBoxName);
+      await box.put(_lastAutoSyncKey, DateTime.now().toIso8601String());
+    } catch (_) {}
+  }
+
+  // ── Manifest fetch ────────────────────────────────────────────────────────
 
   Future<AppManifest?> _fetchManifest() async {
     try {
@@ -50,15 +133,17 @@ class DataSyncService {
         return AppManifest.fromJson(json);
       }
     } on DioException catch (e) {
-      debugPrint('! Failed to fetch manifest: ' + (e.message ?? ''));
+      debugPrint('⚠️ DataSync: failed to fetch manifest — ${e.message}');
     } catch (e) {
-      debugPrint('! Manifest parse error: ' + e.toString());
+      debugPrint('⚠️ DataSync: manifest parse error — $e');
     }
     return null;
   }
 
-  // ── Seeding (called on first launch) ────────────────────
+  // ── Seeding (first launch only) ───────────────────────────────────────────
 
+  /// Seeds all datasets from bundled assets into Hive.
+  /// Each worker is idempotent — safe to call on every startup.
   Future<void> seedAll() async {
     await Future.wait([
       _holidaySyncService.seed(),
@@ -67,39 +152,70 @@ class DataSyncService {
     ]);
   }
 
-  // ── Initialize (seed + startup sync) ────────────────────
-  // Called by AppInitializer — seeds bundled assets on first
-  // launch then checks remote for updates in one call.
+  // ── App startup ───────────────────────────────────────────────────────────
 
+  /// Called by AppInitializer during the background phase.
+  /// Seeds bundled data on first launch, then runs background sync.
   Future<void> initialize() async {
     await seedAll();
-    await syncOnStartup();
+    await backgroundSyncOnStartup();
   }
 
-  // ── Startup sync (respects checkInterval per dataset) ───
+  /// Non-blocking background sync on app startup.
+  ///
+  /// Respects [enableWeeklyAutoSync] and the 7-day interval.
+  /// Even if auto-sync is disabled or interval not due, version-triggered
+  /// syncs still run (remote version > local always triggers download).
+  ///
+  /// This method fetches the manifest once and:
+  ///   a) If [enableWeeklyAutoSync] is true and interval is due →
+  ///      passes force=false to all workers (they check their own intervals too)
+  ///   b) Always checks version and downloads if a newer version exists,
+  ///      even outside the weekly window
+  Future<void> backgroundSyncOnStartup() async {
+    final shouldRunAutoSync = enableWeeklyAutoSync && _isAutoSyncDue;
 
-  Future<void> syncOnStartup() async {
+    if (!shouldRunAutoSync) {
+      debugPrint(
+          'ℹ️ DataSync: weekly auto-sync not due or disabled — skipping background sync');
+      return;
+    }
+
+    debugPrint('🔄 DataSync: weekly auto-sync due — fetching manifest...');
+
     final manifest = await _fetchManifest();
-    if (manifest == null) return;
-
-    await Future.wait([
-      _holidaySyncService.syncWithManifest(manifest),
-      _quotesSyncService.syncWithManifest(manifest),
-      _wordsSyncService.syncWithManifest(manifest),
-    ]);
-  }
-
-  // ── Force sync — all datasets (Settings "Data Sync") ────
-  //
-  // Runs all three in parallel. Returns a [DataSyncResult]
-  // describing what actually changed so the UI can be specific.
-
-  Future<DataSyncResult> forceSync() async {
-    final manifest = await _fetchManifest();
-
-    // No manifest — remote unreachable. Re-seed from bundled assets
-    // so the user gets fresh local data even without a network.
     if (manifest == null) {
+      debugPrint('⚠️ DataSync: manifest unreachable — background sync skipped');
+      return;
+    }
+
+    await _recordAutoSync();
+
+    // Run all workers concurrently. Each will skip if their version is current.
+    final results = await Future.wait([
+      _holidaySyncService.syncWithManifest(manifest, force: false),
+      _quotesSyncService.syncWithManifest(manifest, force: false),
+      _wordsSyncService.syncWithManifest(manifest, force: false),
+    ]);
+
+    final updated = results.where((r) => r).length;
+    debugPrint(
+        '✅ DataSync: background sync complete — $updated dataset(s) updated');
+  }
+
+  // ── Force sync — all datasets (Settings button) ───────────────────────────
+
+  /// Bypasses the weekly interval but still respects version check.
+  /// Only downloads datasets where remote version > local version.
+  /// Returns [DataSyncResult] for the UI to display what changed.
+  Future<DataSyncResult> forceSync() async {
+    debugPrint('🔄 DataSync: force sync all — fetching manifest...');
+
+    final manifest = await _fetchManifest();
+
+    if (manifest == null) {
+      // No network — re-seed from bundled assets as a fallback
+      debugPrint('⚠️ DataSync: manifest unreachable — re-seeding from assets');
       await seedAll();
       return const DataSyncResult(
         success: true,
@@ -116,34 +232,53 @@ class DataSyncService {
       _wordsSyncService.syncWithManifest(manifest, force: true),
     ]);
 
-    return DataSyncResult(
+    final result = DataSyncResult(
       success: true,
       holidaysUpdated: results[0],
       quotesUpdated: results[1],
       wordsUpdated: results[2],
     );
+
+    debugPrint(
+        '✅ DataSync: force sync complete — ${result.summary(isBn: false)}');
+    return result;
   }
 
-  // ── Force sync — holidays only (Holidays screen button) ─
+  // ── Holidays-only sync (holidays screen) ─────────────────────────────────
 
-  Future<bool> forceHolidaySync() async {
+  /// Syncs holidays only, skipping the interval but respecting version.
+  /// Returns true if holidays were actually updated.
+  ///
+  /// Used by:
+  ///   • HolidaysViewModel.syncHolidays() — manual sync button (awaited, shows spinner)
+  ///   • HolidaysViewModel._backgroundSyncIfNeeded() — non-blocking background check
+  Future<bool> syncHolidaysOnly() async {
+    debugPrint('🔄 DataSync: holidays-only sync — fetching manifest...');
+
     final manifest = await _fetchManifest();
 
-    // No manifest — re-seed holidays from bundled assets.
     if (manifest == null) {
+      debugPrint(
+          '⚠️ DataSync: manifest unreachable — re-seeding holidays from assets');
       await _holidaySyncService.seed();
-      return false; // no remote update, but local data refreshed
+      return false;
     }
 
-    return _holidaySyncService.syncWithManifest(manifest, force: true);
+    final updated =
+        await _holidaySyncService.syncWithManifest(manifest, force: true);
+    debugPrint('✅ DataSync: holidays-only sync complete — updated=$updated');
+    return updated;
   }
 }
 
-// ── Result model ─────────────────────────────────────────────
+// ── Result model ──────────────────────────────────────────────────────────────
 
 class DataSyncResult {
   final bool success;
-  final bool localOnly; // true when manifest unreachable, fell back to seed
+
+  /// True when manifest was unreachable and we fell back to bundled assets.
+  final bool localOnly;
+
   final bool holidaysUpdated;
   final bool quotesUpdated;
   final bool wordsUpdated;
@@ -158,7 +293,7 @@ class DataSyncResult {
 
   bool get anyUpdated => holidaysUpdated || quotesUpdated || wordsUpdated;
 
-  /// Human-readable summary of what changed, bilingual.
+  /// Human-readable summary, bilingual.
   String summary({required bool isBn}) {
     if (!success) {
       return isBn

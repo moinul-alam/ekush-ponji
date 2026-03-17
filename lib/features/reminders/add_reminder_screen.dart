@@ -10,6 +10,7 @@ import 'package:go_router/go_router.dart';
 import 'package:ekush_ponji/core/services/local_notification_service.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:ekush_ponji/core/services/ad_service.dart';
+import 'package:ekush_ponji/core/widgets/pickers/app_date_time_picker.dart';
 
 class AddReminderScreen extends ConsumerStatefulWidget {
   final DateTime? prefilledDate;
@@ -254,7 +255,7 @@ class _ReminderDateTimePicker extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return InkWell(
-      onTap: () => _pick(context),
+      onTap: () => _pick(context, l10n),
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -278,7 +279,9 @@ class _ReminderDateTimePicker extends ConsumerWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    dateTime != null ? _format(dateTime!) : l10n.selectDate,
+                    dateTime != null
+                        ? _formatDateTime(dateTime!, l10n)
+                        : l10n.selectDate,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: dateTime != null
                           ? theme.colorScheme.onSurface
@@ -296,39 +299,22 @@ class _ReminderDateTimePicker extends ConsumerWidget {
     );
   }
 
-  String _format(DateTime dt) {
-    final date =
-        '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
-    final time =
-        '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
-    return '$date  $time';
+  String _formatDateTime(DateTime dt, AppLocalizations l10n) {
+    final day = l10n.localizeNumber(dt.day);
+    final monthName = l10n.getMonthName(dt.month);
+    final year = l10n.localizeNumber(dt.year);
+    final hour = l10n.localizeNumber(dt.hour.toString().padLeft(2, '0'));
+    final minute = l10n.localizeNumber(dt.minute.toString().padLeft(2, '0'));
+    return '$day $monthName $year  $hour:$minute';
   }
 
-  Future<void> _pick(BuildContext context) async {
-    final initial = dateTime ?? DateTime.now();
-
-    final pickedDate = await showDatePicker(
+  Future<void> _pick(BuildContext context, AppLocalizations l10n) async {
+    final result = await AppDateTimePicker.show(
       context: context,
-      initialDate: initial,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
+      initial: dateTime ?? DateTime.now(),
+      l10n: l10n,
     );
-    if (pickedDate == null) return;
-    if (!context.mounted) return;
-
-    final pickedTime = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.fromDateTime(initial),
-    );
-    if (pickedTime == null) return;
-
-    onPick(DateTime(
-      pickedDate.year,
-      pickedDate.month,
-      pickedDate.day,
-      pickedTime.hour,
-      pickedTime.minute,
-    ));
+    if (result != null) onPick(result);
   }
 }
 

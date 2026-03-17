@@ -1,4 +1,13 @@
 // lib/features/holidays/services/holiday_sync_service.dart
+//
+// Worker service for holidays dataset.
+// Responsible ONLY for: seed, fetch from GitHub, save to Hive.
+// Does NOT own scheduling logic — that belongs to DataSyncService.
+//
+// SYNC BEHAVIOUR:
+//   • force=false → skip if interval not due OR remote version <= local
+//   • force=true  → skip interval check only; version check always runs
+//   • Downloads only if remote version > localVersion (always, no exceptions)
 
 import 'dart:convert';
 
@@ -21,7 +30,9 @@ class HolidaySyncService implements BaseSyncService {
   static const String _govtHolidaysPrefix = 'govt_holidays_';
 
   // ── Config ─────────────────────────────────────────────────
-  static const int _checkIntervalDays = 3;
+  /// Background auto-sync interval. Matches DataSyncService.autoSyncIntervalDays.
+  static const int _checkIntervalDays = 7;
+
   static const List<int> _bundledYears = [2022, 2023, 2024, 2025, 2026];
 
   final Dio _dio;
@@ -88,20 +99,27 @@ class HolidaySyncService implements BaseSyncService {
     AppManifest manifest, {
     bool force = false,
   }) async {
+    // Step 1 — Time interval gate (skipped when force=true)
     if (!force && !isSyncDue) {
-      debugPrint('ℹ️ Holiday sync not due yet');
+      debugPrint('ℹ️ Holidays: sync interval not due yet — skipping');
       return false;
     }
 
+    // Step 2 — Always record the check time so the interval resets
     await _settingsBox.put(_lastCheckKey, DateTime.now().toIso8601String());
 
+    // Step 3 — Version gate (ALWAYS checked, even when force=true)
     final remote = manifest.holidays;
     debugPrint('📋 Holidays: remote v${remote.version} / local v$localVersion');
 
-    if (!force && remote.version <= localVersion) {
-      debugPrint('✅ Holidays up to date');
+    if (remote.version <= localVersion) {
+      debugPrint('✅ Holidays: already at latest version — no download needed');
       return false;
     }
+
+    // Step 4 — Download updated years
+    debugPrint(
+        '⬇️ Holidays: new version ${remote.version} available — downloading...');
 
     int updatedCount = 0;
     for (final year in remote.availableYears) {
@@ -115,13 +133,14 @@ class HolidaySyncService implements BaseSyncService {
           if (holidays.isNotEmpty) {
             await _saveToHive(year, holidays);
             updatedCount++;
-            debugPrint('✅ Updated holidays $year: ${holidays.length} entries');
+            debugPrint(
+                '✅ Holidays: updated $year — ${holidays.length} entries');
           }
         }
       } on DioException catch (e) {
-        debugPrint('⚠️ Network error for holidays $year: ${e.message}');
+        debugPrint('⚠️ Holidays: network error for $year — ${e.message}');
       } catch (e) {
-        debugPrint('⚠️ Failed to update holidays $year: $e');
+        debugPrint('⚠️ Holidays: failed to update $year — $e');
       }
     }
 

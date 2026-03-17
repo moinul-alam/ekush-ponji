@@ -22,8 +22,8 @@ class HolidayGazetteSectionWidget extends StatefulWidget {
 
 class _HolidayGazetteSectionWidgetState
     extends State<HolidayGazetteSectionWidget> {
-  // Gazette-type sections are expanded by default
-  bool _isExpanded = true;
+  // Collapsed by default — user taps to expand
+  bool _isExpanded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +37,12 @@ class _HolidayGazetteSectionWidgetState
 
     final isMandatory = widget.gazetteType.isMandatory;
     final count = widget.holidays.length;
+
+    // Total calendar days covered (multi-day holidays count their full span)
+    final totalDays = widget.holidays.fold(0, (sum, h) => sum + h.durationDays);
+    final totalDaysLabel = isBn
+        ? '(মোট ${l10n.localizeNumber(totalDays)} দিন)'
+        : '(Total $totalDays days)';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -76,15 +82,30 @@ class _HolidayGazetteSectionWidgetState
                 ),
                 const SizedBox(width: 10),
 
-                // Section title
+                // Section title + total days label
                 Expanded(
-                  child: Text(
-                    sectionTitle,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: isMandatory
-                          ? theme.colorScheme.primary
-                          : theme.colorScheme.onSurface,
+                  child: RichText(
+                    text: TextSpan(
+                      children: [
+                        TextSpan(
+                          text: '$sectionTitle  ',
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: isMandatory
+                                ? theme.colorScheme.primary
+                                : theme.colorScheme.onSurface,
+                          ),
+                        ),
+                        TextSpan(
+                          text: totalDaysLabel,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: isMandatory
+                                ? theme.colorScheme.primary.withOpacity(0.75)
+                                : theme.colorScheme.secondary.withOpacity(0.75),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),

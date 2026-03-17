@@ -8,7 +8,9 @@ import 'package:ekush_ponji/features/home/home_screen.dart';
 import 'package:ekush_ponji/features/calendar/calendar_screen.dart';
 import 'package:ekush_ponji/features/calendar/day_details_screen.dart';
 import 'package:ekush_ponji/features/events/add_event_screen.dart';
+import 'package:ekush_ponji/features/events/events_list_screen.dart';
 import 'package:ekush_ponji/features/reminders/add_reminder_screen.dart';
+import 'package:ekush_ponji/features/reminders/reminders_list_screen.dart';
 import 'package:ekush_ponji/features/calculator/calculator_screen.dart';
 import 'package:ekush_ponji/features/settings/settings_screen.dart';
 import 'package:ekush_ponji/features/quotes/quotes_screen.dart';
@@ -147,11 +149,59 @@ class AppRouter {
           ),
 
           // ── Standalone routes ─────────────────────────────────
+
           GoRoute(
             path: RouteNames.calculator,
             name: 'calculator',
             builder: (context, state) => const CalculatorScreen(),
           ),
+
+          // ── Events list + standalone add/edit ─────────────────
+          // These standalone routes are used by EventsListScreen and
+          // RemindersListScreen so they don't need to push into the
+          // nested calendar shell branch (which causes a freeze).
+          GoRoute(
+            path: RouteNames.eventsList,
+            name: 'eventsList',
+            builder: (context, state) => const EventsListScreen(),
+          ),
+          GoRoute(
+            path: RouteNames.addEvent,
+            name: 'addEvent',
+            builder: (context, state) => AddEventScreen(
+              prefilledDate: state.extra as DateTime?,
+            ),
+          ),
+          GoRoute(
+            path: RouteNames.editEvent,
+            name: 'editEvent',
+            builder: (context, state) => AddEventScreen(
+              eventToEdit: state.extra as Event,
+            ),
+          ),
+
+          // ── Reminders list + standalone add/edit ──────────────
+          GoRoute(
+            path: RouteNames.reminders,
+            name: 'reminders',
+            builder: (context, state) => const RemindersListScreen(),
+          ),
+          GoRoute(
+            path: RouteNames.addReminder,
+            name: 'addReminder',
+            builder: (context, state) => AddReminderScreen(
+              prefilledDate: state.extra as DateTime?,
+            ),
+          ),
+          GoRoute(
+            path: RouteNames.editReminder,
+            name: 'editReminder',
+            builder: (context, state) => AddReminderScreen(
+              reminderToEdit: state.extra as Reminder,
+            ),
+          ),
+
+          // Quotes
           GoRoute(
             path: RouteNames.quotes,
             name: 'quotes',
@@ -164,6 +214,8 @@ class AppRouter {
             name: 'savedQuotes',
             builder: (context, state) => const SavedQuotesScreen(),
           ),
+
+          // Words
           GoRoute(
             path: RouteNames.words,
             name: 'words',
@@ -176,44 +228,14 @@ class AppRouter {
             name: 'savedWords',
             builder: (context, state) => const SavedWordsScreen(),
           ),
-          GoRoute(
-            path: RouteNames.eventsList,
-            name: 'eventsList',
-            builder: (context, state) =>
-                const _PlaceholderScreen(title: 'Events'),
-          ),
-          GoRoute(
-            path: RouteNames.addEvent,
-            name: 'addEvent',
-            builder: (context, state) =>
-                const _PlaceholderScreen(title: 'Add Event'),
-          ),
-          GoRoute(
-            path: RouteNames.editEvent,
-            name: 'editEvent',
-            builder: (context, state) {
-              final eventId = state.uri.queryParameters['id'] ?? '';
-              return _PlaceholderScreen(title: 'Edit Event: $eventId');
-            },
-          ),
-          GoRoute(
-            path: RouteNames.reminders,
-            name: 'reminders',
-            builder: (context, state) =>
-                const _PlaceholderScreen(title: 'Reminders'),
-          ),
-          GoRoute(
-            path: RouteNames.addReminder,
-            name: 'addReminder',
-            builder: (context, state) =>
-                const _PlaceholderScreen(title: 'Add Reminder'),
-          ),
         ],
       ),
     ],
     errorBuilder: (context, state) => _ErrorScreen(state: state),
   );
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 class RootScaffold extends ConsumerWidget {
   final Widget child;
@@ -261,6 +283,8 @@ class RootScaffold extends ConsumerWidget {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+
 class _TabShellBody extends ConsumerWidget {
   final StatefulNavigationShell navigationShell;
 
@@ -290,7 +314,8 @@ class _TabShellBody extends ConsumerWidget {
   }
 }
 
-// ─── Error screen ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+
 class _ErrorScreen extends StatelessWidget {
   final GoRouterState state;
   const _ErrorScreen({required this.state});
@@ -321,45 +346,6 @@ class _ErrorScreen extends StatelessWidget {
               onPressed: () => context.go(RouteNames.home),
               icon: const Icon(Icons.home),
               label: Text(l10n.goToHome),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ─── Placeholder screen ───────────────────────────────────────
-class _PlaceholderScreen extends StatelessWidget {
-  final String title;
-  const _PlaceholderScreen({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.construction,
-                size: 64, color: theme.colorScheme.primary),
-            const SizedBox(height: 16),
-            Text(title, style: theme.textTheme.headlineSmall),
-            const SizedBox(height: 8),
-            Text(
-              l10n.comingSoon,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: () => context.go(RouteNames.home),
-              icon: const Icon(Icons.home),
-              label: Text(l10n.backToHome),
             ),
           ],
         ),

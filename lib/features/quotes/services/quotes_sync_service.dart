@@ -1,4 +1,13 @@
 // lib/features/quotes/services/quotes_sync_service.dart
+//
+// Worker service for quotes dataset.
+// Responsible ONLY for: seed, fetch from GitHub, save to Hive.
+// Does NOT own scheduling logic — that belongs to DataSyncService.
+//
+// SYNC BEHAVIOUR:
+//   • force=false → skip if interval not due OR remote version <= local
+//   • force=true  → skip interval check only; version check always runs
+//   • Downloads only if remote version > localVersion (always, no exceptions)
 
 import 'dart:convert';
 
@@ -17,11 +26,11 @@ class QuotesSyncService implements BaseSyncService {
   static const String _versionKey = 'quotes_version';
   static const String _lastCheckKey = 'quotes_last_check';
 
-  /// Key under which the synced quotes JSON string is stored in Hive.
-  /// QuotesLocalDatasource reads from this key after a sync.
+  /// Public key used by QuotesLocalDatasource to read the stored JSON.
   static const String quotesEnKey = 'quotes_en_json';
 
   // ── Config ─────────────────────────────────────────────────
+  /// Quotes change infrequently — check every 30 days is appropriate.
   static const int _checkIntervalDays = 30;
 
   final Dio _dio;
@@ -77,24 +86,31 @@ class QuotesSyncService implements BaseSyncService {
     AppManifest manifest, {
     bool force = false,
   }) async {
+    // Step 1 — Time interval gate (skipped when force=true)
     if (!force && !isSyncDue) {
-      debugPrint('ℹ️ Quotes sync not due yet');
+      debugPrint('ℹ️ Quotes: sync interval not due yet — skipping');
       return false;
     }
 
+    // Step 2 — Always record the check time so the interval resets
     await _settingsBox.put(_lastCheckKey, DateTime.now().toIso8601String());
 
+    // Step 3 — Version gate (ALWAYS checked, even when force=true)
     final remote = manifest.quotes;
     debugPrint('📋 Quotes: remote v${remote.version} / local v$localVersion');
 
-    if (!force && remote.version <= localVersion) {
-      debugPrint('✅ Quotes up to date');
+    if (remote.version <= localVersion) {
+      debugPrint('✅ Quotes: already at latest version — no download needed');
       return false;
     }
 
+    // Step 4 — Download
+    debugPrint(
+        '⬇️ Quotes: new version ${remote.version} available — downloading...');
+
     final url = remote.urlForLanguage('en');
     if (url == null) {
-      debugPrint('⚠️ No quotes URL found for language: en');
+      debugPrint('⚠️ Quotes: no URL found for language "en"');
       return false;
     }
 
@@ -109,9 +125,9 @@ class QuotesSyncService implements BaseSyncService {
         return true;
       }
     } on DioException catch (e) {
-      debugPrint('⚠️ Network error syncing quotes: ${e.message}');
+      debugPrint('⚠️ Quotes: network error — ${e.message}');
     } catch (e) {
-      debugPrint('⚠️ Failed to sync quotes: $e');
+      debugPrint('⚠️ Quotes: failed to sync — $e');
     }
 
     return false;

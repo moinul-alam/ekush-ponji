@@ -42,9 +42,9 @@ class WeekDaysRow extends StatelessWidget {
           label,
           style: theme.textTheme.labelSmall?.copyWith(
             fontWeight: FontWeight.w700,
-            fontSize: 11,
+            fontSize: 18,
             color: isWeekend
-                ? Colors.red.shade400
+                ? Color(0xFFB83232)
                 : theme.colorScheme.onSurfaceVariant.withOpacity(0.8),
             letterSpacing: 0.5,
           ),
