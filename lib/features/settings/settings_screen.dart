@@ -15,7 +15,6 @@ import 'package:ekush_ponji/core/constants/app_constants.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
 import 'package:ekush_ponji/features/holidays/providers/holiday_notification_provider.dart';
 import 'package:ekush_ponji/features/holidays/holidays_viewmodel.dart';
-import 'package:ekush_ponji/features/prayer_times/prayer_settings_viewmodel.dart';
 
 class SettingsScreen extends BaseScreen {
   const SettingsScreen({super.key});
@@ -90,7 +89,6 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen>
     final currentLanguage = currentLocale.languageCode;
     final isBn = l10n.languageCode == 'bn';
 
-    // Real OS permission status — false while loading (safe default)
     final osGranted = ref.watch(notificationPermissionProvider).value ?? false;
 
     final isSyncing =
@@ -158,56 +156,10 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen>
 
         const Divider(height: 32),
 
-        // ── Features ──────────────────────────────────────────────
-        _SectionHeader(title: isBn ? 'ফিচার' : 'Features'),
-        _SettingsSwitchTile(
-          icon: Icons.mosque_outlined,
-          title: isBn ? 'নামাজের সময়' : 'Prayer Times',
-          subtitle: isBn
-              ? 'নিচের নেভিগেশনে নামাজের সময় দেখান'
-              : 'Show prayer times in the bottom navigation',
-          value: viewModel.prayerTimesEnabled,
-          onChanged: (value) => viewModel.togglePrayerTimes(value, ref),
-        ),
-
-        const Divider(height: 32),
-
         // ── Notifications ─────────────────────────────────────────
         _SectionHeader(title: l10n.notifications),
 
-        // OS permission banner — shown when permission is denied
         if (!osGranted) _PermissionBanner(isBn: isBn),
-
-        // Prayer notification toggle
-        Consumer(
-          builder: (context, ref, _) {
-            final prayerEnabled = ref
-                .watch(prayerSettingsViewModelProvider)
-                .notificationPrefs
-                .masterEnabled;
-            // Show ON only when both user pref AND OS permission are granted
-            final effectiveValue = prayerEnabled && osGranted;
-            return _SettingsSwitchTile(
-              icon: Icons.access_time_rounded,
-              title: isBn
-                  ? 'নামাজের সময়ের নোটিফিকেশন'
-                  : 'Prayer Time Notifications',
-              subtitle: isBn
-                  ? 'নামাজের সময়ের নোটিফিকেশন চালু/বন্ধ করুন'
-                  : 'Turn prayer time notifications on/off',
-              value: effectiveValue,
-              onChanged: (value) async {
-                if (value && !osGranted) {
-                  _showPermissionDialog(context, ref, isBn);
-                  return;
-                }
-                await ref
-                    .read(prayerSettingsViewModelProvider.notifier)
-                    .setMasterEnabled(value);
-              },
-            );
-          },
-        ),
 
         // Holiday notification toggle
         Consumer(
@@ -319,7 +271,7 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen>
     );
   }
 
-  // ── Helpers ──────────────────────────────────────────────────────
+  // ── Helpers ───────────────────────────────────────────────
 
   String _getThemeName(ThemeMode mode, AppLocalizations l10n) {
     switch (mode) {
@@ -338,7 +290,7 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen>
       final keys = [
         'holidays_last_check',
         'quotes_last_check',
-        'words_last_check'
+        'words_last_check',
       ];
 
       DateTime? latest;
@@ -366,7 +318,7 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen>
     }
   }
 
-  // ── Dialogs ──────────────────────────────────────────────────────
+  // ── Dialogs ───────────────────────────────────────────────
 
   void _showThemeDialog(
       BuildContext context, WidgetRef ref, AppLocalizations l10n) {
@@ -515,7 +467,7 @@ class _PermissionBanner extends StatelessWidget {
   }
 }
 
-// ── Private widgets ──────────────────────────────────────────────────────────
+// ── Private widgets ───────────────────────────────────────────
 
 class _SectionHeader extends StatelessWidget {
   final String title;

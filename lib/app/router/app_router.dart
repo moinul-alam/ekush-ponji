@@ -9,7 +9,6 @@ import 'package:ekush_ponji/features/calendar/calendar_screen.dart';
 import 'package:ekush_ponji/features/calendar/day_details_screen.dart';
 import 'package:ekush_ponji/features/events/add_event_screen.dart';
 import 'package:ekush_ponji/features/reminders/add_reminder_screen.dart';
-import 'package:ekush_ponji/features/prayer_times/prayer_times_screen.dart';
 import 'package:ekush_ponji/features/calculator/calculator_screen.dart';
 import 'package:ekush_ponji/features/settings/settings_screen.dart';
 import 'package:ekush_ponji/features/quotes/quotes_screen.dart';
@@ -34,7 +33,6 @@ class AppRouter {
   static final GlobalKey<NavigatorState> navigatorKey =
       GlobalKey<NavigatorState>();
 
-  // Routes that should NOT show the bottom bar + banner
   static const _noBarRoutes = {
     RouteNames.splash,
     RouteNames.onboarding,
@@ -58,7 +56,6 @@ class AppRouter {
       ),
 
       // ── Root shell — persistent banner + nav bar ─────────────
-      // Wraps every route that needs the bottom bar.
       ShellRoute(
         builder: (context, state, child) {
           final location = state.uri.toString();
@@ -78,7 +75,7 @@ class AppRouter {
             builder: (context, state) => const AboutScreen(),
           ),
 
-          // ── Tab Shell — Home, Calendar, Holidays, Prayer ──────
+          // ── Tab Shell — Home, Calendar, Holidays ──────────────
           StatefulShellRoute.indexedStack(
             builder: (context, state, navigationShell) {
               return _TabShellBody(navigationShell: navigationShell);
@@ -143,15 +140,6 @@ class AppRouter {
                     path: RouteNames.holidays,
                     name: 'holidays',
                     builder: (context, state) => const HolidaysScreen(),
-                  ),
-                ],
-              ),
-              StatefulShellBranch(
-                routes: [
-                  GoRoute(
-                    path: RouteNames.prayerTimes,
-                    name: 'prayerTimes',
-                    builder: (context, state) => const PrayerTimesScreen(),
                   ),
                 ],
               ),
@@ -227,13 +215,6 @@ class AppRouter {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ROOT SCAFFOLD
-// The single persistent scaffold that owns the banner + nav bar.
-// Lives inside the router tree so GoRouterState is always available.
-// Never rebuilt on screen changes — banner stays alive continuously.
-// ─────────────────────────────────────────────────────────────────────────────
-
 class RootScaffold extends ConsumerWidget {
   final Widget child;
   final bool showBar;
@@ -269,9 +250,6 @@ class RootScaffold extends ConsumerWidget {
                       case AppTab.holidays:
                         context.go(RouteNames.holidays);
                         break;
-                      case AppTab.prayerTimes:
-                        context.go(RouteNames.prayerTimes);
-                        break;
                     }
                   },
                   onMoreTap: () => showMoreBottomSheet(context),
@@ -282,12 +260,6 @@ class RootScaffold extends ConsumerWidget {
     );
   }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// TAB SHELL BODY
-// Provides the indexed stack — no nav bar, no banner.
-// Syncs currentTabProvider so RootScaffold highlights the correct tab.
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _TabShellBody extends ConsumerWidget {
   final StatefulNavigationShell navigationShell;
@@ -306,11 +278,14 @@ class _TabShellBody extends ConsumerWidget {
 
   int _toLogical(int branch) {
     switch (branch) {
-      case 0: return AppTab.home;
-      case 1: return AppTab.calendar;
-      case 2: return AppTab.holidays;
-      case 3: return AppTab.prayerTimes;
-      default: return AppTab.home;
+      case 0:
+        return AppTab.home;
+      case 1:
+        return AppTab.calendar;
+      case 2:
+        return AppTab.holidays;
+      default:
+        return AppTab.home;
     }
   }
 }
@@ -369,7 +344,8 @@ class _PlaceholderScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.construction, size: 64, color: theme.colorScheme.primary),
+            Icon(Icons.construction,
+                size: 64, color: theme.colorScheme.primary),
             const SizedBox(height: 16),
             Text(title, style: theme.textTheme.headlineSmall),
             const SizedBox(height: 8),

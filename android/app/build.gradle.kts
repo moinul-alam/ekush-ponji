@@ -1,31 +1,33 @@
 import java.util.Properties
 import java.io.FileInputStream
 
+// 1. Safe Property Loading: Prevents crash if file is missing (e.g., on CI/CD or new clones)
 val keyPropertiesFile = rootProject.file("key.properties")
 val keyProperties = Properties()
-keyProperties.load(FileInputStream(keyPropertiesFile))
+if (keyPropertiesFile.exists()) {
+    keyProperties.load(FileInputStream(keyPropertiesFile))
+}
 
 plugins {
     id("com.android.application")
     id("kotlin-android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
 
 android {
     namespace = "com.ekushlabs.ekush_ponji"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "29.0.14206865"
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-        // Enable core library desugaring (for Java 8+ APIs on old Android versions)
+        // 2. Updated to Java 17: Recommended for AGP 8.x+
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
         isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
+        jvmTarget = JavaVersion.VERSION_17.toString()
     }
 
     defaultConfig {
@@ -38,25 +40,25 @@ android {
 
     signingConfigs {
         create("release") {
-            keyAlias = keyProperties["keyAlias"] as String
-            keyPassword = keyProperties["keyPassword"] as String
-            storeFile = file(keyProperties["storeFile"] as String)
-            storePassword = keyProperties["storePassword"] as String
+            // 3. Safe Access: Uses getProperty() to avoid NullPointerExceptions
+            keyAlias = keyProperties.getProperty("keyAlias")
+            keyPassword = keyProperties.getProperty("keyPassword")
+            storePassword = keyProperties.getProperty("storePassword")
+            
+            val stFile = keyProperties.getProperty("storeFile")
+            storeFile = if (stFile != null) file(stFile) else null
         }
     }
 
     buildTypes {
         release {
-            // ── Signing ───────────────────────────────────────
-            signingConfig = signingConfigs.getByName("release")
-
-            // ── Code & resource shrinking ─────────────────────
-            // Removes unused code from your app and all libraries (incl. AdMob).
+            // Only apply signing if the properties were actually loaded
+            if (keyProperties.containsKey("storeFile")) {
+                signingConfig = signingConfigs.getByName("release")
+            }
+            
             isMinifyEnabled = true
-            // Removes unused Android resources — saves 1–2 MB from AdMob alone.
             isShrinkResources = true
-
-            // ── ProGuard rules ────────────────────────────────
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -64,19 +66,15 @@ android {
         }
 
         debug {
-            // Keep debug fast — no shrinking, no obfuscation
             isMinifyEnabled = false
             isShrinkResources = false
         }
     }
 
-    // ── Split APKs by ABI ─────────────────────────────────────
-    // When building APK (not AAB), generate a separate APK per CPU
-    // architecture so each user downloads only what their device needs.
-    // Has no effect on AAB builds — Play Store handles splits automatically.
     splits {
         abi {
-            isEnable = true
+            // Enable splitting only for APK tasks, not for App Bundles (AAB)
+            isEnable = gradle.startParameter.taskNames.any { it.contains("AssembleRelease") }
             reset()
             include("arm64-v8a", "armeabi-v7a", "x86_64")
             isUniversalApk = false
@@ -89,6 +87,5 @@ flutter {
 }
 
 dependencies {
-    // Required when using isCoreLibraryDesugaringEnabled = true
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 }

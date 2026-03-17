@@ -6,24 +6,15 @@ import 'package:ekush_ponji/core/localization/app_localizations_bn.dart';
 import 'package:ekush_ponji/core/utils/string_formatter.dart';
 import 'package:ekush_ponji/core/utils/number_converter.dart';
 
-/// Base class for app localizations
-/// Provides translation methods and language-specific functionality
 abstract class AppLocalizations {
-  /// Get the current locale
   Locale get locale;
-
-  /// Get language code
   String get languageCode => locale.languageCode;
-
-  /// Get translation by key (for future dynamic translations)
   String translate(String key);
 
-  /// Static method to get localizations from context
   static AppLocalizations of(BuildContext context) {
     return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
   }
 
-  /// Factory method to create appropriate localization instance
   static AppLocalizations? load(Locale locale) {
     switch (locale.languageCode) {
       case 'bn':
@@ -31,11 +22,10 @@ abstract class AppLocalizations {
       case 'en':
         return AppLocalizationsEn();
       default:
-        return AppLocalizationsBn(); // Default to Bangla
+        return AppLocalizationsBn();
     }
   }
 
-  /// Check if locale is supported
   static bool isSupported(Locale locale) {
     return ['bn', 'en'].contains(locale.languageCode);
   }
@@ -77,28 +67,18 @@ abstract class AppLocalizations {
     );
   }
 
-  /// Format "X days ago" or "In X days"
   String formatDaysDistance(int days) {
     if (days == 0) return today;
     if (days == 1) return tomorrow;
     if (days == -1) return yesterday;
-
     String daysStr = localizeNumber(days.abs());
-
     if (days > 0) {
-      return formatNamed(
-        inDays,
-        {'count': daysStr},
-      );
+      return formatNamed(inDays, {'count': daysStr});
     } else {
-      return formatNamed(
-        daysAgo,
-        {'count': daysStr},
-      );
+      return formatNamed(daysAgo, {'count': daysStr});
     }
   }
 
-  /// Format duration (years, months, days)
   String formatDuration({
     required int years,
     required int months,
@@ -119,17 +99,19 @@ abstract class AppLocalizations {
   }
 
   // ========================================
-  // COMMON TRANSLATIONS
+  // APP INFO
   // ========================================
 
   String get appName;
   String get appTitle;
   String get welcomeToApp;
 
-  // Navigation
+  // ========================================
+  // NAVIGATION
+  // ========================================
+
   String get navHome;
   String get navCalendar;
-  String get navPrayerTimes;
   String get navCalculator;
   String get navSettings;
   String get navHolidays;
@@ -141,7 +123,10 @@ abstract class AppLocalizations {
   String get navSavedWords;
   String get navAbout;
 
-  // Common actions
+  // ========================================
+  // COMMON ACTIONS
+  // ========================================
+
   String get ok;
   String get cancel;
   String get save;
@@ -159,8 +144,14 @@ abstract class AppLocalizations {
   String get error;
   String get success;
   String get retry;
+  String get calendarShortGregorian;
+  String get calendarShortBangla;
+  String get calendarShortHijri;
 
-  // Home Screen
+  // ========================================
+  // HOME SCREEN
+  // ========================================
+
   String get homeTitle;
   String get goodMorning;
   String get goodAfternoon;
@@ -198,7 +189,10 @@ abstract class AppLocalizations {
   String get adjustFontSize;
   String get notificationsPermissionRequired;
 
-  // Drawer
+  // ========================================
+  // DRAWER
+  // ========================================
+
   String get profile;
   String get about;
   String get helpSupport;
@@ -206,7 +200,10 @@ abstract class AppLocalizations {
   String get welcome;
   String get allHolidays;
 
-  // Settings
+  // ========================================
+  // SETTINGS
+  // ========================================
+
   String get settingsTitle;
   String get appearance;
   String get language;
@@ -240,20 +237,12 @@ abstract class AppLocalizations {
   String get deleteEvent;
   String get deleteReminder;
   String get confirm;
+  String get openSettings;
 
-  // Calendar Types
-  String get calendarShortGregorian;
-  String get calendarShortBangla;
-  String get calendarShortHijri;
+  // ========================================
+  // CALENDAR
+  // ========================================
 
-  // Messages
-  String get comingSoon;
-  String get featureComingSoon;
-  String get loadingData;
-  String get failedToLoadData;
-  String get noDataAvailable;
-
-  // Calendar
   String get selectMonth;
   String get selectYear;
   String get calendarLegend;
@@ -273,46 +262,10 @@ abstract class AppLocalizations {
   String formatUpcomingEventsInMonth(String monthName);
   String formatUpcomingHolidaysInMonth(String monthName);
 
-  // GPS
-  String get updateLocation;
-  String get detectingLocation;
-  String get updatingLocation;
-  String get calculatingPrayerTimes;
-  String get localtionServicesDisabled;
-  String get locationPermissionRequired;
-  String get locationPermissionDenied;
-  String get enableLocationServicesForPrayerTimes;
-  String get localtionServiceRequiredForPrayerTimes;
-  String get locationServiceUsageForPrayerTimes;
-  String get openSettings;
-  String get getPrayerTimes;
-  String get prayerSettingsTitle;
-  String get prayerCalculationMethod;
-  String get prayerMadhab;
-  String get prayerMadhabHanafi;
-  String get prayerMadhabShafii;
-  String get prayerNotificationsTitle;
-  String get prayerEnableNotifications;
-  String get prayerNotificationsSubtitle;
-  String get prayerPerPrayerTitle;
-  String get prayerNotifyBeforeTitle;
-  String get prayerNotifyOnTime;
-  String get prayerNotifyMinutesBefore;
-  String get prayerSectionSun;
-  String get prayerSectionPrayers;
-  String get sunrise;
-  String get sunset;
-  String get currentPrayer;
-  String get nextPrayer;
-  String get remainingTime;
-  String get prayerSectionForbiddenTimes;
-  String get forbiddenTimeSunrise;
-  String get forbiddenTimeZenith;
-  String get forbiddenTimeSunset;
-  String get allPrayersCompletedToday;
-  String get dayProgressTitle;
+  // ========================================
+  // EVENT CATEGORIES
+  // ========================================
 
-  // Event categories (for calendar event labels)
   String get categoryWork;
   String get categoryPersonal;
   String get categoryFamily;
@@ -321,14 +274,20 @@ abstract class AppLocalizations {
   String get categorySocial;
   String get categoryOther;
 
-  // Reminder priority
+  // ========================================
+  // REMINDER PRIORITY
+  // ========================================
+
   String get priorityLow;
   String get priorityMedium;
   String get priorityHigh;
   String get priorityUrgent;
   String get priority;
 
-  // Days of week
+  // ========================================
+  // DAYS OF WEEK
+  // ========================================
+
   String get monday;
   String get tuesday;
   String get wednesday;
@@ -336,8 +295,6 @@ abstract class AppLocalizations {
   String get friday;
   String get saturday;
   String get sunday;
-
-  // Short day names for calendar header (Sun, Mon, ... / রবি, সোম, ...)
   String get shortSunday;
   String get shortMonday;
   String get shortTuesday;
@@ -346,7 +303,10 @@ abstract class AppLocalizations {
   String get shortFriday;
   String get shortSaturday;
 
-  // Months (English Calendar)
+  // ========================================
+  // MONTHS (ENGLISH CALENDAR)
+  // ========================================
+
   String get january;
   String get february;
   String get march;
@@ -360,7 +320,10 @@ abstract class AppLocalizations {
   String get november;
   String get december;
 
-  // Bangla Months
+  // ========================================
+  // BANGLA MONTHS
+  // ========================================
+
   String get boishakh;
   String get jyoishtho;
   String get asharh;
@@ -374,7 +337,10 @@ abstract class AppLocalizations {
   String get falgun;
   String get choitra;
 
-  // Seasons (Bengali calendar + Gregorian)
+  // ========================================
+  // SEASONS
+  // ========================================
+
   String get seasonGrishmo;
   String get seasonBorsha;
   String get seasonSharat;
@@ -386,7 +352,10 @@ abstract class AppLocalizations {
   String get seasonAutumn;
   String get seasonWinter;
 
-  // Calculator
+  // ========================================
+  // CALCULATOR
+  // ========================================
+
   String get calculatorTitle;
   String get fromDate;
   String get toDate;
@@ -412,10 +381,19 @@ abstract class AppLocalizations {
   String get weeks;
 
   // ========================================
+  // MESSAGES
+  // ========================================
+
+  String get comingSoon;
+  String get featureComingSoon;
+  String get loadingData;
+  String get failedToLoadData;
+  String get noDataAvailable;
+
+  // ========================================
   // HELPER METHODS
   // ========================================
 
-  /// Get month name by number (1-12)
   String getMonthName(int month) {
     switch (month) {
       case 1:
@@ -447,7 +425,6 @@ abstract class AppLocalizations {
     }
   }
 
-  /// Get abbreviated month name (for date badges in lists)
   String getMonthAbbreviation(int month) {
     final name = getMonthName(month);
     if (name.isEmpty) return '';
@@ -455,7 +432,6 @@ abstract class AppLocalizations {
     return name.substring(0, 4);
   }
 
-  /// Get Bangla month name by number (1-12)
   String getBanglaMonthName(int month) {
     switch (month) {
       case 1:
@@ -487,7 +463,6 @@ abstract class AppLocalizations {
     }
   }
 
-  /// Get day of week name
   String getDayName(int day) {
     switch (day) {
       case 1:
@@ -509,7 +484,6 @@ abstract class AppLocalizations {
     }
   }
 
-  /// Bengali calendar season name (Ritu) by month number 1-12
   String getBengaliSeasonName(int monthNumber) {
     if (monthNumber >= 1 && monthNumber <= 2) return seasonGrishmo;
     if (monthNumber >= 3 && monthNumber <= 4) return seasonBorsha;
@@ -519,7 +493,6 @@ abstract class AppLocalizations {
     return seasonBosonto;
   }
 
-  /// Gregorian season name by month 1-12
   String getGregorianSeasonName(int month) {
     if (month >= 3 && month <= 5) return seasonSpring;
     if (month >= 6 && month <= 8) return seasonSummer;
@@ -534,7 +507,6 @@ abstract class AppLocalizations {
     return '$day $month $year';
   }
 
-  /// Get greeting based on time
   String getGreeting() {
     final hour = DateTime.now().hour;
     if (hour < 12) return goodMorning;
@@ -544,19 +516,15 @@ abstract class AppLocalizations {
   }
 }
 
-/// Localizations Delegate
 class AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   const AppLocalizationsDelegate();
 
   @override
-  bool isSupported(Locale locale) {
-    return AppLocalizations.isSupported(locale);
-  }
+  bool isSupported(Locale locale) => AppLocalizations.isSupported(locale);
 
   @override
-  Future<AppLocalizations> load(Locale locale) async {
-    return AppLocalizations.load(locale)!;
-  }
+  Future<AppLocalizations> load(Locale locale) async =>
+      AppLocalizations.load(locale)!;
 
   @override
   bool shouldReload(AppLocalizationsDelegate old) => false;

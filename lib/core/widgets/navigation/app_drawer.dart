@@ -91,14 +91,6 @@ class AppDrawer extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.mosque_outlined),
-            title: Text(l10n.navPrayerTimes),
-            onTap: () {
-              Navigator.pop(context);
-              context.push(RouteNames.prayerTimes);
-            },
-          ),
-          ListTile(
             leading: const Icon(Icons.calculate_outlined),
             title: Text(l10n.navCalculator),
             onTap: () {
@@ -176,8 +168,7 @@ class AppDrawer extends StatelessWidget {
   void _showComingSoon(BuildContext context, String feature) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content:
-            Text('$feature - ${AppLocalizations.of(context).comingSoon}'),
+        content: Text('$feature - ${AppLocalizations.of(context).comingSoon}'),
         duration: const Duration(seconds: 2),
       ),
     );

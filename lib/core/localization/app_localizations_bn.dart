@@ -3,16 +3,12 @@
 import 'package:flutter/material.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 
-/// Bangla translations
 class AppLocalizationsBn extends AppLocalizations {
   @override
   Locale get locale => const Locale('bn', 'BD');
 
   @override
-  String translate(String key) {
-    // Future: implement dynamic translation lookup
-    return key;
-  }
+  String translate(String key) => key;
 
   // ========================================
   // APP INFO
@@ -36,9 +32,6 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get navCalendar => 'ক্যালেন্ডার';
-
-  @override
-  String get navPrayerTimes => 'নামাজের সময়';
 
   @override
   String get navCalculator => 'ক্যালকুলেটর';
@@ -269,121 +262,6 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get allHolidays => 'সকল ছুটির দিন';
 
-  // GPS
-  @override
-  String get updateLocation => 'লোকেশন আপডেট করুন';
-
-  @override
-  String get detectingLocation => 'লোকেশন শনাক্ত করা হচ্ছে...';
-
-  @override
-  String get updatingLocation => 'লোকেশন আপডেট করা হচ্ছে...';
-
-  @override
-  String get calculatingPrayerTimes => 'নামাজের সময় গণনা করা হচ্ছে...';
-
-  @override
-  String get localtionServicesDisabled => 'লোকেশন সার্ভিস নিষ্ক্রিয়';
-
-  @override
-  String get locationPermissionRequired => 'লোকেশন অনুমতি প্রয়োজন';
-
-  @override
-  String get locationPermissionDenied => 'লোকেশন অনুমতি অস্বীকার করা হয়েছে';
-
-  @override
-  String get enableLocationServicesForPrayerTimes =>
-      'নামাজের সময়ের জন্য লোকেশন সার্ভিস সক্ষম করুন';
-
-  @override
-  String get localtionServiceRequiredForPrayerTimes =>
-      'নামাজের সময়ের জন্য লোকেশন সার্ভিস প্রয়োজন';
-
-  @override
-  String get locationServiceUsageForPrayerTimes =>
-      'নামাজের সময়ের জন্য লোকেশন সার্ভিস ব্যবহার করা হবে';
-
-  @override
-  String get openSettings => 'সেটিংস খুলুন';
-
-  @override
-  String get getPrayerTimes => 'নামাজের সময় পান';
-
-  @override
-  String get prayerSettingsTitle => 'নামাজের সেটিংস';
-
-  @override
-  String get prayerCalculationMethod => 'হিসাবের পদ্ধতি';
-
-  @override
-  String get prayerMadhab => 'মাজহাব';
-
-  @override
-  String get prayerMadhabHanafi => 'হানাফি';
-
-  @override
-  String get prayerMadhabShafii => 'শাফেয়ী';
-
-  @override
-  String get prayerNotificationsTitle => 'আযানের নোটিফিকেশন';
-
-  @override
-  String get prayerEnableNotifications => 'নোটিফিকেশন চালু করুন';
-
-  @override
-  String get prayerNotificationsSubtitle => 'সকল নামাজের জন্য রিমাইন্ডার';
-
-  @override
-  String get prayerPerPrayerTitle => 'প্রতিটি নামাজের নোটিফিকেশন';
-
-  @override
-  String get prayerNotifyBeforeTitle => 'কতক্ষণ আগে নোটিফিকেশন দেবে';
-
-  @override
-  String get prayerNotifyOnTime => 'সময়মতো';
-
-  @override
-  String get prayerNotifyMinutesBefore => '{minutes} মিনিট আগে';
-
-  @override
-  String get prayerSectionSun => 'সূর্য';
-
-  @override
-  String get prayerSectionPrayers => 'নামাজ';
-
-  @override
-  String get sunrise => 'সূর্যোদয়';
-
-  @override
-  String get sunset => 'সূর্যাস্ত';
-
-  @override
-  String get currentPrayer => 'বর্তমান নামাজ';
-
-  @override
-  String get nextPrayer => 'পরবর্তী নামাজ';
-
-  @override
-  String get remainingTime => 'বাকি সময়';
-
-  @override
-  String get prayerSectionForbiddenTimes => 'নামাজ নিষিদ্ধ সময়';
-
-  @override
-  String get forbiddenTimeSunrise => 'সূর্যোদয়ের সময়';
-
-  @override
-  String get forbiddenTimeZenith => 'জাওয়ালের সময় (দুপুর)';
-
-  @override
-  String get forbiddenTimeSunset => 'সূর্যাস্তের সময়';
-
-  @override
-  String get allPrayersCompletedToday => 'আজকের সকল নামাজ সম্পন্ন';
-
-  @override
-  String get dayProgressTitle => 'দিনের অগ্রগতি';
-
   // ========================================
   // SETTINGS
   // ========================================
@@ -420,7 +298,7 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get notificationSubtitle =>
-      'ছুটির দিন এবং নামাজের সময় সম্পর্কে নোটিফিকেশন পেতে এনাবল করুন';
+      'ছুটির দিন সম্পর্কে নোটিফিকেশন পেতে এনাবল করুন';
 
   @override
   String get dataAndStorage => 'ডেটা এবং স্টোরেজ';
@@ -491,6 +369,9 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get confirm => 'নিশ্চিত করুন';
+
+  @override
+  String get openSettings => 'সেটিংস খুলুন';
 
   // ========================================
   // MESSAGES
@@ -571,6 +452,10 @@ class AppLocalizationsBn extends AppLocalizations {
   String formatUpcomingHolidaysInMonth(String monthName) =>
       '$monthName মাসে আসন্ন ছুটির দিন';
 
+  // ========================================
+  // EVENT CATEGORIES
+  // ========================================
+
   @override
   String get categoryWork => 'কর্ম';
 
@@ -591,6 +476,10 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get categoryOther => 'অন্যান্য';
+
+  // ========================================
+  // REMINDER PRIORITY
+  // ========================================
 
   @override
   String get priorityLow => 'নিম্ন';

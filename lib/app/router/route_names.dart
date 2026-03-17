@@ -12,14 +12,11 @@ class RouteNames {
   static const String calendarDayDetails = '/calendar/day-details';
   static const String calendarAddEvent = '/calendar/add-event';
   static const String calendarAddReminder = '/calendar/add-reminder';
-  static const String calendarEditEvent = '/calendar/edit-event'; 
+  static const String calendarEditEvent = '/calendar/edit-event';
   static const String calendarEditReminder = '/calendar/edit-reminder';
 
   // Calculator
   static const String calculator = '/calculator';
-
-  // Prayer Times
-  static const String prayerTimes = '/prayer-times';
 
   // Events
   static const String eventsList = '/events';

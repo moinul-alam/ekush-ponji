@@ -23,65 +23,51 @@ class OnboardingScreen extends ConsumerWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 28),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const SizedBox(height: 48),
+              const Spacer(),
 
               // ── App logo + name ─────────────────────────────
-              Center(
-                child: Column(
-                  children: [
-                    ClipRRect(
+              ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  width: 80,
+                  height: 80,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: colorScheme.primaryContainer,
                       borderRadius: BorderRadius.circular(20),
-                      child: Image.asset(
-                        'assets/images/logo.png',
-                        width: 72,
-                        height: 72,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          width: 72,
-                          height: 72,
-                          decoration: BoxDecoration(
-                            color: colorScheme.primaryContainer,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Icon(
-                            Icons.calendar_month_rounded,
-                            size: 40,
-                            color: colorScheme.primary,
-                          ),
-                        ),
-                      ),
                     ),
-                    const SizedBox(height: 12),
-                    Text(
-                      isBn ? 'একুশ পঞ্জি' : 'Ekush Ponji',
-                      style: theme.textTheme.headlineMedium
-                          ?.copyWith(fontWeight: FontWeight.bold),
+                    child: Icon(
+                      Icons.calendar_month_rounded,
+                      size: 44,
+                      color: colorScheme.primary,
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      isBn
-                          ? 'শুরু করার আগে কয়েকটি সেটিংস ঠিক করুন'
-                          : 'Set up a few preferences to get started',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
+                  ),
                 ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'একুশ পঞ্জিতে আপনাকে স্বাগতম',
+                style: theme.textTheme.headlineMedium
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Choose your language to get started\nশুরু করতে ভাষা নির্বাচন করুন',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
               ),
 
               const SizedBox(height: 48),
 
               // ── Language selection ──────────────────────────
-              Text(
-                isBn ? 'ভাষা বেছে নিন' : 'Choose Language',
-                style: theme.textTheme.titleMedium
-                    ?.copyWith(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 12),
               Row(
                 children: [
                   Expanded(
@@ -105,49 +91,6 @@ class OnboardingScreen extends ConsumerWidget {
                   ),
                 ],
               ),
-
-              const SizedBox(height: 36),
-
-              // ── Prayer times toggle ─────────────────────────
-              Text(
-                isBn ? 'নামাজের সময়' : 'Prayer Times',
-                style: theme.textTheme.titleMedium
-                    ?.copyWith(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 12),
-              _FeatureToggleCard(
-                icon: Icons.access_time_rounded,
-                title: isBn ? 'নামাজের সময় দেখান' : 'Show Prayer Times',
-                subtitle: isBn
-                    ? 'প্রতিদিনের নামাজের সময়সূচি'
-                    : 'Daily prayer time schedule',
-                value: state.showPrayerTimes,
-                onChanged: notifier.togglePrayerTimes,
-              ),
-              if (state.showPrayerTimes) ...[
-                const SizedBox(height: 8),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.location_on_outlined,
-                        size: 14,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        isBn
-                            ? 'সঠিক সময়ের জন্য অবস্থানের অনুমতি প্রয়োজন'
-                            : 'Location permission needed for accurate times',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
 
               const Spacer(),
 
@@ -223,23 +166,22 @@ class _LanguageCard extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
         decoration: BoxDecoration(
           color: isSelected
               ? colorScheme.primaryContainer
               : colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isSelected
-                ? colorScheme.primary
-                : colorScheme.outlineVariant,
+            color:
+                isSelected ? colorScheme.primary : colorScheme.outlineVariant,
             width: isSelected ? 2 : 1,
           ),
         ),
         child: Column(
           children: [
-            Text(flag, style: const TextStyle(fontSize: 28)),
-            const SizedBox(height: 8),
+            Text(flag, style: const TextStyle(fontSize: 32)),
+            const SizedBox(height: 10),
             Text(
               label,
               style: theme.textTheme.titleSmall?.copyWith(
@@ -259,52 +201,6 @@ class _LanguageCard extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── Feature toggle card ───────────────────────────────────────
-
-class _FeatureToggleCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final bool value;
-  final ValueChanged<bool> onChanged;
-
-  const _FeatureToggleCard({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.value,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: colorScheme.outlineVariant),
-      ),
-      child: SwitchListTile(
-        secondary: Icon(icon, color: colorScheme.primary),
-        title: Text(title, style: theme.textTheme.bodyLarge),
-        subtitle: Text(
-          subtitle,
-          style: theme.textTheme.bodySmall
-              ?.copyWith(color: colorScheme.onSurfaceVariant),
-        ),
-        value: value,
-        onChanged: onChanged,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
         ),
       ),
     );

@@ -153,11 +153,6 @@ class LocalNotificationService {
       return;
     }
 
-    if (payload == 'prayer') {
-      AppRouter.router.go(RouteNames.prayerTimes);
-      return;
-    }
-
     if (payload == 'holiday') {
       AppRouter.router.go(RouteNames.holidays);
       return;

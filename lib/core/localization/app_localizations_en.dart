@@ -3,16 +3,12 @@
 import 'package:flutter/material.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 
-/// English translations
 class AppLocalizationsEn extends AppLocalizations {
   @override
   Locale get locale => const Locale('en', 'US');
 
   @override
-  String translate(String key) {
-    // Future: implement dynamic translation lookup
-    return key;
-  }
+  String translate(String key) => key;
 
   // ========================================
   // APP INFO
@@ -36,9 +32,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get navCalendar => 'Calendar';
-
-  @override
-  String get navPrayerTimes => 'Prayer Times';
 
   @override
   String get navCalculator => 'Calculator';
@@ -305,7 +298,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notificationSubtitle =>
-      'Enable notifications to receive updates about holidays and prayer times';
+      'Enable notifications to receive updates about holidays';
 
   @override
   String get dataAndStorage => 'Data & Storage';
@@ -378,120 +371,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get confirm => 'Confirm';
 
-  // GPS
-  @override
-  String get updateLocation => 'Update location';
-
-  @override
-  String get detectingLocation => 'Detecting location...';
-
-  @override
-  String get updatingLocation => 'Updating location...';
-
-  @override
-  String get calculatingPrayerTimes => 'Calculating prayer times...';
-
-  @override
-  String get localtionServicesDisabled => 'Location services are disabled';
-
-  @override
-  String get locationPermissionRequired => 'Location permission is required';
-
-  @override
-  String get locationPermissionDenied => 'Location permission denied';
-
-  @override
-  String get enableLocationServicesForPrayerTimes =>
-      'Please enable location services to get accurate prayer times';
-
-  @override
-  String get localtionServiceRequiredForPrayerTimes =>
-      'Location services are required to calculate prayer times';
-
-  @override
-  String get locationServiceUsageForPrayerTimes =>
-      "Your location will be used to calculate accurate prayer times for your area";
-
   @override
   String get openSettings => 'Open Settings';
-
-  @override
-  String get getPrayerTimes => 'Get Prayer Times';
-
-  @override
-  String get prayerSettingsTitle => 'Prayer Settings';
-
-  @override
-  String get prayerCalculationMethod => 'Calculation Method';
-
-  @override
-  String get prayerMadhab => 'Madhab';
-
-  @override
-  String get prayerMadhabHanafi => 'Hanafi';
-
-  @override
-  String get prayerMadhabShafii => "Shafi'i";
-
-  @override
-  String get prayerNotificationsTitle => 'Prayer Notifications';
-
-  @override
-  String get prayerEnableNotifications => 'Enable Notifications';
-
-  @override
-  String get prayerNotificationsSubtitle => 'Get reminders for all prayers';
-
-  @override
-  String get prayerPerPrayerTitle => 'Per Prayer';
-
-  @override
-  String get prayerNotifyBeforeTitle => 'Notify Before Prayer';
-
-  @override
-  String get prayerNotifyOnTime => 'At time';
-
-  @override
-  String get prayerNotifyMinutesBefore => '{minutes} min before';
-
-  @override
-  String get prayerSectionSun => 'Sun';
-
-  @override
-  String get prayerSectionPrayers => 'Prayers';
-
-  @override
-  String get sunrise => 'Sunrise';
-
-  @override
-  String get sunset => 'Sunset';
-
-  @override
-  String get currentPrayer => 'Current Prayer';
-
-  @override
-  String get nextPrayer => 'Next Prayer';
-
-  @override
-  String get remainingTime => 'Remaining';
-
-  @override
-  String get prayerSectionForbiddenTimes => 'Forbidden Times';
-
-  @override
-  String get forbiddenTimeSunrise => 'Sunrise';
-
-  @override
-  String get forbiddenTimeZenith => 'Zenith (Noon)';
-
-  @override
-  String get forbiddenTimeSunset => 'Sunset';
-
-  @override
-  String get allPrayersCompletedToday => 'All prayers completed for today';
-
-  @override
-  String get dayProgressTitle => "Today's Progress";
 
   // ========================================
   // MESSAGES
@@ -572,6 +453,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String formatUpcomingHolidaysInMonth(String monthName) =>
       'Upcoming Holidays in $monthName';
 
+  // ========================================
+  // EVENT CATEGORIES
+  // ========================================
+
   @override
   String get categoryWork => 'Work';
 
@@ -592,6 +477,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get categoryOther => 'Other';
+
+  // ========================================
+  // REMINDER PRIORITY
+  // ========================================
 
   @override
   String get priorityLow => 'Low';

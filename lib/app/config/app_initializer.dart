@@ -19,9 +19,7 @@ import 'package:ekush_ponji/core/services/background_task_dispatcher.dart';
 import 'package:ekush_ponji/features/calendar/data/calendar_repository.dart';
 import 'package:ekush_ponji/features/holidays/services/holiday_notification_prefs.dart';
 import 'package:ekush_ponji/features/holidays/services/holiday_notification_service.dart';
-// QuoteNotificationPrefs is accessed via quote_notification_service.dart
 import 'package:ekush_ponji/features/quotes/services/quote_notification_service.dart';
-// WordNotificationPrefs is accessed via word_notification_service.dart
 import 'package:ekush_ponji/features/words/services/word_notification_service.dart';
 import 'package:workmanager/workmanager.dart';
 
@@ -134,13 +132,6 @@ class AppInitializer {
 
       await Future.wait([
         Workmanager().registerOneOffTask(
-          kReschedulePrayerTask,
-          kReschedulePrayerTask,
-          initialDelay: const Duration(seconds: 30),
-          existingWorkPolicy: ExistingWorkPolicy.replace,
-          constraints: Constraints(networkType: NetworkType.notRequired),
-        ),
-        Workmanager().registerOneOffTask(
           kRescheduleQuoteTask,
           kRescheduleQuoteTask,
           initialDelay: const Duration(seconds: 30),
@@ -156,8 +147,7 @@ class AppInitializer {
         ),
       ]);
 
-      debugPrint(
-          '✅ WorkManager initialized — prayer, quote, word tasks registered');
+      debugPrint('✅ WorkManager initialized — quote, word tasks registered');
     } catch (e) {
       debugPrint('⚠️ WorkManager warning: $e');
     }
@@ -236,7 +226,6 @@ class AppInitializer {
     try {
       debugPrint('🔔 Scheduling quote notifications...');
 
-      // QuoteNotificationPrefs is accessible via quote_notification_service import
       final prefs = await QuoteNotificationPrefs.load();
       if (!prefs.enabled) {
         debugPrint('ℹ️ Quote notifications disabled — skipping');
@@ -268,7 +257,6 @@ class AppInitializer {
     try {
       debugPrint('🔔 Scheduling word notifications...');
 
-      // WordNotificationPrefs is accessible via word_notification_service import
       final prefs = await WordNotificationPrefs.load();
       if (!prefs.enabled) {
         debugPrint('ℹ️ Word notifications disabled — skipping');
