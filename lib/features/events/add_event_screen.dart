@@ -88,7 +88,7 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
       builder: (context) => AlertDialog(
         title: Text(l10n.deleteEvent),
         content: Text(
-          l10n.deleteAllDataConfirmMessage,
+          l10n.deleteEventConfirmMessage,
         ),
         actions: [
           TextButton(
@@ -187,6 +187,7 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ─── Title ─────────────────────────────────────
+
             TextField(
               controller: _titleController,
               focusNode: _titleFocusNode,
@@ -440,6 +441,7 @@ class _DateTimePicker extends ConsumerWidget {
       context: context,
       initial: dateTime ?? DateTime.now(),
       l10n: l10n,
+      // showTimeTab defaults to true — no change needed
     );
     if (result != null) onPick(result);
   }

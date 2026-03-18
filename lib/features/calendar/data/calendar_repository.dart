@@ -1,26 +1,7 @@
 // lib/features/calendar/data/calendar_repository.dart
-//
-// Provides holidays, events, and reminders — offline-first from Hive.
-//
-// SYNC POLICY:
-//   This repository does NOT trigger any sync. It only reads from Hive.
-//   All syncing is exclusively owned by DataSyncService, called from:
-//     • AppInitializer (startup)
-//     • HolidaysViewModel (manual/background)
-//     • SettingsViewModel (force sync)
-//
-// HOLIDAY DISPLAY POLICY:
-//   getHolidaysForDates() — used by the calendar grid — returns ONLY mandatory
-//   holidays (সাধারণ ছুটি + নির্বাহী আদেশে ছুটি). This means only those types
-//   will be highlighted on individual day cells.
-//
-//   getHolidaysForMonth() — returns ALL holidays (mandatory + optional).
-//   Used by CalendarHolidaysWidget below the grid and by DayDetailsPanel,
-//   so the full list is always visible there.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:ekush_ponji/features/holidays/models/holiday.dart';
 import 'package:ekush_ponji/features/events/models/event.dart';
 import 'package:ekush_ponji/features/reminders/models/reminder.dart';
@@ -31,7 +12,6 @@ import 'package:ekush_ponji/features/reminders/data/local/reminders_local_dataso
 
 class CalendarRepository {
   final CalendarLocalDatasource _localDatasource;
-  final CalendarRemoteDatasource _remoteDatasource;
   final EventsLocalDatasource _eventsLocalDatasource;
   final RemindersLocalDatasource _remindersLocalDatasource;
 
@@ -41,7 +21,6 @@ class CalendarRepository {
     EventsLocalDatasource? eventsLocalDatasource,
     RemindersLocalDatasource? remindersLocalDatasource,
   })  : _localDatasource = localDatasource ?? CalendarLocalDatasource(),
-        _remoteDatasource = remoteDatasource ?? CalendarRemoteDatasource(),
         _eventsLocalDatasource =
             eventsLocalDatasource ?? EventsLocalDatasource(),
         _remindersLocalDatasource =
@@ -88,15 +67,6 @@ class CalendarRepository {
     }
   }
 
-  /// Returns holidays per date for the calendar grid cells.
-  ///
-  /// ONLY mandatory holidays (GazetteType.mandatoryGeneral and
-  /// GazetteType.mandatoryExecutive) are included. Optional community
-  /// holidays are intentionally excluded from the grid so that only
-  /// official government holidays affect the day cell colour and accent bar.
-  ///
-  /// All holiday types are still visible in CalendarHolidaysWidget (below
-  /// the grid) and in DayDetailsPanel via getHolidaysForMonth().
   Future<Map<DateTime, List<Holiday>>> getHolidaysForDates(
       List<DateTime> dates) async {
     final Map<DateTime, List<Holiday>> map = {};
@@ -317,10 +287,6 @@ class CalendarRepository {
     }
   }
 }
-
-// ── Provider ──────────────────────────────────────────────────────────────────
-// No DataSyncService dependency — repository is read-only from Hive.
-// Sync is owned entirely by DataSyncService via AppInitializer / ViewModels.
 
 final calendarRepositoryProvider = Provider<CalendarRepository>((ref) {
   return CalendarRepository();

@@ -5,24 +5,26 @@ import 'package:ekush_ponji/core/localization/app_localizations.dart';
 
 class DateInputField extends StatefulWidget {
   final String label;
+  final String? subtitle;
   final DateTime? selectedDate;
   final VoidCallback onTap;
   final VoidCallback? onClear;
   final bool hasError;
   final String? errorText;
   final Function(DateTime?)? onDateChanged;
-  final GlobalKey<DateInputFieldState>? nextDateFieldKey; // Changed to GlobalKey
+  final GlobalKey<DateInputFieldState>? nextDateFieldKey;
 
   const DateInputField({
     super.key,
     required this.label,
+    this.subtitle,
     this.selectedDate,
     required this.onTap,
     this.onClear,
     this.hasError = false,
     this.errorText,
     this.onDateChanged,
-    this.nextDateFieldKey, // GlobalKey instead of FocusNode
+    this.nextDateFieldKey,
   });
 
   @override
@@ -82,11 +84,11 @@ class DateInputFieldState extends State<DateInputField> {
     super.dispose();
   }
 
-  /// Update text controllers when selectedDate changes
   void _updateControllersFromDate() {
     if (widget.selectedDate != null) {
       _dayController.text = widget.selectedDate!.day.toString().padLeft(2, '0');
-      _monthController.text = widget.selectedDate!.month.toString().padLeft(2, '0');
+      _monthController.text =
+          widget.selectedDate!.month.toString().padLeft(2, '0');
       _yearController.text = widget.selectedDate!.year.toString();
     } else {
       _dayController.clear();
@@ -95,7 +97,6 @@ class DateInputFieldState extends State<DateInputField> {
     }
   }
 
-  /// Validate and emit complete date when all fields are filled
   void _validateAndEmitDate() {
     final day = int.tryParse(_dayController.text);
     final month = int.tryParse(_monthController.text);
@@ -104,7 +105,6 @@ class DateInputFieldState extends State<DateInputField> {
     if (day != null && month != null && year != null) {
       try {
         final date = DateTime(year, month, day);
-        // Verify DateTime didn't adjust the date (e.g., Feb 31 → Mar 3)
         if (date.day == day && date.month == month && date.year == year) {
           widget.onDateChanged?.call(date);
         }
@@ -118,6 +118,14 @@ class DateInputFieldState extends State<DateInputField> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
+    final isBn = l10n.languageCode == 'bn';
+
+    // Localized placeholder hints
+    // Bengali uses the word (দিন/মাস/বছর), English uses the abbreviation (DD/MM/YYYY)
+    final dayHint = isBn ? l10n.day : 'DD'; // দিন / DD
+    final monthHint = isBn ? l10n.month : 'MM'; // মাস / MM
+    final yearHint = isBn ? l10n.year : 'YYYY'; // বছর / YYYY
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -144,50 +152,83 @@ class DateInputFieldState extends State<DateInputField> {
               width: 1.5,
             ),
           ),
-          child: Row(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              // Date Input Fields (DD/MM/YYYY)
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
+              // ── Date segments row + action buttons ──────────
+              Row(
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        16,
+                        12,
+                        16,
+                        widget.subtitle != null ? 4 : 12,
+                      ),
+                      child: Row(
+                        children: [
+                          _buildDateSegment(
+                            controller: _dayController,
+                            focusNode: _dayFocus,
+                            nextFocusNode: _monthFocus,
+                            hint: dayHint,
+                            maxLength: 2,
+                            maxValue: 31,
+                          ),
+                          _buildSeparator(),
+                          _buildDateSegment(
+                            controller: _monthController,
+                            focusNode: _monthFocus,
+                            nextFocusNode: _yearFocus,
+                            hint: monthHint,
+                            maxLength: 2,
+                            maxValue: 12,
+                          ),
+                          _buildSeparator(),
+                          _buildDateSegment(
+                            controller: _yearController,
+                            focusNode: _yearFocus,
+                            hint: yearHint,
+                            maxLength: 4,
+                            isYear: true,
+                            isLastField: true,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
+                  // Action Buttons (Clear + Calendar Picker)
+                  _buildActionButtons(colorScheme),
+                ],
+              ),
+
+              // ── Subtitle hint inside the box ─────────────────
+              if (widget.subtitle != null)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
                   child: Row(
                     children: [
-                      _buildDateSegment(
-                        controller: _dayController,
-                        focusNode: _dayFocus,
-                        nextFocusNode: _monthFocus,
-                        hint: 'DD',
-                        maxLength: 2,
-                        maxValue: 31,
+                      Icon(
+                        Icons.info_outline_rounded,
+                        size: 12,
+                        color:
+                            colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
                       ),
-                      _buildSeparator(),
-                      _buildDateSegment(
-                        controller: _monthController,
-                        focusNode: _monthFocus,
-                        nextFocusNode: _yearFocus,
-                        hint: 'MM',
-                        maxLength: 2,
-                        maxValue: 12,
-                      ),
-                      _buildSeparator(),
-                      _buildDateSegment(
-                        controller: _yearController,
-                        focusNode: _yearFocus,
-                        hint: 'YYYY',
-                        maxLength: 4,
-                        isYear: true,
-                        isLastField: true,
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          widget.subtitle!,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant
+                                .withValues(alpha: 0.8),
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 ),
-              ),
-
-              // Action Buttons (Clear + Calendar Picker)
-              _buildActionButtons(colorScheme),
             ],
           ),
         ),
@@ -198,25 +239,22 @@ class DateInputFieldState extends State<DateInputField> {
     );
   }
 
-  /// Build separator between date segments
   Widget _buildSeparator() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Text(
         '/',
         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
       ),
     );
   }
 
-  /// Build action buttons (clear and calendar picker)
   Widget _buildActionButtons(ColorScheme colorScheme) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Clear Button (shown only when date is selected)
         if (widget.selectedDate != null && widget.onClear != null)
           IconButton(
             icon: Icon(
@@ -227,8 +265,6 @@ class DateInputFieldState extends State<DateInputField> {
             onPressed: widget.onClear,
             tooltip: 'Clear',
           ),
-
-        // Calendar Picker Button
         Container(
           margin: const EdgeInsets.only(right: 4),
           decoration: BoxDecoration(
@@ -249,7 +285,6 @@ class DateInputFieldState extends State<DateInputField> {
     );
   }
 
-  /// Build error message display
   Widget _buildErrorMessage(ColorScheme colorScheme) {
     return Padding(
       padding: const EdgeInsets.only(top: 8),
@@ -265,8 +300,8 @@ class DateInputFieldState extends State<DateInputField> {
             child: Text(
               widget.errorText!,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: colorScheme.error,
-              ),
+                    color: colorScheme.error,
+                  ),
             ),
           ),
         ],
@@ -274,7 +309,6 @@ class DateInputFieldState extends State<DateInputField> {
     );
   }
 
-  /// Build individual date segment (day, month, or year field)
   Widget _buildDateSegment({
     required TextEditingController controller,
     required FocusNode focusNode,
@@ -323,25 +357,19 @@ class DateInputFieldState extends State<DateInputField> {
     );
   }
 
-  /// Handle field value change and auto-advance focus
   void _handleFieldChange(
     String value,
     int maxLength,
     FocusNode? nextFocusNode,
     bool isLastField,
   ) {
-    // Validate complete date when year is filled
     if (value.length == maxLength && isLastField) {
       _validateAndEmitDate();
     }
-
-    // Auto-advance focus when field is complete
     if (value.length == maxLength) {
       if (isLastField && widget.nextDateFieldKey != null) {
-        // Jump to next DateInputField's day field using GlobalKey
         widget.nextDateFieldKey!.currentState?.focusDayField();
       } else if (nextFocusNode != null) {
-        // Move to next field within same DateInputField
         nextFocusNode.requestFocus();
       }
     }
@@ -364,14 +392,12 @@ class _DateValueInputFormatter extends TextInputFormatter {
     final value = int.tryParse(newValue.text);
     if (value == null) return oldValue;
 
-    // Reject if value exceeds maximum
     if (value > maxValue) return oldValue;
 
-    // Auto-pad with leading zero if single digit would exceed max when doubled
     if (newValue.text.length == 1 && value * 10 > maxValue) {
       return TextEditingValue(
         text: newValue.text.padLeft(2, '0'),
-        selection: TextSelection.collapsed(offset: 2),
+        selection: const TextSelection.collapsed(offset: 2),
       );
     }
 

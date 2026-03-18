@@ -21,19 +21,18 @@ class DailyWordWidget extends ConsumerWidget {
     final vm = ref.read(wordsViewModelProvider.notifier);
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.fromLTRB(4, 4, 4, 4),
       decoration: BoxDecoration(
-        color: cs.surfaceContainerHighest.withOpacity(0.35),
-        borderRadius: BorderRadius.circular(20),
+        color: cs.surfaceContainerHighest.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: cs.outlineVariant.withOpacity(0.4),
+          color: cs.outlineVariant.withValues(alpha: 0.4),
           width: 1,
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Header ────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
             child: Row(
@@ -74,10 +73,7 @@ class DailyWordWidget extends ConsumerWidget {
               ],
             ),
           ),
-
           const SizedBox(height: 12),
-
-          // ── Content ───────────────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
             child: viewState is ViewStateLoading
@@ -137,7 +133,6 @@ class _WordContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Word + chip + save icon ───────────────────────
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -180,15 +175,13 @@ class _WordContent extends StatelessWidget {
                     word!.isSaved
                         ? Icons.favorite_rounded
                         : Icons.favorite_border_rounded,
-                    color:
-                        word!.isSaved ? cs.error : cs.onSurfaceVariant,
+                    color: word!.isSaved ? cs.error : cs.onSurfaceVariant,
                     size: 28,
                   ),
                   visualDensity: VisualDensity.compact,
                 ),
             ],
           ),
-
           const SizedBox(height: 4),
           Text(
             word!.pronunciation,
@@ -197,11 +190,9 @@ class _WordContent extends StatelessWidget {
               fontStyle: FontStyle.italic,
             ),
           ),
-
           const SizedBox(height: 16),
           Divider(color: cs.outline.withValues(alpha: 0.3), height: 1),
           const SizedBox(height: 16),
-
           _buildSection(context,
               icon: Icons.lightbulb_outline_rounded,
               title: l10n.meaningEnglish,

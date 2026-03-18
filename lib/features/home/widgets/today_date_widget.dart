@@ -11,18 +11,71 @@ import 'package:ekush_ponji/features/calendar/models/hijri_date.dart';
 import 'package:ekush_ponji/features/home/widgets/home_section_widget.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
 
-// English month names — always used for the Gregorian row regardless of locale
 const List<String> _enMonths = [
-  '', 'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
+  '',
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
 ];
 
-// Always-English Gregorian season — used only for the Gregorian row
 String _enGregorianSeason(int month) {
   if (month >= 3 && month <= 5) return 'Spring';
   if (month >= 6 && month <= 8) return 'Summer';
   if (month >= 9 && month <= 11) return 'Autumn';
   return 'Winter';
+}
+
+// ── Today Header Row ──────────────────────────────────────────
+
+class _TodayHeaderRow extends StatelessWidget {
+  final DateTime gregorianDate;
+
+  const _TodayHeaderRow({required this.gregorianDate});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
+
+    final dayName = l10n.getDayName(gregorianDate.weekday);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+      color: cs.primary,
+      child: Center(
+        child: RichText(
+          text: TextSpan(
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: cs.onPrimary,
+              fontSize: 24,
+              height: 1.0,
+            ),
+            children: [
+              TextSpan(
+                text: '${l10n.today} ',
+                style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
+              TextSpan(
+                text: dayName,
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class TodayDateWidget extends ConsumerWidget {
@@ -37,6 +90,7 @@ class TodayDateWidget extends ConsumerWidget {
 
     return HomeSectionWidget(
       padding: EdgeInsets.zero,
+      margin: const EdgeInsets.fromLTRB(4, 4, 4, 4),
       onTap: () => context.go(RouteNames.calendar),
       child: _MergedDateCard(
         bengaliDate: bengaliDate,
@@ -47,9 +101,7 @@ class TodayDateWidget extends ConsumerWidget {
   }
 }
 
-// ============================================================================
-// MERGED DATE CARD
-// ============================================================================
+// ── Merged Date Card ──────────────────────────────────────────
 
 class _MergedDateCard extends StatelessWidget {
   final BengaliDate bengaliDate;
@@ -72,18 +124,21 @@ class _MergedDateCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(16),
       child: Column(
         children: [
-          // ── Row 1: Gregorian — always English ───────────
+          // ── New top card ────────────────────────────────
+          _TodayHeaderRow(gregorianDate: gregorianDate),
+
+          // ── Gregorian ───────────────────────────────────
           _DateRow(
             dayNum: gregorianDate.day.toString(),
             monthYearEra:
                 '${_enMonths[gregorianDate.month]} ${gregorianDate.year} AD',
-            seasonOrIcon: _SeasonOrIcon.season(
-                _enGregorianSeason(gregorianDate.month)),
+            seasonOrIcon:
+                _SeasonOrIcon.season(_enGregorianSeason(gregorianDate.month)),
             backgroundColor: cs.tertiaryContainer,
             textColor: cs.onTertiaryContainer,
           ),
 
-          // ── Row 2: Bengali ──────────────────────────────
+          // ── Bengali ─────────────────────────────────────
           _DateRow(
             dayNum: isBn ? bengaliDate.dayBn : bengaliDate.day.toString(),
             monthYearEra:
@@ -96,11 +151,10 @@ class _MergedDateCard extends StatelessWidget {
             textColor: cs.onPrimaryContainer,
           ),
 
-          // ── Row 3: Hijri ────────────────────────────────
+          // ── Hijri ────────────────────────────────────────
           _DateRow(
             dayNum: hijriDate.dayForLocale(l10n.languageCode),
-            monthYearEra:
-                '${hijriDate.monthNameForLocale(l10n.languageCode)} '
+            monthYearEra: '${hijriDate.monthNameForLocale(l10n.languageCode)} '
                 '${hijriDate.yearForLocale(l10n.languageCode)} '
                 '${l10n.calendarShortHijri}',
             seasonOrIcon: _SeasonOrIcon.icon(),
@@ -113,9 +167,7 @@ class _MergedDateCard extends StatelessWidget {
   }
 }
 
-// ============================================================================
-// SEASON OR ICON
-// ============================================================================
+// ── Season or Icon ────────────────────────────────────────────
 
 class _SeasonOrIcon {
   final String? season;
@@ -127,17 +179,11 @@ class _SeasonOrIcon {
         isIcon = true;
 }
 
-// ============================================================================
-// DATE ROW
-//
-// Layout:
-//  [ big day ] | [ month  year  era (single line, uniform weight) ] [ season ]
-//
-// ============================================================================
+// ── Date Row ──────────────────────────────────────────────────
 
 class _DateRow extends StatelessWidget {
   final String dayNum;
-  final String monthYearEra; // all on one line
+  final String monthYearEra;
   final _SeasonOrIcon seasonOrIcon;
   final Color backgroundColor;
   final Color textColor;
@@ -155,21 +201,19 @@ class _DateRow extends StatelessWidget {
     final theme = Theme.of(context);
     final dividerColor = textColor.withValues(alpha: 0.15);
 
-    // Big anchored day number — headlineLarge (32px)
     final dayStyle = theme.textTheme.headlineLarge?.copyWith(
       color: textColor,
       fontWeight: FontWeight.w800,
       height: 1.0,
     );
 
-    // Month + year + era — single line, uniform size and weight
     final dateLineStyle = theme.textTheme.titleMedium?.copyWith(
       color: textColor,
       fontWeight: FontWeight.w600,
+      fontSize: 18,
       height: 1.0,
     );
 
-    // Season pill label
     final seasonStyle = theme.textTheme.labelMedium?.copyWith(
       color: textColor,
       fontWeight: FontWeight.w600,
@@ -182,18 +226,12 @@ class _DateRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // ── Big day number (fixed width, centered) ───────
           SizedBox(
             width: 60,
             child: Center(
-              child: Text(
-                dayNum,
-                style: dayStyle,
-              ),
+              child: Text(dayNum, style: dayStyle),
             ),
           ),
-
-          // ── Gradient vertical divider ────────────────────
           Container(
             width: 1,
             height: 44,
@@ -210,8 +248,6 @@ class _DateRow extends StatelessWidget {
               ),
             ),
           ),
-
-          // ── Month year era — single line ─────────────────
           Expanded(
             child: Text(
               monthYearEra,
@@ -220,10 +256,7 @@ class _DateRow extends StatelessWidget {
               maxLines: 1,
             ),
           ),
-
           const SizedBox(width: 8),
-
-          // ── Season pill or mosque icon ───────────────────
           if (seasonOrIcon.isIcon)
             Icon(
               Icons.mosque_outlined,
@@ -233,8 +266,7 @@ class _DateRow extends StatelessWidget {
           else if (seasonOrIcon.season != null &&
               seasonOrIcon.season!.isNotEmpty)
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 color: textColor.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(99),

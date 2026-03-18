@@ -1,29 +1,28 @@
-// lib/core/widgets/pickers/app_date_time_picker.dart
+// lib/core/widgets/pickers/app_date_picker.dart
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 
-class AppDateTimePicker {
-  AppDateTimePicker._();
+/// A date-only bottom-sheet picker (no time tab).
+/// Shares the same visual language as [AppDateTimePicker] but is leaner —
+/// no tab bar, no time wheels. Use this wherever only a calendar date is needed.
+class AppDatePicker {
+  AppDatePicker._();
 
-  /// [showTimeTab] — set to false to hide the Time tab and return date-only
-  /// (time will be 00:00). Defaults to true.
   static Future<DateTime?> show({
     required BuildContext context,
     DateTime? initial,
     required AppLocalizations l10n,
-    bool showTimeTab = true,
   }) {
     return showModalBottomSheet<DateTime>(
       context: context,
       isScrollControlled: true,
       useRootNavigator: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _PickerSheet(
+      builder: (_) => _DatePickerSheet(
         initial: initial ?? DateTime.now(),
         l10n: l10n,
-        showTimeTab: showTimeTab,
       ),
     );
   }
@@ -31,48 +30,29 @@ class AppDateTimePicker {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _PickerSheet extends StatefulWidget {
+class _DatePickerSheet extends StatefulWidget {
   final DateTime initial;
   final AppLocalizations l10n;
-  final bool showTimeTab;
 
-  const _PickerSheet({
-    required this.initial,
-    required this.l10n,
-    required this.showTimeTab,
-  });
+  const _DatePickerSheet({required this.initial, required this.l10n});
 
   @override
-  State<_PickerSheet> createState() => _PickerSheetState();
+  State<_DatePickerSheet> createState() => _DatePickerSheetState();
 }
 
-class _PickerSheetState extends State<_PickerSheet>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-
-  // Selected date+time values
+class _DatePickerSheetState extends State<_DatePickerSheet> {
   late int _year;
   late int _month;
   late int _day;
-  late int _hour;
-  late int _minute;
 
-  // Month/year currently shown in the grid
   late int _viewYear;
   late int _viewMonth;
 
-  // Whether we're showing the month+year wheel picker inline
   bool _showingMonthYearPicker = false;
 
-  // Wheel controllers for time
-  late FixedExtentScrollController _hourController;
-  late FixedExtentScrollController _minuteController;
-
-  // Wheel controllers for month+year inline picker
   late FixedExtentScrollController _monthWheelController;
   late FixedExtentScrollController _yearWheelController;
 
-  // Year range: 1924–2124
   static const int _minYear = 1924;
   static const int _maxYear = 2124;
   static const int _yearCount = _maxYear - _minYear + 1;
@@ -80,22 +60,13 @@ class _PickerSheetState extends State<_PickerSheet>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(
-      length: widget.showTimeTab ? 2 : 1,
-      vsync: this,
-    );
-
     final d = widget.initial;
     _year = d.year;
     _month = d.month;
     _day = d.day;
-    _hour = d.hour;
-    _minute = d.minute;
     _viewYear = d.year;
     _viewMonth = d.month;
 
-    _hourController = FixedExtentScrollController(initialItem: _hour);
-    _minuteController = FixedExtentScrollController(initialItem: _minute);
     _monthWheelController =
         FixedExtentScrollController(initialItem: _viewMonth - 1);
     _yearWheelController = FixedExtentScrollController(
@@ -105,9 +76,6 @@ class _PickerSheetState extends State<_PickerSheet>
 
   @override
   void dispose() {
-    _tabController.dispose();
-    _hourController.dispose();
-    _minuteController.dispose();
     _monthWheelController.dispose();
     _yearWheelController.dispose();
     super.dispose();
@@ -122,7 +90,13 @@ class _PickerSheetState extends State<_PickerSheet>
     if (_day > maxDay) _day = maxDay;
   }
 
-  // ── Month/Year navigation (arrow taps) ────────────────────
+  void _syncWheelsToView() {
+    _monthWheelController.jumpToItem(_viewMonth - 1);
+    final yearIdx = (_viewYear - _minYear).clamp(0, _yearCount - 1);
+    _yearWheelController.jumpToItem(yearIdx);
+  }
+
+  // ── Navigation ─────────────────────────────────────────────
 
   void _prevMonth() => setState(() {
         if (_viewMonth == 1) {
@@ -144,22 +118,9 @@ class _PickerSheetState extends State<_PickerSheet>
         _syncWheelsToView();
       });
 
-  // ── Inline month+year picker ───────────────────────────────
-
-  void _openMonthYearPicker() {
-    setState(() => _showingMonthYearPicker = true);
-  }
-
-  void _closeMonthYearPicker() {
-    setState(() => _showingMonthYearPicker = false);
-  }
-
-  /// Sync wheel positions to current view month/year
-  void _syncWheelsToView() {
-    _monthWheelController.jumpToItem(_viewMonth - 1);
-    final yearIdx = (_viewYear - _minYear).clamp(0, _yearCount - 1);
-    _yearWheelController.jumpToItem(yearIdx);
-  }
+  void _openMonthYearPicker() => setState(() => _showingMonthYearPicker = true);
+  void _closeMonthYearPicker() =>
+      setState(() => _showingMonthYearPicker = false);
 
   void _onMonthYearConfirm() {
     setState(() {
@@ -170,16 +131,11 @@ class _PickerSheetState extends State<_PickerSheet>
 
   // ── Day selection ──────────────────────────────────────────
 
-  void _selectDay(int day) {
-    setState(() {
-      _year = _viewYear;
-      _month = _viewMonth;
-      _day = day;
-    });
-    if (widget.showTimeTab) {
-      _tabController.animateTo(1);
-    }
-  }
+  void _selectDay(int day) => setState(() {
+        _year = _viewYear;
+        _month = _viewMonth;
+        _day = day;
+      });
 
   bool _isSelectedDay(int day) =>
       _viewYear == _year && _viewMonth == _month && _day == day;
@@ -191,13 +147,7 @@ class _PickerSheetState extends State<_PickerSheet>
 
   // ── Confirm ────────────────────────────────────────────────
 
-  void _confirm() {
-    Navigator.of(context).pop(
-      widget.showTimeTab
-          ? DateTime(_year, _month, _day, _hour, _minute)
-          : DateTime(_year, _month, _day),
-    );
-  }
+  void _confirm() => Navigator.of(context).pop(DateTime(_year, _month, _day));
 
   // ── Build ──────────────────────────────────────────────────
 
@@ -205,14 +155,18 @@ class _PickerSheetState extends State<_PickerSheet>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
-    final isBn = widget.l10n.languageCode == 'bn';
+
+    final day = widget.l10n.localizeNumber(_day);
+    final monthName = widget.l10n.getMonthName(_month);
+    final year = widget.l10n.localizeNumber(_year);
 
     return Container(
       decoration: BoxDecoration(
         color: cs.surface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      height: MediaQuery.of(context).size.height * 0.62,
+      // Slightly shorter than the date-time picker (no time tab needed)
+      height: MediaQuery.of(context).size.height * 0.54,
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
@@ -231,87 +185,66 @@ class _PickerSheetState extends State<_PickerSheet>
 
           // ── Summary bar ──────────────────────────────────────
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
             child: Row(
               children: [
                 Icon(Icons.event_rounded, size: 16, color: cs.primary),
                 const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    _buildSummary(isBn),
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: cs.primary,
-                    ),
+                Text(
+                  '$day $monthName $year',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: cs.primary,
                   ),
                 ),
               ],
             ),
           ),
 
-          // ── Tab bar ──────────────────────────────────────────
-          if (widget.showTimeTab) ...[
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: cs.surfaceContainerHighest.withOpacity(0.5),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: TabBar(
-                controller: _tabController,
-                indicator: BoxDecoration(
-                  color: cs.primary,
-                  borderRadius: BorderRadius.circular(10),
+          // ── Date section ─────────────────────────────────────
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 220),
+                transitionBuilder: (child, animation) => FadeTransition(
+                  opacity: animation,
+                  child: child,
                 ),
-                indicatorSize: TabBarIndicatorSize.tab,
-                dividerColor: Colors.transparent,
-                labelColor: cs.onPrimary,
-                unselectedLabelColor: cs.onSurfaceVariant,
-                labelStyle: theme.textTheme.labelLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-                tabs: [
-                  Tab(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.calendar_month_rounded, size: 16),
-                        const SizedBox(width: 6),
-                        Text(isBn ? 'তারিখ' : 'Date'),
-                      ],
-                    ),
-                  ),
-                  Tab(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.access_time_rounded, size: 16),
-                        const SizedBox(width: 6),
-                        Text(isBn ? 'সময়' : 'Time'),
-                      ],
-                    ),
-                  ),
-                ],
+                child: _showingMonthYearPicker
+                    ? _MonthYearPicker(
+                        key: const ValueKey('mypicker'),
+                        viewYear: _viewYear,
+                        viewMonth: _viewMonth,
+                        monthController: _monthWheelController,
+                        yearController: _yearWheelController,
+                        minYear: _minYear,
+                        yearCount: _yearCount,
+                        l10n: widget.l10n,
+                        theme: theme,
+                        onMonthChanged: (m) =>
+                            setState(() => _viewMonth = m + 1),
+                        onYearChanged: (idx) =>
+                            setState(() => _viewYear = _minYear + idx),
+                        onCancel: _closeMonthYearPicker,
+                        onConfirm: _onMonthYearConfirm,
+                      )
+                    : _DateGrid(
+                        key: const ValueKey('dategrid'),
+                        viewYear: _viewYear,
+                        viewMonth: _viewMonth,
+                        daysInMonth: _daysInMonth(_viewYear, _viewMonth),
+                        isSelectedDay: _isSelectedDay,
+                        isToday: _isToday,
+                        onSelectDay: _selectDay,
+                        onPrevMonth: _prevMonth,
+                        onNextMonth: _nextMonth,
+                        onHeaderTap: _openMonthYearPicker,
+                        l10n: widget.l10n,
+                        theme: theme,
+                      ),
               ),
             ),
-            const SizedBox(height: 8),
-          ] else
-            const SizedBox(height: 4),
-
-          // ── Tab views ────────────────────────────────────────
-          Expanded(
-            child: widget.showTimeTab
-                ? TabBarView(
-                    controller: _tabController,
-                    physics: _showingMonthYearPicker
-                        ? const NeverScrollableScrollPhysics()
-                        : null,
-                    children: [
-                      _buildDateSection(theme, isBn),
-                      _buildTimeWheels(theme, isBn),
-                    ],
-                  )
-                : _buildDateSection(theme, isBn),
           ),
 
           // ── Action buttons ───────────────────────────────────
@@ -351,84 +284,10 @@ class _PickerSheetState extends State<_PickerSheet>
       ),
     );
   }
-
-  // ── Date section: grid OR inline month+year picker ─────────
-
-  Widget _buildDateSection(ThemeData theme, bool isBn) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 220),
-        transitionBuilder: (child, animation) => FadeTransition(
-          opacity: animation,
-          child: child,
-        ),
-        child: _showingMonthYearPicker
-            ? _MonthYearPicker(
-                key: const ValueKey('mypicker'),
-                viewYear: _viewYear,
-                viewMonth: _viewMonth,
-                monthController: _monthWheelController,
-                yearController: _yearWheelController,
-                minYear: _minYear,
-                yearCount: _yearCount,
-                l10n: widget.l10n,
-                theme: theme,
-                onMonthChanged: (m) => setState(() => _viewMonth = m + 1),
-                onYearChanged: (idx) =>
-                    setState(() => _viewYear = _minYear + idx),
-                onCancel: _closeMonthYearPicker,
-                onConfirm: _onMonthYearConfirm,
-              )
-            : _DateGrid(
-                key: const ValueKey('dategrid'),
-                viewYear: _viewYear,
-                viewMonth: _viewMonth,
-                daysInMonth: _daysInMonth(_viewYear, _viewMonth),
-                isSelectedDay: _isSelectedDay,
-                isToday: _isToday,
-                onSelectDay: _selectDay,
-                onPrevMonth: _prevMonth,
-                onNextMonth: _nextMonth,
-                onHeaderTap: _openMonthYearPicker,
-                l10n: widget.l10n,
-                theme: theme,
-              ),
-      ),
-    );
-  }
-
-  Widget _buildTimeWheels(ThemeData theme, bool isBn) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: _TimeWheels(
-        hourController: _hourController,
-        minuteController: _minuteController,
-        onHourChanged: (h) => setState(() => _hour = h),
-        onMinuteChanged: (m) => setState(() => _minute = m),
-        theme: theme,
-        isBn: isBn,
-        l10n: widget.l10n,
-      ),
-    );
-  }
-
-  String _buildSummary(bool isBn) {
-    final l = widget.l10n;
-    final day = l.localizeNumber(_day);
-    final month = l.getMonthName(_month);
-    final year = l.localizeNumber(_year);
-
-    if (!widget.showTimeTab) return '$day $month $year';
-
-    final h = l.localizeNumber(_hour.toString().padLeft(2, '0'));
-    final m = l.localizeNumber(_minute.toString().padLeft(2, '0'));
-    return '$day $month $year  •  $h:$m';
-  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Date grid
+// Date grid  (self-contained copy — no dependency on app_date_time_picker.dart)
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _DateGrid extends StatelessWidget {
@@ -440,10 +299,7 @@ class _DateGrid extends StatelessWidget {
   final void Function(int) onSelectDay;
   final VoidCallback onPrevMonth;
   final VoidCallback onNextMonth;
-
-  /// Called when the month+year header text is tapped
   final VoidCallback onHeaderTap;
-
   final AppLocalizations l10n;
   final ThemeData theme;
 
@@ -606,7 +462,7 @@ class _DateGrid extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Inline month + year picker (replaces date grid on header tap)
+// Inline month + year picker
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _MonthYearPicker extends StatelessWidget {
@@ -618,8 +474,8 @@ class _MonthYearPicker extends StatelessWidget {
   final int yearCount;
   final AppLocalizations l10n;
   final ThemeData theme;
-  final void Function(int) onMonthChanged; // 0-based index
-  final void Function(int) onYearChanged; // index into year list
+  final void Function(int) onMonthChanged;
+  final void Function(int) onYearChanged;
   final VoidCallback onCancel;
   final VoidCallback onConfirm;
 
@@ -722,7 +578,6 @@ class _MonthYearPicker extends StatelessWidget {
           child: Stack(
             alignment: Alignment.center,
             children: [
-              // Selection highlight band
               Container(
                 height: 44,
                 margin: const EdgeInsets.symmetric(horizontal: 8),
@@ -731,7 +586,6 @@ class _MonthYearPicker extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
-
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: Row(
@@ -759,7 +613,6 @@ class _MonthYearPicker extends StatelessWidget {
                         }),
                       ),
                     ),
-
                     // Month wheel (wider)
                     Expanded(
                       flex: 3,
@@ -786,168 +639,6 @@ class _MonthYearPicker extends StatelessWidget {
                 ),
               ),
             ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Time wheels
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _TimeWheels extends StatelessWidget {
-  final FixedExtentScrollController hourController;
-  final FixedExtentScrollController minuteController;
-  final void Function(int) onHourChanged;
-  final void Function(int) onMinuteChanged;
-  final ThemeData theme;
-  final bool isBn;
-  final AppLocalizations l10n;
-
-  const _TimeWheels({
-    required this.hourController,
-    required this.minuteController,
-    required this.onHourChanged,
-    required this.onMinuteChanged,
-    required this.theme,
-    required this.isBn,
-    required this.l10n,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = theme.colorScheme;
-
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: Row(
-            children: [
-              Expanded(
-                child: Center(
-                  child: Text(
-                    isBn ? 'ঘণ্টা' : 'Hour',
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: cs.onSurfaceVariant,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 24),
-              Expanded(
-                child: Center(
-                  child: Text(
-                    isBn ? 'মিনিট' : 'Minute',
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: cs.onSurfaceVariant,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 200,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Expanded(
-                child: _Wheel(
-                  controller: hourController,
-                  itemCount: 24,
-                  onChanged: onHourChanged,
-                  label: (i) =>
-                      l10n.localizeNumber(i.toString().padLeft(2, '0')),
-                  theme: theme,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Text(
-                  ':',
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: cs.onSurface,
-                  ),
-                ),
-              ),
-              Expanded(
-                child: _Wheel(
-                  controller: minuteController,
-                  itemCount: 60,
-                  onChanged: onMinuteChanged,
-                  label: (i) =>
-                      l10n.localizeNumber(i.toString().padLeft(2, '0')),
-                  theme: theme,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Single scroll wheel
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _Wheel extends StatelessWidget {
-  final FixedExtentScrollController controller;
-  final int itemCount;
-  final void Function(int) onChanged;
-  final String Function(int) label;
-  final ThemeData theme;
-
-  const _Wheel({
-    required this.controller,
-    required this.itemCount,
-    required this.onChanged,
-    required this.label,
-    required this.theme,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = theme.colorScheme;
-
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        Container(
-          height: 44,
-          margin: const EdgeInsets.symmetric(horizontal: 8),
-          decoration: BoxDecoration(
-            color: cs.primaryContainer.withOpacity(0.5),
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-        CupertinoPicker(
-          scrollController: controller,
-          itemExtent: 44,
-          looping: true,
-          selectionOverlay: const SizedBox.shrink(),
-          onSelectedItemChanged: onChanged,
-          children: List.generate(
-            itemCount,
-            (i) => Center(
-              child: Text(
-                label(i),
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: cs.onSurface,
-                ),
-              ),
-            ),
           ),
         ),
       ],

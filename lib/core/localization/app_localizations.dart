@@ -30,9 +30,9 @@ abstract class AppLocalizations {
     return ['bn', 'en'].contains(locale.languageCode);
   }
 
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
   // FORMATTING HELPERS
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
 
   String format(String template, List<dynamic> args) {
     return StringFormatter.formatString(
@@ -71,12 +71,10 @@ abstract class AppLocalizations {
     if (days == 0) return today;
     if (days == 1) return tomorrow;
     if (days == -1) return yesterday;
-    String daysStr = localizeNumber(days.abs());
-    if (days > 0) {
-      return formatNamed(inDays, {'count': daysStr});
-    } else {
-      return formatNamed(daysAgo, {'count': daysStr});
-    }
+    final daysStr = localizeNumber(days.abs());
+    return days > 0
+        ? formatNamed(inDays, {'count': daysStr})
+        : formatNamed(daysAgo, {'count': daysStr});
   }
 
   String formatDuration({
@@ -98,23 +96,38 @@ abstract class AppLocalizations {
     );
   }
 
-  // ========================================
+  String formatDate(DateTime date) {
+    final d = localizeNumber(date.day);
+    final m = getMonthName(date.month);
+    final y = localizeNumber(date.year);
+    return '$d $m $y';
+  }
+
+  String getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return goodMorning;
+    if (hour < 17) return goodAfternoon;
+    if (hour < 21) return goodEvening;
+    return goodNight;
+  }
+
+  // ═══════════════════════════════════════════════════════════
   // APP INFO
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
 
   String get appName;
   String get appTitle;
   String get welcomeToApp;
 
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
   // NAVIGATION
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
 
   String get navHome;
   String get navCalendar;
+  String get navHolidays;
   String get navCalculator;
   String get navSettings;
-  String get navHolidays;
   String get navMore;
   String get navAddEvent;
   String get navAddReminder;
@@ -123,9 +136,9 @@ abstract class AppLocalizations {
   String get navSavedWords;
   String get navAbout;
 
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
   // COMMON ACTIONS
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
 
   String get ok;
   String get cancel;
@@ -144,13 +157,35 @@ abstract class AppLocalizations {
   String get error;
   String get success;
   String get retry;
+  String get confirm;
+  String get reset;
+  String get share;
+  String get sync;
+
+  // ═══════════════════════════════════════════════════════════
+  // CALENDAR SYSTEM LABELS
+  // ═══════════════════════════════════════════════════════════
+
   String get calendarShortGregorian;
   String get calendarShortBangla;
   String get calendarShortHijri;
 
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
+  // MESSAGES
+  // ═══════════════════════════════════════════════════════════
+
+  String get comingSoon;
+  String get featureComingSoon;
+  String get loadingData;
+  String get failedToLoadData;
+  String get noDataAvailable;
+  String get pageNotFound;
+  String get goToHome;
+  String get backToHome;
+
+  // ═══════════════════════════════════════════════════════════
   // HOME SCREEN
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
 
   String get homeTitle;
   String get goodMorning;
@@ -158,6 +193,11 @@ abstract class AppLocalizations {
   String get goodEvening;
   String get goodNight;
   String get todayDate;
+  String get today;
+  String get tomorrow;
+  String get yesterday;
+  String get inDays;
+  String get daysAgo;
   String get upcomingHolidays;
   String get upcomingEvents;
   String get noUpcomingEvents;
@@ -168,80 +208,105 @@ abstract class AppLocalizations {
   String get meaningBengali;
   String get synonym;
   String get example;
-  String get inDays;
-  String get daysAgo;
-  String get today;
-  String get tomorrow;
-  String get yesterday;
-  String get eventTitle;
-  String get eventSubtitle;
-  String get reminderTitle;
-  String get reminderSubtitle;
-  String get location;
-  String get locationSubtitle;
-  String get description;
-  String get descriptionSubtitle;
-  String get notes;
-  String get notesSubtitle;
-  String get savedQuotes;
-  String get savedWords;
-  String get share;
-  String get adjustFontSize;
-  String get notificationsPermissionRequired;
 
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
   // DRAWER
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
 
+  String get welcome;
   String get profile;
   String get about;
   String get helpSupport;
   String get settings;
-  String get welcome;
-  String get allHolidays;
 
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
   // SETTINGS
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
 
   String get settingsTitle;
   String get appearance;
   String get language;
-  String get theme;
-  String get notifications;
-  String get darkMode;
-  String get lightMode;
-  String get systemDefault;
+  String get languageBangla;
+  String get languageEnglish;
   String get languageChanged;
+  String get theme;
+  String get lightMode;
+  String get darkMode;
+  String get systemDefault;
   String get themeChanged;
-  String get notificationSubtitle;
-  String get dataAndStorage;
-  String get autoBackup;
-  String get autoBackupSubtitle;
-  String get deleteAllData;
-  String get deleteAllDataSubtitle;
   String get appVersionSubtitle;
   String get privacyPolicy;
   String get privacyPolicySubtitle;
   String get termsOfService;
   String get termsOfServiceSubtitle;
-  String get deleteAllDataConfirmMessage;
   String get resetSettings;
-  String get resetSettingsConfirmMessage;
   String get resetSettingsSubtitle;
-  String get languageBangla;
-  String get languageEnglish;
-  String get pageNotFound;
-  String get goToHome;
-  String get backToHome;
-  String get deleteEvent;
-  String get deleteReminder;
-  String get confirm;
-  String get openSettings;
+  String get resetSettingsConfirmMessage;
+  String get deleteAllData;
+  String get deleteAllDataSubtitle;
+  String get deleteAllDataConfirmMessage;
+  String get dataAndStorage;
+  String get autoBackup;
+  String get autoBackupSubtitle;
 
-  // ========================================
-  // CALENDAR
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
+  // DATA SYNC
+  // ═══════════════════════════════════════════════════════════
+
+  String get dataUpdate;
+  String get updateAllData;
+  String get updateAllDataSubtitle;
+  String get syncFailed;
+  String get syncOffline;
+  String get syncUpToDate;
+  String syncUpdated(String list);
+  String get syncDatasetHolidays;
+  String get syncDatasetQuotes;
+  String get syncDatasetWords;
+  String get lastSynced;
+  String get lastSyncedNever;
+  String get lastSyncedJustNow;
+  String lastSyncedMinutesAgo(int n);
+  String lastSyncedHoursAgo(int n);
+  String lastSyncedDaysAgo(int n);
+  String get lastSyncedYesterday;
+  String get lastSyncedUnknown;
+
+  // ═══════════════════════════════════════════════════════════
+  // NOTIFICATIONS
+  // ═══════════════════════════════════════════════════════════
+
+  String get notifications;
+  String get notificationSubtitle;
+  String get notificationsPermissionRequired;
+  String get notificationPermissionTitle;
+  String get notificationPermissionMessage;
+  String get notificationPermissionDeniedBanner;
+  String get openSettings;
+  String get notificationsOn;
+  String get notificationsOff;
+  String get holidayNotifications;
+  String get holidayNotificationsSubtitle;
+  String get holidayNotificationsTitle;
+  String get holidayNotifOnMessage;
+  String get holidayNotifOffMessage;
+  String get turnOn;
+  String get turnOff;
+
+  // ═══════════════════════════════════════════════════════════
+  // HOLIDAYS SCREEN
+  // ═══════════════════════════════════════════════════════════
+
+  String get allHolidays;
+  String get noHolidaysForYear;
+  String get byHolidayTypes;
+  String get byMonth;
+  String get showLess;
+  String showMore(int count);
+
+  // ═══════════════════════════════════════════════════════════
+  // CALENDAR SCREEN
+  // ═══════════════════════════════════════════════════════════
 
   String get selectMonth;
   String get selectYear;
@@ -262,9 +327,28 @@ abstract class AppLocalizations {
   String formatUpcomingEventsInMonth(String monthName);
   String formatUpcomingHolidaysInMonth(String monthName);
 
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
+  // EVENTS & REMINDERS
+  // ═══════════════════════════════════════════════════════════
+
+  String get eventTitle;
+  String get eventSubtitle;
+  String get reminderTitle;
+  String get reminderSubtitle;
+  String get location;
+  String get locationSubtitle;
+  String get description;
+  String get descriptionSubtitle;
+  String get notes;
+  String get notesSubtitle;
+  String get deleteEvent;
+  String get deleteEventConfirmMessage;
+  String get deleteReminder;
+  String get deleteReminderConfirmMessage;
+
+  // ═══════════════════════════════════════════════════════════
   // EVENT CATEGORIES
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
 
   String get categoryWork;
   String get categoryPersonal;
@@ -274,19 +358,59 @@ abstract class AppLocalizations {
   String get categorySocial;
   String get categoryOther;
 
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
   // REMINDER PRIORITY
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
 
+  String get priority;
   String get priorityLow;
   String get priorityMedium;
   String get priorityHigh;
   String get priorityUrgent;
-  String get priority;
 
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
+  // QUOTES & WORDS
+  // ═══════════════════════════════════════════════════════════
+
+  String get savedQuotes;
+  String get savedWords;
+  String get adjustFontSize;
+
+  // ═══════════════════════════════════════════════════════════
+  // CALCULATOR
+  // ═══════════════════════════════════════════════════════════
+
+  String get calculatorTitle;
+  String get fromDate;
+  String get toDate;
+  String get selectDate;
+  String get selectFromDate;
+  String get selectToDate;
+  String get copyResult;
+  String get copiedToClipboard;
+  String get invalidDateRange;
+  String get selectDatesToSeeResults;
+  String get calculationResults;
+  String get yearsMonthsDays;
+  String get totalDays;
+  String get weeksAndDays;
+
+  // ═══════════════════════════════════════════════════════════
+  // TIME UNITS
+  // ═══════════════════════════════════════════════════════════
+
+  String get year;
+  String get years;
+  String get month;
+  String get months;
+  String get day;
+  String get days;
+  String get week;
+  String get weeks;
+
+  // ═══════════════════════════════════════════════════════════
   // DAYS OF WEEK
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
 
   String get monday;
   String get tuesday;
@@ -303,9 +427,9 @@ abstract class AppLocalizations {
   String get shortFriday;
   String get shortSaturday;
 
-  // ========================================
-  // MONTHS (ENGLISH CALENDAR)
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
+  // MONTHS — GREGORIAN
+  // ═══════════════════════════════════════════════════════════
 
   String get january;
   String get february;
@@ -320,9 +444,9 @@ abstract class AppLocalizations {
   String get november;
   String get december;
 
-  // ========================================
-  // BANGLA MONTHS
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
+  // MONTHS — BENGALI
+  // ═══════════════════════════════════════════════════════════
 
   String get boishakh;
   String get jyoishtho;
@@ -337,9 +461,9 @@ abstract class AppLocalizations {
   String get falgun;
   String get choitra;
 
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
   // SEASONS
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
 
   String get seasonGrishmo;
   String get seasonBorsha;
@@ -352,47 +476,9 @@ abstract class AppLocalizations {
   String get seasonAutumn;
   String get seasonWinter;
 
-  // ========================================
-  // CALCULATOR
-  // ========================================
-
-  String get calculatorTitle;
-  String get fromDate;
-  String get toDate;
-  String get selectDate;
-  String get selectFromDate;
-  String get selectToDate;
-  String get reset;
-  String get copyResult;
-  String get copiedToClipboard;
-  String get invalidDateRange;
-  String get selectDatesToSeeResults;
-  String get calculationResults;
-  String get yearsMonthsDays;
-  String get totalDays;
-  String get weeksAndDays;
-  String get year;
-  String get years;
-  String get month;
-  String get months;
-  String get day;
-  String get days;
-  String get week;
-  String get weeks;
-
-  // ========================================
-  // MESSAGES
-  // ========================================
-
-  String get comingSoon;
-  String get featureComingSoon;
-  String get loadingData;
-  String get failedToLoadData;
-  String get noDataAvailable;
-
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
   // HELPER METHODS
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
 
   String getMonthName(int month) {
     switch (month) {
@@ -498,21 +584,6 @@ abstract class AppLocalizations {
     if (month >= 6 && month <= 8) return seasonSummer;
     if (month >= 9 && month <= 11) return seasonAutumn;
     return seasonWinter;
-  }
-
-  String formatDate(DateTime date) {
-    String day = localizeNumber(date.day);
-    String month = getMonthName(date.month);
-    String year = localizeNumber(date.year);
-    return '$day $month $year';
-  }
-
-  String getGreeting() {
-    final hour = DateTime.now().hour;
-    if (hour < 12) return goodMorning;
-    if (hour < 17) return goodAfternoon;
-    if (hour < 21) return goodEvening;
-    return goodNight;
   }
 }
 

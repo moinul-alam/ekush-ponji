@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/features/calendar/models/calendar_day.dart';
 import 'package:ekush_ponji/features/calendar/models/hijri_date.dart';
-import 'package:ekush_ponji/features/holidays/models/holiday.dart';
+import 'package:ekush_ponji/core/themes/app_theme_extensions.dart';
 
 class CalendarDayCell extends StatelessWidget {
   final CalendarDay day;
@@ -191,20 +191,22 @@ class CalendarDayCell extends StatelessWidget {
     }
 
     if (day.isSelected) {
+      final selectionColor =
+          _isSpecial ? const Color(0xFFFFD600) : theme.colorScheme.primary;
       return Container(
         width: 28,
         height: 28,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          border: Border.all(color: theme.colorScheme.primary, width: 2),
-          color: theme.colorScheme.primary.withOpacity(0.08),
+          border: Border.all(color: selectionColor, width: 2),
+          color: selectionColor.withOpacity(0.15),
         ),
         child: Center(
           child: Text(
             text,
             style: theme.textTheme.bodyMedium?.copyWith(
               fontWeight: FontWeight.bold,
-              color: theme.colorScheme.primary,
+              color: selectionColor,
               fontSize: gregorianSelectedFontSize,
             ),
           ),
@@ -352,12 +354,18 @@ class CalendarDayCell extends StatelessWidget {
   }
 
   Color _hijriTextColor(ThemeData theme) {
-    final base = _resolveHijriColor(theme);
-    if (!day.isCurrentMonth) return base.withOpacity(0.3);
-    if (_isSpecial) return _specialTextColor.withOpacity(_specialTextOpacity);
-    if (day.isSelected) return base.withOpacity(0.9);
-    if (_isSpecial) return base.withOpacity(0.7);
-    return base;
+    final ext = theme.extension<AppThemeExtension>();
+    if (!day.isCurrentMonth)
+      return (ext?.hijriColor ?? theme.colorScheme.onSurfaceVariant)
+          .withOpacity(0.3);
+    if (day.isToday) return theme.colorScheme.onPrimary.withOpacity(0.75);
+    if (_isSpecial)
+      return ext?.hijriColorOnSpecial ??
+          _specialTextColor.withOpacity(_specialTextOpacity);
+    if (day.isSelected)
+      return (ext?.hijriColor ?? theme.colorScheme.onSurfaceVariant)
+          .withOpacity(0.9);
+    return ext?.hijriColor ?? theme.colorScheme.onSurfaceVariant;
   }
 
   Color _resolveBengaliColor(ThemeData theme) {
@@ -372,20 +380,9 @@ class CalendarDayCell extends StatelessWidget {
         return theme.colorScheme.onSurface;
     }
   }
-
-  Color _resolveHijriColor(ThemeData theme) {
-    switch (hijriColorSlot) {
-      case _HijriColorSlot.tertiary:
-        return theme.colorScheme.tertiary;
-      case _HijriColorSlot.secondary:
-        return theme.colorScheme.secondary;
-      case _HijriColorSlot.onSurfaceVariant:
-        return theme.colorScheme.onSurfaceVariant;
-    }
-  }
 }
 
 // ─── Color Slot Enums ─────────────────────────────────────────
 enum _BengaliColorSlot { primary, secondary, tertiary, onSurface }
 
-enum _HijriColorSlot { tertiary, secondary, onSurfaceVariant }
+enum _HijriColorSlot { onSurfaceVariant }

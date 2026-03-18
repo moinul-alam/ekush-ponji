@@ -2,6 +2,7 @@
 
 import 'package:ekush_ponji/core/base/base_viewmodel.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
+import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/core/services/data_sync_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -42,8 +43,8 @@ class SettingsViewModel extends BaseViewModel {
       operation: () async {
         ref.read(themeModeProvider.notifier).setThemeMode(mode);
       },
-      successMessage: 'Theme changed successfully',
-      errorMessage: 'Failed to change theme',
+      successMessage: null,
+      errorMessage: null,
       showLoading: false,
     );
   }
@@ -56,8 +57,8 @@ class SettingsViewModel extends BaseViewModel {
             : const Locale('en', 'US');
         await ref.read(localeProvider.notifier).setLocale(locale);
       },
-      successMessage: 'Language changed successfully',
-      errorMessage: 'Failed to change language',
+      successMessage: null,
+      errorMessage: null,
       showLoading: false,
     );
   }
@@ -68,9 +69,8 @@ class SettingsViewModel extends BaseViewModel {
         _notificationsEnabled = value;
         await _saveSetting(_notificationsKey, value);
       },
-      successMessage:
-          value ? 'Notifications enabled' : 'Notifications disabled',
-      errorMessage: 'Failed to update notifications',
+      successMessage: null,
+      errorMessage: null,
       showLoading: false,
     );
   }
@@ -81,8 +81,8 @@ class SettingsViewModel extends BaseViewModel {
         // TODO: clear Hive boxes for events, reminders, etc.
       },
       loadingMessage: 'Clearing all data...',
-      successMessage: 'All data cleared successfully',
-      errorMessage: 'Failed to clear data',
+      successMessage: null,
+      errorMessage: null,
     );
   }
 
@@ -98,15 +98,18 @@ class SettingsViewModel extends BaseViewModel {
             .setLocale(const Locale('bn', 'BD'));
       },
       loadingMessage: 'Resetting settings...',
-      successMessage: 'Settings reset to defaults',
-      errorMessage: 'Failed to reset settings',
+      successMessage: null,
+      errorMessage: null,
     );
   }
 
   /// Full data sync — holidays + quotes + words in parallel.
-  Future<void> syncAllData({required WidgetRef widgetRef}) async {
+  Future<void> syncAllData({
+    required WidgetRef widgetRef,
+    required AppLocalizations l10n,
+  }) async {
     _lastSyncResult = null;
-    setLoading(message: 'Syncing data...');
+    setLoading(message: 'Updating data...');
     try {
       final syncService = widgetRef.read(dataSyncServiceProvider);
       _lastSyncResult = await syncService.forceSync().timeout(
@@ -123,9 +126,9 @@ class SettingsViewModel extends BaseViewModel {
         widgetRef.invalidate(homeViewModelProvider);
       }
 
-      setSuccess(message: _lastSyncResult!.summary(isBn: false));
+      setSuccess(message: _lastSyncResult!.summary(l10n));
     } catch (e, st) {
-      handleError(e, st, customMessage: 'Sync failed — check your connection');
+      handleError(e, st, customMessage: l10n.syncFailed);
     }
   }
 

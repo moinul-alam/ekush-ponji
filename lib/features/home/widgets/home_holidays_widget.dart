@@ -1,10 +1,13 @@
 // lib/features/home/widgets/home_holidays_widget.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:ekush_ponji/app/router/route_names.dart';
 import 'package:ekush_ponji/features/holidays/models/holiday.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 
-class HomeHolidaysWidget extends StatefulWidget {
+class HomeHolidaysWidget extends ConsumerStatefulWidget {
   final List<Holiday> holidays;
 
   const HomeHolidaysWidget({
@@ -13,10 +16,10 @@ class HomeHolidaysWidget extends StatefulWidget {
   });
 
   @override
-  State<HomeHolidaysWidget> createState() => _HomeHolidaysWidgetState();
+  ConsumerState<HomeHolidaysWidget> createState() => _HomeHolidaysWidgetState();
 }
 
-class _HomeHolidaysWidgetState extends State<HomeHolidaysWidget> {
+class _HomeHolidaysWidgetState extends ConsumerState<HomeHolidaysWidget> {
   static const int _collapseThreshold = 3;
   bool _showAll = false;
 
@@ -25,8 +28,6 @@ class _HomeHolidaysWidgetState extends State<HomeHolidaysWidget> {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     final l10n = AppLocalizations.of(context);
-    final monthName = l10n.getMonthName(DateTime.now().month);
-
     final mandatoryHolidays =
         widget.holidays.where((h) => h.isMandatory).toList();
 
@@ -36,182 +37,178 @@ class _HomeHolidaysWidgetState extends State<HomeHolidaysWidget> {
 
     final hasMore = mandatoryHolidays.length > _collapseThreshold;
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: cs.surfaceContainerHighest.withOpacity(0.35),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: cs.outlineVariant.withOpacity(0.4),
-          width: 1,
+    return GestureDetector(
+      onTap: () => context.push(RouteNames.holidays),
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(4, 4, 4, 4),
+        decoration: BoxDecoration(
+          color: cs.surfaceContainerHighest.withValues(alpha: 0.35),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: cs.outlineVariant.withValues(alpha: 0.4),
+            width: 1,
+          ),
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ─── Section Header ───────────────────────────────
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 4,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: cs.primary,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      l10n.formatUpcomingHolidaysInMonth(monthName),
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: cs.onSurface,
-                        letterSpacing: -0.3,
-                      ),
-                    ),
-                  ],
-                ),
-                // Count badge
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: cs.primaryContainer,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ─── Section Header ─────────────────────────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Row(
                     children: [
-                      Icon(Icons.celebration_outlined,
-                          size: 13, color: cs.onPrimaryContainer),
-                      const SizedBox(width: 4),
+                      Container(
+                        width: 4,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: cs.primary,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
                       Text(
-                        l10n.localizeNumber(mandatoryHolidays.length),
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: cs.onPrimaryContainer,
+                        l10n.upcomingHolidays,
+                        style: theme.textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.w800,
+                          color: cs.onSurface,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: cs.primaryContainer,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.celebration_outlined,
+                            size: 13, color: cs.onPrimaryContainer),
+                        const SizedBox(width: 4),
+                        Text(
+                          l10n.localizeNumber(mandatoryHolidays.length),
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: cs.onPrimaryContainer,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // ─── Empty State ────────────────────────────────
+            if (mandatoryHolidays.isEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 24),
+                  decoration: BoxDecoration(
+                    color: cs.surface,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(Icons.event_busy_outlined,
+                          color: cs.onSurfaceVariant, size: 32),
+                      const SizedBox(height: 10),
+                      Text(
+                        l10n.noUpcomingHolidays,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: cs.onSurfaceVariant,
                         ),
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
-          ),
+              ),
 
-          const SizedBox(height: 12),
-
-          // ─── Empty State ──────────────────────────────────
-          if (mandatoryHolidays.isEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 24),
-                decoration: BoxDecoration(
-                  color: cs.surface,
-                  borderRadius: BorderRadius.circular(12),
-                ),
+            // ─── List ───────────────────────────────────────
+            if (widget.holidays.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
                 child: Column(
                   children: [
-                    Icon(Icons.event_busy_outlined,
-                        color: cs.onSurfaceVariant, size: 32),
-                    const SizedBox(height: 10),
-                    Text(
-                      l10n.noUpcomingHolidays,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: cs.onSurfaceVariant,
+                    ...visibleHolidays.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final holiday = entry.value;
+                      return Padding(
+                        padding: EdgeInsets.only(
+                          bottom: index < visibleHolidays.length - 1 ? 10 : 0,
+                        ),
+                        child: _HolidayListItem(
+                          holiday: holiday,
+                          l10n: l10n,
+                          theme: theme,
+                        ),
+                      );
+                    }),
+                    if (hasMore) ...[
+                      const SizedBox(height: 10),
+                      GestureDetector(
+                        onTap: () => setState(() => _showAll = !_showAll),
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: cs.surface,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: cs.outlineVariant.withValues(alpha: 0.4),
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                _showAll
+                                    ? l10n.showLess
+                                    : l10n.showMore(mandatoryHolidays.length -
+                                        _collapseThreshold),
+                                style: theme.textTheme.labelLarge?.copyWith(
+                                  color: cs.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Icon(
+                                _showAll
+                                    ? Icons.keyboard_arrow_up_rounded
+                                    : Icons.keyboard_arrow_down_rounded,
+                                size: 20,
+                                color: cs.primary,
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
+                    const SizedBox(height: 12),
                   ],
                 ),
               ),
-            ),
-
-          // ─── Vertical List ────────────────────────────────
-          if (widget.holidays.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
-              child: Column(
-                children: [
-                  ...visibleHolidays.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final holiday = entry.value;
-                    return Padding(
-                      padding: EdgeInsets.only(
-                        bottom: index < visibleHolidays.length - 1 ? 10 : 0,
-                      ),
-                      child: _HolidayListItem(
-                        holiday: holiday,
-                        l10n: l10n,
-                        theme: theme,
-                      ),
-                    );
-                  }),
-
-                  // ── Show more / less button ────────────────
-                  if (hasMore) ...[
-                    const SizedBox(height: 10),
-                    GestureDetector(
-                      onTap: () => setState(() => _showAll = !_showAll),
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          color: cs.surface,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: cs.outlineVariant.withOpacity(0.4),
-                            width: 1,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              _showAll
-                                  ? (l10n.languageCode == 'bn'
-                                      ? 'কম দেখাও'
-                                      : 'Show less')
-                                  : (l10n.languageCode == 'bn'
-                                      ? 'আরও ${l10n.localizeNumber(mandatoryHolidays.length - _collapseThreshold)}টি দেখাও'
-                                      : 'Show ${mandatoryHolidays.length - _collapseThreshold} more'),
-                              style: theme.textTheme.labelLarge?.copyWith(
-                                color: cs.primary,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            Icon(
-                              _showAll
-                                  ? Icons.keyboard_arrow_up_rounded
-                                  : Icons.keyboard_arrow_down_rounded,
-                              size: 20,
-                              color: cs.primary,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-
-                  const SizedBox(height: 12),
-                ],
-              ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
-// ─── List Item ────────────────────────────────────────────────────────────────
+// ─── List Item ────────────────────────────────────────────────
 class _HolidayListItem extends StatelessWidget {
   final Holiday holiday;
   final AppLocalizations l10n;
@@ -238,13 +235,13 @@ class _HolidayListItem extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: isToday
-                ? typeColor.withOpacity(0.5)
-                : cs.outlineVariant.withOpacity(0.3),
+                ? typeColor.withValues(alpha: 0.5)
+                : cs.outlineVariant.withValues(alpha: 0.3),
             width: isToday ? 1.5 : 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: typeColor.withOpacity(isPast ? 0.02 : 0.06),
+              color: typeColor.withValues(alpha: isPast ? 0.02 : 0.06),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -252,7 +249,6 @@ class _HolidayListItem extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // ── Left color bar ────────────────────────────
             Container(
               width: 5,
               height: 72,
@@ -264,8 +260,6 @@ class _HolidayListItem extends StatelessWidget {
                 ),
               ),
             ),
-
-            // ── Date badge ────────────────────────────────
             Container(
               width: 58,
               padding: const EdgeInsets.symmetric(vertical: 10),
@@ -292,17 +286,12 @@ class _HolidayListItem extends StatelessWidget {
                 ],
               ),
             ),
-
-            // ── Divider ───────────────────────────────────
             Container(
               width: 1,
               height: 44,
-              color: cs.outlineVariant.withOpacity(0.4),
+              color: cs.outlineVariant.withValues(alpha: 0.4),
             ),
-
             const SizedBox(width: 14),
-
-            // ── Holiday info ──────────────────────────────
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 12),
@@ -310,12 +299,11 @@ class _HolidayListItem extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Type chip
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 7, vertical: 3),
                       decoration: BoxDecoration(
-                        color: typeColor.withOpacity(0.1),
+                        color: typeColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Row(
@@ -335,14 +323,9 @@ class _HolidayListItem extends StatelessWidget {
                         ],
                       ),
                     ),
-
                     const SizedBox(height: 5),
-
-                    // Holiday name
                     Text(
-                      l10n.languageCode == 'bn'
-                          ? holiday.namebn
-                          : holiday.name,
+                      l10n.languageCode == 'bn' ? holiday.namebn : holiday.name,
                       style: theme.textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w700,
                         color: cs.onSurface,
@@ -355,8 +338,6 @@ class _HolidayListItem extends StatelessWidget {
                 ),
               ),
             ),
-
-            // ── Days-until / status pill ──────────────────
             Padding(
               padding: const EdgeInsets.only(right: 14),
               child: _buildStatusPill(isToday, isPast, typeColor, cs),
@@ -406,9 +387,9 @@ class _HolidayListItem extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: typeColor.withOpacity(0.08),
+        color: typeColor.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: typeColor.withOpacity(0.2), width: 1),
+        border: Border.all(color: typeColor.withValues(alpha: 0.2), width: 1),
       ),
       child: Text(
         l10n.formatDaysDistance(holiday.daysUntil),

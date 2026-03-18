@@ -22,7 +22,6 @@ class HolidayGazetteSectionWidget extends StatefulWidget {
 
 class _HolidayGazetteSectionWidgetState
     extends State<HolidayGazetteSectionWidget> {
-  // Collapsed by default — user taps to expand
   bool _isExpanded = false;
 
   @override
@@ -38,11 +37,18 @@ class _HolidayGazetteSectionWidgetState
     final isMandatory = widget.gazetteType.isMandatory;
     final count = widget.holidays.length;
 
-    // Total calendar days covered (multi-day holidays count their full span)
+    // Consistent with HolidayCard accent colors
+    final accentColor =
+        isMandatory ? const Color(0xFF2E7D32) : theme.colorScheme.outline;
+
+    // Total calendar days covered
     final totalDays = widget.holidays.fold(0, (sum, h) => sum + h.durationDays);
     final totalDaysLabel = isBn
         ? '(মোট ${l10n.localizeNumber(totalDays)} দিন)'
         : '(Total $totalDays days)';
+
+    // Whether any holiday in this section is moon-dependent
+    final hasApproximate = widget.holidays.any((h) => h.isApproximate);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -58,14 +64,10 @@ class _HolidayGazetteSectionWidgetState
               vertical: 12,
             ),
             decoration: BoxDecoration(
-              color: isMandatory
-                  ? theme.colorScheme.primaryContainer.withValues(alpha: 0.4)
-                  : theme.colorScheme.secondaryContainer.withValues(alpha: 0.3),
+              color: accentColor.withValues(alpha: isMandatory ? 0.08 : 0.05),
               border: Border(
                 left: BorderSide(
-                  color: isMandatory
-                      ? theme.colorScheme.primary
-                      : theme.colorScheme.secondary,
+                  color: accentColor,
                   width: 4,
                 ),
               ),
@@ -76,9 +78,7 @@ class _HolidayGazetteSectionWidgetState
                 Icon(
                   _gazetteIcon(widget.gazetteType),
                   size: 18,
-                  color: isMandatory
-                      ? theme.colorScheme.primary
-                      : theme.colorScheme.secondary,
+                  color: accentColor,
                 ),
                 const SizedBox(width: 10),
 
@@ -91,17 +91,13 @@ class _HolidayGazetteSectionWidgetState
                           text: '$sectionTitle  ',
                           style: theme.textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w700,
-                            color: isMandatory
-                                ? theme.colorScheme.primary
-                                : theme.colorScheme.onSurface,
+                            color: accentColor,
                           ),
                         ),
                         TextSpan(
                           text: totalDaysLabel,
                           style: theme.textTheme.labelSmall?.copyWith(
-                            color: isMandatory
-                                ? theme.colorScheme.primary.withOpacity(0.75)
-                                : theme.colorScheme.secondary.withOpacity(0.75),
+                            color: accentColor.withValues(alpha: 0.7),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -117,17 +113,13 @@ class _HolidayGazetteSectionWidgetState
                     vertical: 2,
                   ),
                   decoration: BoxDecoration(
-                    color: isMandatory
-                        ? theme.colorScheme.primary
-                        : theme.colorScheme.secondary,
+                    color: accentColor,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
                     l10n.localizeNumber(count),
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color: isMandatory
-                          ? theme.colorScheme.onPrimary
-                          : theme.colorScheme.onSecondary,
+                      color: Colors.white,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -150,18 +142,25 @@ class _HolidayGazetteSectionWidgetState
           ),
         ),
 
-        // ── Holiday Cards ────────────────────────────────────
+        // ── Holiday Cards + footnote ─────────────────────────
         AnimatedCrossFade(
           duration: const Duration(milliseconds: 250),
           crossFadeState: _isExpanded
               ? CrossFadeState.showFirst
               : CrossFadeState.showSecond,
           firstChild: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 8),
+              // Gazette-type view: no gazette chip needed
               ...widget.holidays.map(
-                (holiday) => HolidayCard(holiday: holiday),
+                (holiday) => HolidayCard(
+                  holiday: holiday,
+                  showGazetteChip: false,
+                ),
               ),
+              // * footnote — only if at least one holiday is moon-dependent
+              if (hasApproximate) _ApproximateFootnote(isBn: isBn),
               const SizedBox(height: 8),
             ],
           ),
@@ -170,8 +169,6 @@ class _HolidayGazetteSectionWidgetState
       ],
     );
   }
-
-  // ── Icon per gazette type ──────────────────────────────────
 
   IconData _gazetteIcon(GazetteType type) {
     switch (type) {
@@ -190,5 +187,44 @@ class _HolidayGazetteSectionWidgetState
       case GazetteType.optionalEthnicMinority:
         return Icons.diversity_3_rounded;
     }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// APPROXIMATE FOOTNOTE
+// ─────────────────────────────────────────────────────────────
+
+class _ApproximateFootnote extends StatelessWidget {
+  final bool isBn;
+  const _ApproximateFootnote({required this.isBn});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 4, 16, 0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '* ',
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.primary,
+              fontWeight: FontWeight.w700,
+              fontSize: 11,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              isBn ? 'চাঁদ দেখার উপর নির্ভরশীল' : 'Subject to moon sighting',
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

@@ -2,13 +2,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:ekush_ponji/core/themes/color_schemes.dart';
+import 'package:ekush_ponji/core/themes/app_theme_extensions.dart';
 
 class AppTheme {
   AppTheme._();
 
   // Font families
-  static const String _fontEn = 'Montserrat';   // English, numbers, symbols
-  static const String _fontBn = 'Kalpurush';    // Bengali characters (fallback)
+  static const String _fontEn = 'Kalpurush'; // English, numbers, symbols
+  static const String _fontBn = 'Kalpurush'; // Bengali characters (fallback)
 
   // Cache the text theme — built once, shared by light and dark
   static final TextTheme _cachedTextTheme = _buildTextTheme();
@@ -30,6 +31,7 @@ class AppTheme {
       dialogTheme: _dialogTheme,
       bottomNavigationBarTheme: _lightBottomNavTheme,
       navigationBarTheme: _lightNavigationBarTheme,
+      extensions: const [AppThemeExtension.light],
     );
   }
 
@@ -50,13 +52,11 @@ class AppTheme {
       dialogTheme: _dialogTheme,
       bottomNavigationBarTheme: _darkBottomNavTheme,
       navigationBarTheme: _darkNavigationBarTheme,
+      extensions: const [AppThemeExtension.dark],
     );
   }
 
   // ── Text Style Helper ──────────────────────────────────────
-  // Montserrat renders English & numbers.
-  // Kalpurush is the fallback — Flutter automatically uses it
-  // for any Unicode codepoint Montserrat doesn't cover (Bengali script).
   static TextStyle _s({
     required double fontSize,
     required FontWeight fontWeight,
@@ -74,21 +74,30 @@ class AppTheme {
   // ── Text Theme ─────────────────────────────────────────────
   static TextTheme _buildTextTheme() {
     return TextTheme(
-      displayLarge:  _s(fontSize: 57, fontWeight: FontWeight.w400, letterSpacing: -0.25),
+      displayLarge:
+          _s(fontSize: 57, fontWeight: FontWeight.w400, letterSpacing: -0.25),
       displayMedium: _s(fontSize: 45, fontWeight: FontWeight.w400),
-      displaySmall:  _s(fontSize: 36, fontWeight: FontWeight.w400),
-      headlineLarge:  _s(fontSize: 32, fontWeight: FontWeight.w600),
+      displaySmall: _s(fontSize: 36, fontWeight: FontWeight.w400),
+      headlineLarge: _s(fontSize: 32, fontWeight: FontWeight.w600),
       headlineMedium: _s(fontSize: 28, fontWeight: FontWeight.w600),
-      headlineSmall:  _s(fontSize: 24, fontWeight: FontWeight.w600),
-      titleLarge:  _s(fontSize: 22, fontWeight: FontWeight.w500),
-      titleMedium: _s(fontSize: 16, fontWeight: FontWeight.w500, letterSpacing: 0.15),
-      titleSmall:  _s(fontSize: 14, fontWeight: FontWeight.w500, letterSpacing: 0.1),
-      bodyLarge:  _s(fontSize: 16, fontWeight: FontWeight.w400, letterSpacing: 0.5),
-      bodyMedium: _s(fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0.25),
-      bodySmall:  _s(fontSize: 12, fontWeight: FontWeight.w400, letterSpacing: 0.4),
-      labelLarge:  _s(fontSize: 14, fontWeight: FontWeight.w500, letterSpacing: 0.1),
-      labelMedium: _s(fontSize: 12, fontWeight: FontWeight.w500, letterSpacing: 0.5),
-      labelSmall:  _s(fontSize: 11, fontWeight: FontWeight.w500, letterSpacing: 0.5),
+      headlineSmall: _s(fontSize: 24, fontWeight: FontWeight.w600),
+      titleLarge: _s(fontSize: 22, fontWeight: FontWeight.w500),
+      titleMedium:
+          _s(fontSize: 16, fontWeight: FontWeight.w500, letterSpacing: 0.15),
+      titleSmall:
+          _s(fontSize: 14, fontWeight: FontWeight.w500, letterSpacing: 0.1),
+      bodyLarge:
+          _s(fontSize: 16, fontWeight: FontWeight.w400, letterSpacing: 0.5),
+      bodyMedium:
+          _s(fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0.25),
+      bodySmall:
+          _s(fontSize: 12, fontWeight: FontWeight.w400, letterSpacing: 0.4),
+      labelLarge:
+          _s(fontSize: 14, fontWeight: FontWeight.w500, letterSpacing: 0.1),
+      labelMedium:
+          _s(fontSize: 12, fontWeight: FontWeight.w500, letterSpacing: 0.5),
+      labelSmall:
+          _s(fontSize: 11, fontWeight: FontWeight.w500, letterSpacing: 0.5),
     );
   }
 
@@ -118,7 +127,8 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           elevation: 2,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
 
@@ -126,7 +136,8 @@ class AppTheme {
       OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
 
@@ -138,8 +149,7 @@ class AppTheme {
       );
 
   // ── Input ──────────────────────────────────────────────────
-  static InputDecorationTheme get _inputDecorationTheme =>
-      InputDecorationTheme(
+  static InputDecorationTheme get _inputDecorationTheme => InputDecorationTheme(
         filled: true,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -182,19 +192,19 @@ class AppTheme {
   // ── Bottom Navigation ──────────────────────────────────────
   static const BottomNavigationBarThemeData _lightBottomNavTheme =
       BottomNavigationBarThemeData(
-        type: BottomNavigationBarType.fixed,
-        elevation: 8,
-        showSelectedLabels: true,
-        showUnselectedLabels: true,
-      );
+    type: BottomNavigationBarType.fixed,
+    elevation: 8,
+    showSelectedLabels: true,
+    showUnselectedLabels: true,
+  );
 
   static const BottomNavigationBarThemeData _darkBottomNavTheme =
       BottomNavigationBarThemeData(
-        type: BottomNavigationBarType.fixed,
-        elevation: 8,
-        showSelectedLabels: true,
-        showUnselectedLabels: true,
-      );
+    type: BottomNavigationBarType.fixed,
+    elevation: 8,
+    showSelectedLabels: true,
+    showUnselectedLabels: true,
+  );
 
   // ── Navigation Bar ─────────────────────────────────────────
   static NavigationBarThemeData get _lightNavigationBarTheme =>

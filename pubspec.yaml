@@ -62,9 +62,9 @@ flutter:
   uses-material-design: true
   fonts:
     # Primary font for English & numbers
-    - family: Montserrat
+    - family: NotoSans
       fonts:
-        - asset: assets/fonts/Montserrat.ttf
+        - asset: assets/fonts/NotoSans.ttf
     # Primary font for Bengali text
     - family: Kalpurush
       fonts:

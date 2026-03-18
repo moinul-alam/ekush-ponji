@@ -46,9 +46,11 @@ class _HolidayMonthSectionWidgetState extends State<HolidayMonthSectionWidget> {
     final yearStr = l10n.localizeNumber(widget.year);
     final count = widget.holidays.length;
 
-    // Highlight current month header
     final now = DateTime.now();
     final isCurrentMonth = widget.month == now.month && widget.year == now.year;
+
+    // Whether any holiday in this month is moon-dependent
+    final hasApproximate = widget.holidays.any((h) => h.isApproximate);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -161,24 +163,70 @@ class _HolidayMonthSectionWidgetState extends State<HolidayMonthSectionWidget> {
           ),
         ),
 
-        // ── Holiday Cards ────────────────────────────────────
+        // ── Holiday Cards + footnote ─────────────────────────
         AnimatedCrossFade(
           duration: const Duration(milliseconds: 250),
           crossFadeState: _isExpanded
               ? CrossFadeState.showFirst
               : CrossFadeState.showSecond,
           firstChild: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 8),
+              // Month-wise view: show gazette chip on each card
               ...widget.holidays.map(
-                (holiday) => HolidayCard(holiday: holiday),
+                (holiday) => HolidayCard(
+                  holiday: holiday,
+                  showGazetteChip: true,
+                ),
               ),
+              // * footnote — only if at least one holiday is moon-dependent
+              if (hasApproximate) _ApproximateFootnote(isBn: isBn),
               const SizedBox(height: 8),
             ],
           ),
           secondChild: const SizedBox.shrink(),
         ),
       ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// APPROXIMATE FOOTNOTE
+// ─────────────────────────────────────────────────────────────
+
+class _ApproximateFootnote extends StatelessWidget {
+  final bool isBn;
+  const _ApproximateFootnote({required this.isBn});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 4, 16, 0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '* ',
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.primary,
+              fontWeight: FontWeight.w700,
+              fontSize: 11,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              isBn ? 'চাঁদ দেখার উপর নির্ভরশীল' : 'Subject to moon sighting',
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

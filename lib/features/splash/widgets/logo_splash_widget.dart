@@ -2,9 +2,9 @@
 
 import 'package:flutter/material.dart';
 
-const Color _kGlowBlue     = Color(0xFF3A8EF6);
-const Color _kGlowCyan     = Color(0xFF29C5F6);
-const Color _kTextColor    = Color(0xFFE8F1FF);
+const Color _kGlowBlue = Color(0xFF3A8EF6);
+const Color _kGlowCyan = Color(0xFF29C5F6);
+const Color _kTextColor = Color(0xFFE8F1FF);
 const Color _kTaglineColor = Color(0xFF8BAFD4);
 
 // ── LogoSplashWidget ───────────────────────────────────────────────────────
@@ -22,9 +22,9 @@ class _LogoSplashWidgetState extends State<LogoSplashWidget>
   late final Animation<double> _fade;
 
   static const _duration = Duration(milliseconds: 500);
-  static const double _logoSize    = 220.0;
+  static const double _logoSize = 220.0;
   static const double _vertSpacing = 36.0;
-  static const double _tagSpacing  = 10.0;
+  static const double _tagSpacing = 10.0;
 
   @override
   void initState() {
@@ -68,13 +68,13 @@ class _LogoSplashWidgetState extends State<LogoSplashWidget>
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 40.0),
             child: Text(
-              'Bangla, English & Arabic Calendar with Govt. Holidays, Prayer Times, Events & more.',
+              'All-in-One Bangla, English & Arabic Calendar — Holidays, Events & Reminders.',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: _kTaglineColor,
-                letterSpacing: 0.4,
-                height: 1.6,
-              ),
+                    color: _kTaglineColor,
+                    letterSpacing: 0.4,
+                    height: 1.6,
+                  ),
             ),
           ),
         ],

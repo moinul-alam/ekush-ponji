@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:ekush_ponji/core/base/base_screen.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
 import 'package:ekush_ponji/core/widgets/navigation/app_header.dart';
@@ -14,8 +13,6 @@ import 'package:ekush_ponji/features/home/widgets/home_holidays_widget.dart';
 import 'package:ekush_ponji/features/home/widgets/home_events_widget.dart';
 import 'package:ekush_ponji/features/home/widgets/daily_quote_widget.dart';
 import 'package:ekush_ponji/features/home/widgets/daily_word_widget.dart';
-import 'package:ekush_ponji/features/quotes/quotes_viewmodel.dart';
-import 'package:ekush_ponji/features/words/words_viewmodel.dart';
 
 class HomeScreen extends BaseScreen {
   const HomeScreen({super.key});
@@ -76,80 +73,24 @@ class _HomeScreenState extends BaseScreenState<HomeScreen> {
 
     final viewModel = ref.watch(homeViewModelProvider.notifier);
 
-    return Stack(
-      children: [
-        SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 70),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const AppGreeter(),
-              const SizedBox(height: 8),
-              const TodayDateWidget(),
-              const SizedBox(height: 8),
-
-              // Holidays → Calendar screen
-              InkWell(
-                onTap: () => context.goNamed('calendar'),
-                borderRadius: BorderRadius.circular(12),
-                child: HomeHolidaysWidget(
-                  holidays: viewModel.holidays,
-                ),
-              ),
-              const SizedBox(height: 8),
-
-              // Events → Events list screen
-              InkWell(
-                onTap: () => context.goNamed('eventsList'),
-                borderRadius: BorderRadius.circular(12),
-                child: UpcomingEventsWidget(
-                  events: viewModel.events,
-                ),
-              ),
-              const SizedBox(height: 8),
-
-              // Daily Quote → Quotes screen
-              // Uses pushNamed so the back button and swipe-back work correctly
-              InkWell(
-                onTap: () {
-                  final quotesVm = ref.read(quotesViewModelProvider.notifier);
-                  final dailyQuote = quotesVm.dailyQuote;
-                  final allQuotes = quotesVm.allQuotes;
-                  final index = (dailyQuote != null && allQuotes.isNotEmpty)
-                      ? allQuotes
-                          .indexOf(dailyQuote)
-                          .clamp(0, allQuotes.length - 1)
-                      : 0;
-                  context.pushNamed('quotes', extra: index);
-                },
-                borderRadius: BorderRadius.circular(12),
-                child: const DailyQuoteWidget(),
-              ),
-              const SizedBox(height: 8),
-
-              // Daily Word → Words screen
-              // Uses pushNamed so the back button and swipe-back work correctly
-              InkWell(
-                onTap: () {
-                  final wordsVm = ref.read(wordsViewModelProvider.notifier);
-                  final dailyWord = wordsVm.dailyWord;
-                  final allWords = wordsVm.allWords;
-                  final index = (dailyWord != null && allWords.isNotEmpty)
-                      ? allWords
-                          .indexOf(dailyWord)
-                          .clamp(0, allWords.length - 1)
-                      : 0;
-                  context.pushNamed('words', extra: index);
-                },
-                borderRadius: BorderRadius.circular(12),
-                child: const DailyWordWidget(),
-              ),
-              const SizedBox(height: 16),
-            ],
-          ),
-        ),
-        // Reserved for ad banner
-      ],
+    return SingleChildScrollView(
+      padding: const EdgeInsets.only(top: 8, bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const AppGreeter(),
+          const SizedBox(height: 8),
+          const TodayDateWidget(),
+          const SizedBox(height: 8),
+          HomeHolidaysWidget(holidays: viewModel.holidays),
+          const SizedBox(height: 8),
+          UpcomingEventsWidget(events: viewModel.events),
+          const SizedBox(height: 8),
+          const DailyQuoteWidget(),
+          const SizedBox(height: 8),
+          const DailyWordWidget(),
+        ],
+      ),
     );
   }
 }

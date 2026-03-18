@@ -1,6 +1,4 @@
 // lib/features/calculator/calculator_screen.dart
-//
-// CHANGED: Added interstitial ad trigger when user has a result and navigates back
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,6 +7,7 @@ import 'package:ekush_ponji/core/base/base_screen.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/core/services/ad_service.dart';
+import 'package:ekush_ponji/core/widgets/pickers/app_date_picker.dart';
 import 'package:ekush_ponji/features/calculator/calculator_viewmodel.dart';
 import 'package:ekush_ponji/features/calculator/widgets/date_input_field.dart';
 import 'package:ekush_ponji/features/calculator/widgets/result_card.dart';
@@ -41,7 +40,6 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
 
   @override
   void onScreenDispose() {
-    // Show interstitial when leaving calculator if user had a result
     if (_hadResult) {
       ref.read(adServiceProvider).showInterstitialIfAvailable();
     }
@@ -84,12 +82,12 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final isBn = l10n.languageCode == 'bn';
     final viewModel = ref.read(calculatorViewModelProvider.notifier);
     ref.watch(calculatorViewModelProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // Track when user gets a result
     if (viewModel.calculationResult != null && viewModel.hasValidDates) {
       _hadResult = true;
     }
@@ -101,8 +99,12 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
         children: [
           _buildInstructionsCard(l10n, colorScheme, theme),
           const SizedBox(height: 24),
+
+          // ── From date ──────────────────────────────────────
           DateInputField(
             label: l10n.fromDate,
+            subtitle:
+                isBn ? 'উদাহরণ: আপনার জন্মতারিখ' : 'e.g. your date of birth',
             selectedDate: viewModel.fromDate,
             onTap: () => _showDatePicker(context, ref, isFromDate: true),
             onClear: viewModel.clearFromDate,
@@ -112,10 +114,16 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
             },
             nextDateFieldKey: _toDateKey,
           ),
+
           const SizedBox(height: 20),
+
+          // ── To date ────────────────────────────────────────
           DateInputField(
             key: _toDateKey,
             label: l10n.toDate,
+            subtitle: isBn
+                ? 'যে তারিখ পর্যন্ত হিসাব করতে চান, অথবা নিচে "আজ" বাটনে ট্যাপ করুন'
+                : 'The end date, or tap "Today" below',
             selectedDate: viewModel.toDate,
             onTap: () => _showDatePicker(context, ref, isFromDate: false),
             onClear: viewModel.clearToDate,
@@ -125,9 +133,11 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
               if (date != null) viewModel.setToDate(date);
             },
           ),
+
           const SizedBox(height: 12),
           _buildTodayChip(l10n, viewModel, colorScheme, theme),
           const SizedBox(height: 32),
+
           if (viewModel.calculationResult != null && viewModel.hasValidDates)
             _buildResultsSection(context, l10n, viewModel, colorScheme, theme)
           else if (viewModel.validationError == null)
@@ -136,6 +146,39 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
       ),
     );
   }
+
+  // ── Date picker ───────────────────────────────────────────
+
+  Future<void> _showDatePicker(
+    BuildContext context,
+    WidgetRef ref, {
+    required bool isFromDate,
+  }) async {
+    final l10n = AppLocalizations.of(context);
+    final viewModel = ref.read(calculatorViewModelProvider.notifier);
+
+    final initial = isFromDate
+        ? (viewModel.fromDate ?? DateTime.now())
+        : (viewModel.toDate ?? DateTime.now());
+
+    final selected = await AppDatePicker.show(
+      // ← was AppDateTimePicker.show
+      context: context,
+      initial: initial,
+      l10n: l10n,
+      // no showTimeTab parameter — date-only by design
+    );
+
+    if (selected != null && context.mounted) {
+      if (isFromDate) {
+        viewModel.setFromDate(selected);
+      } else {
+        viewModel.setToDate(selected);
+      }
+    }
+  }
+
+  // ── Builders ──────────────────────────────────────────────
 
   Widget _buildInstructionsCard(
     AppLocalizations l10n,
@@ -280,6 +323,8 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
     );
   }
 
+  // ── Formatters ────────────────────────────────────────────
+
   String _formatYearsMonthsDays(AppLocalizations l10n, dynamic result) {
     return l10n.formatDuration(
       years: result.years ?? 0,
@@ -300,33 +345,6 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
     final weeksLabel = weeks == 1 ? l10n.week : l10n.weeks;
     final daysLabel = remainingDays == 1 ? l10n.day : l10n.days;
     return '$weeksStr $weeksLabel, $daysStr $daysLabel';
-  }
-
-  Future<void> _showDatePicker(
-    BuildContext context,
-    WidgetRef ref, {
-    required bool isFromDate,
-  }) async {
-    final l10n = AppLocalizations.of(context);
-    final viewModel = ref.read(calculatorViewModelProvider.notifier);
-
-    final selectedDate = await showDatePicker(
-      context: context,
-      initialDate: isFromDate
-          ? (viewModel.fromDate ?? DateTime.now())
-          : (viewModel.toDate ?? DateTime.now()),
-      firstDate: DateTime(1900),
-      lastDate: DateTime(2100),
-      helpText: isFromDate ? l10n.selectFromDate : l10n.selectToDate,
-    );
-
-    if (selectedDate != null && context.mounted) {
-      if (isFromDate) {
-        viewModel.setFromDate(selectedDate);
-      } else {
-        viewModel.setToDate(selectedDate);
-      }
-    }
   }
 
   Future<void> _copyToClipboard(

@@ -37,7 +37,6 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen>
     super.dispose();
   }
 
-  /// Refresh OS permission status when user returns from Settings app.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
@@ -87,12 +86,11 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen>
     final currentTheme = ref.watch(themeModeProvider);
     final currentLocale = ref.watch(localeProvider);
     final currentLanguage = currentLocale.languageCode;
-    final isBn = l10n.languageCode == 'bn';
 
     final osGranted = ref.watch(notificationPermissionProvider).value ?? false;
 
-    final isSyncing =
-        viewState is ViewStateLoading && viewState.message == 'Syncing data...';
+    final isSyncing = viewState is ViewStateLoading &&
+        viewState.message == 'Updating data...';
 
     return ListView(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -117,15 +115,18 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen>
         const Divider(height: 32),
 
         // ── Data Sync ─────────────────────────────────────────────
-        _SectionHeader(title: isBn ? 'ডেটা সিঙ্ক' : 'Data Sync'),
+        _SectionHeader(title: l10n.dataUpdate),
         ListTile(
           leading: Icon(Icons.sync_rounded, color: colorScheme.primary),
           title: Text(
-            isBn ? 'সব ডেটা আপডেট করুন' : 'Sync All Data',
-            style: theme.textTheme.bodyLarge,
+            l10n.updateAllData,
+            style: theme.textTheme.bodyLarge?.copyWith(
+              fontSize: 17,
+              fontWeight: FontWeight.w500,
+            ),
           ),
           subtitle: Text(
-            isBn ? 'ছুটির তালিকা, উদ্ধৃতি ও শব্দ' : 'Holidays, quotes & words',
+            l10n.updateAllDataSubtitle,
             style: theme.textTheme.bodySmall
                 ?.copyWith(color: colorScheme.onSurfaceVariant),
           ),
@@ -143,12 +144,12 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen>
               ? null
               : () => ref
                   .read(settingsViewModelProvider.notifier)
-                  .syncAllData(widgetRef: ref),
+                  .syncAllData(widgetRef: ref, l10n: l10n),
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(72, 0, 16, 12),
           child: Text(
-            _formatLastSyncLine(isBn),
+            _formatLastSyncLine(l10n),
             style: theme.textTheme.bodySmall
                 ?.copyWith(color: colorScheme.onSurfaceVariant),
           ),
@@ -159,9 +160,8 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen>
         // ── Notifications ─────────────────────────────────────────
         _SectionHeader(title: l10n.notifications),
 
-        if (!osGranted) _PermissionBanner(isBn: isBn),
+        if (!osGranted) _PermissionBanner(l10n: l10n),
 
-        // Holiday notification toggle
         Consumer(
           builder: (context, ref, _) {
             final holidayEnabled =
@@ -169,14 +169,12 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen>
             final effectiveValue = holidayEnabled && osGranted;
             return _SettingsSwitchTile(
               icon: Icons.celebration_outlined,
-              title: isBn ? 'ছুটির দিনের নোটিফিকেশন' : 'Holiday Notifications',
-              subtitle: isBn
-                  ? 'ছুটির দিন সম্পর্কে নোটিফিকেশন চালু/বন্ধ করুন'
-                  : 'Turn holiday notifications on/off',
+              title: l10n.holidayNotifications,
+              subtitle: l10n.holidayNotificationsSubtitle,
               value: effectiveValue,
               onChanged: (value) async {
                 if (value && !osGranted) {
-                  _showPermissionDialog(context, ref, isBn);
+                  _showPermissionDialog(context, ref, l10n);
                   return;
                 }
                 final holidays =
@@ -242,35 +240,6 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen>
     ref.read(settingsViewModelProvider.notifier).loadSettings();
   }
 
-  // ── Permission dialog ─────────────────────────────────────
-
-  void _showPermissionDialog(BuildContext context, WidgetRef ref, bool isBn) {
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(isBn ? 'নোটিফিকেশন অনুমতি' : 'Notification Permission'),
-        content: Text(
-          isBn
-              ? 'নোটিফিকেশন পাঠাতে অনুমতি প্রয়োজন। সেটিংস থেকে চালু করুন।'
-              : 'Notification permission is required. Please enable it in Settings.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(isBn ? 'বাতিল' : 'Cancel'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              Navigator.of(ctx).pop();
-              await openAppSettings();
-            },
-            child: Text(isBn ? 'সেটিংস খুলুন' : 'Open Settings'),
-          ),
-        ],
-      ),
-    );
-  }
-
   // ── Helpers ───────────────────────────────────────────────
 
   String _getThemeName(ThemeMode mode, AppLocalizations l10n) {
@@ -284,7 +253,7 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen>
     }
   }
 
-  String _formatLastSyncLine(bool isBn) {
+  String _formatLastSyncLine(AppLocalizations l10n) {
     try {
       final box = Hive.box('settings');
       final keys = [
@@ -298,27 +267,60 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen>
         final raw = box.get(key) as String?;
         if (raw == null) continue;
         final dt = DateTime.tryParse(raw);
-        if (dt != null && (latest == null || dt.isAfter(latest))) latest = dt;
+        if (dt != null && (latest == null || dt.isAfter(latest))) {
+          latest = dt;
+        }
       }
 
-      if (latest == null) return isBn ? 'কখনো সিঙ্ক করা হয়নি' : 'Never synced';
+      if (latest == null) {
+        return '${l10n.lastSynced}${l10n.lastSyncedNever}';
+      }
 
       final diff = DateTime.now().difference(latest);
-      if (diff.inMinutes < 1) return isBn ? 'এইমাত্র' : 'Just now';
-      if (diff.inHours < 1)
-        return isBn
-            ? '${diff.inMinutes} মিনিট আগে'
-            : '${diff.inMinutes} minutes ago';
-      if (diff.inDays < 1)
-        return isBn ? '${diff.inHours} ঘণ্টা আগে' : '${diff.inHours} hours ago';
-      if (diff.inDays == 1) return isBn ? 'গতকাল' : 'Yesterday';
-      return isBn ? '${diff.inDays} দিন আগে' : '${diff.inDays} days ago';
+
+      if (diff.inMinutes < 1) {
+        return '${l10n.lastSynced}${l10n.lastSyncedJustNow}';
+      }
+      if (diff.inHours < 1) {
+        return '${l10n.lastSynced}${l10n.lastSyncedMinutesAgo(diff.inMinutes)}';
+      }
+      if (diff.inDays < 1) {
+        return '${l10n.lastSynced}${l10n.lastSyncedHoursAgo(diff.inHours)}';
+      }
+      if (diff.inDays == 1) {
+        return '${l10n.lastSynced}${l10n.lastSyncedYesterday}';
+      }
+      return '${l10n.lastSynced}${l10n.lastSyncedDaysAgo(diff.inDays)}';
     } catch (_) {
-      return isBn ? 'অজানা' : 'Unknown';
+      return l10n.lastSyncedUnknown;
     }
   }
 
   // ── Dialogs ───────────────────────────────────────────────
+
+  void _showPermissionDialog(
+      BuildContext context, WidgetRef ref, AppLocalizations l10n) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.notificationPermissionTitle),
+        content: Text(l10n.notificationPermissionMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              await openAppSettings();
+            },
+            child: Text(l10n.openSettings),
+          ),
+        ],
+      ),
+    );
+  }
 
   void _showThemeDialog(
       BuildContext context, WidgetRef ref, AppLocalizations l10n) {
@@ -433,8 +435,8 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen>
 // ── Permission banner ─────────────────────────────────────────
 
 class _PermissionBanner extends StatelessWidget {
-  final bool isBn;
-  const _PermissionBanner({required this.isBn});
+  final AppLocalizations l10n;
+  const _PermissionBanner({required this.l10n});
 
   @override
   Widget build(BuildContext context) {
@@ -453,9 +455,7 @@ class _PermissionBanner extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              isBn
-                  ? 'নোটিফিকেশন অনুমতি নেই। নিচের টগলগুলো কাজ করবে না।'
-                  : 'Notification permission denied. Toggles below won\'t work.',
+              l10n.notificationPermissionDeniedBanner,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: cs.onErrorContainer,
                   ),
@@ -481,9 +481,10 @@ class _SectionHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
       child: Text(
         title.toUpperCase(),
-        style: theme.textTheme.labelSmall?.copyWith(
+        style: theme.textTheme.labelMedium?.copyWith(
+          fontSize: 13,
           color: colorScheme.primary,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
           letterSpacing: 1.2,
         ),
       ),
@@ -514,12 +515,20 @@ class _SettingsTile extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     return ListTile(
       leading: Icon(icon, color: colorScheme.primary),
-      title: Text(title,
-          style: theme.textTheme.bodyLarge?.copyWith(color: titleColor)),
+      title: Text(
+        title,
+        style: theme.textTheme.bodyLarge?.copyWith(
+          fontSize: 17,
+          fontWeight: FontWeight.w500,
+          color: titleColor,
+        ),
+      ),
       subtitle: subtitle != null
-          ? Text(subtitle!,
+          ? Text(
+              subtitle!,
               style: theme.textTheme.bodySmall
-                  ?.copyWith(color: colorScheme.onSurfaceVariant))
+                  ?.copyWith(color: colorScheme.onSurfaceVariant),
+            )
           : null,
       trailing: trailing,
       onTap: onTap,
@@ -548,11 +557,19 @@ class _SettingsSwitchTile extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     return SwitchListTile(
       secondary: Icon(icon, color: colorScheme.primary),
-      title: Text(title, style: theme.textTheme.bodyLarge),
+      title: Text(
+        title,
+        style: theme.textTheme.bodyLarge?.copyWith(
+          fontSize: 17,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
       subtitle: subtitle != null
-          ? Text(subtitle!,
+          ? Text(
+              subtitle!,
               style: theme.textTheme.bodySmall
-                  ?.copyWith(color: colorScheme.onSurfaceVariant))
+                  ?.copyWith(color: colorScheme.onSurfaceVariant),
+            )
           : null,
       value: value,
       onChanged: onChanged,

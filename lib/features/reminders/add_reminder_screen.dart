@@ -74,7 +74,7 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
       builder: (context) => AlertDialog(
         title: Text(l10n.deleteReminder),
         content: Text(
-          l10n.deleteAllDataConfirmMessage,
+          l10n.deleteReminderConfirmMessage,
         ),
         actions: [
           TextButton(

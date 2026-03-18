@@ -25,19 +25,19 @@ class OnboardingScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Spacer(),
+              const SizedBox(height: 40),
 
-              // ── App logo + name ─────────────────────────────
+              // ── Logo ─────────────────────────────
               ClipRRect(
                 borderRadius: BorderRadius.circular(20),
                 child: Image.asset(
                   'assets/images/logo.png',
-                  width: 80,
-                  height: 80,
+                  width: 160,
+                  height: 160,
                   fit: BoxFit.cover,
                   errorBuilder: (_, __, ___) => Container(
-                    width: 80,
-                    height: 80,
+                    width: 160,
+                    height: 160,
                     decoration: BoxDecoration(
                       color: colorScheme.primaryContainer,
                       borderRadius: BorderRadius.circular(20),
@@ -50,24 +50,44 @@ class OnboardingScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+
+              const SizedBox(height: 24),
+
+              // ── Title ─────────────────────────────
               Text(
-                'একুশ পঞ্জিতে আপনাকে স্বাগতম',
-                style: theme.textTheme.headlineMedium
-                    ?.copyWith(fontWeight: FontWeight.bold),
+                isBn ? 'একুশ পঞ্জিতে স্বাগতম' : 'Welcome to Ekush Ponji',
+                style: theme.textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
               ),
+
               const SizedBox(height: 8),
+
+              // ── Subtitle ──────────────────────────
               Text(
-                'Choose your language to get started\nশুরু করতে ভাষা নির্বাচন করুন',
+                isBn
+                    ? 'বাংলা, ইংরেজি ও আরবি ক্যালেন্ডার\nছুটি • ইভেন্ট • রিমাইন্ডার'
+                    : 'Bangla, English & Arabic Calendar\nHolidays • Events • Reminders',
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
                 textAlign: TextAlign.center,
               ),
 
-              const SizedBox(height: 48),
+              const SizedBox(height: 32),
 
-              // ── Language selection ──────────────────────────
+              // ── Language label ────────────────────
+              Text(
+                isBn ? 'ভাষা নির্বাচন করুন' : 'Choose your language',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // ── Language cards ────────────────────
               Row(
                 children: [
                   Expanded(
@@ -94,7 +114,7 @@ class OnboardingScreen extends ConsumerWidget {
 
               const Spacer(),
 
-              // ── Get started button ──────────────────────────
+              // ── Get Started Button ────────────────
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
@@ -107,9 +127,9 @@ class OnboardingScreen extends ConsumerWidget {
                           }
                         },
                   style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.symmetric(vertical: 18),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(18),
                     ),
                   ),
                   child: state.isCompleting
@@ -140,7 +160,7 @@ class OnboardingScreen extends ConsumerWidget {
   }
 }
 
-// ── Language card ─────────────────────────────────────────────
+// ── Language Card ─────────────────────────────────────────────
 
 class _LanguageCard extends StatelessWidget {
   final String label;
@@ -162,45 +182,49 @@ class _LanguageCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? colorScheme.primaryContainer
-              : colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color:
-                isSelected ? colorScheme.primary : colorScheme.outlineVariant,
-            width: isSelected ? 2 : 1,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? colorScheme.primaryContainer
+                : colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color:
+                  isSelected ? colorScheme.primary : colorScheme.outlineVariant,
+              width: isSelected ? 2 : 1,
+            ),
           ),
-        ),
-        child: Column(
-          children: [
-            Text(flag, style: const TextStyle(fontSize: 32)),
-            const SizedBox(height: 10),
-            Text(
-              label,
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: isSelected
-                    ? colorScheme.onPrimaryContainer
-                    : colorScheme.onSurface,
+          child: Column(
+            children: [
+              Text(flag, style: const TextStyle(fontSize: 32)),
+              const SizedBox(height: 10),
+              Text(
+                label,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: isSelected
+                      ? colorScheme.onPrimaryContainer
+                      : colorScheme.onSurface,
+                ),
               ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              sublabel,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: isSelected
-                    ? colorScheme.onPrimaryContainer.withValues(alpha: 0.7)
-                    : colorScheme.onSurfaceVariant,
+              const SizedBox(height: 2),
+              Text(
+                sublabel,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: isSelected
+                      ? colorScheme.onPrimaryContainer.withValues(alpha: 0.7)
+                      : colorScheme.onSurfaceVariant,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

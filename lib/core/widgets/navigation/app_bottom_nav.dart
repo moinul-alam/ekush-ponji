@@ -99,7 +99,7 @@ class _AppBottomNavInnerState extends State<_AppBottomNavInner> {
           labelTextStyle: WidgetStateProperty.resolveWith((states) {
             final selected = states.contains(WidgetState.selected);
             return TextStyle(
-              fontSize: 12,
+              fontSize: 16,
               fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
               color:
                   selected ? colorScheme.primary : colorScheme.onSurfaceVariant,

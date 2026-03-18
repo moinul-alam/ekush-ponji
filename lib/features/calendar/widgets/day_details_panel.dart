@@ -73,14 +73,6 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        Text(
-                          localizations.languageCode == 'bn'
-                              ? widget.selectedDay!.bengaliDate.formatBn()
-                              : widget.selectedDay!.bengaliDate.format(),
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.tertiary,
-                          ),
-                        ),
                       ],
                     ),
                   ),

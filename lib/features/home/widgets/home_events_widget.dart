@@ -1,4 +1,4 @@
-// features/home/widgets/home_events_widget.dart
+// lib/features/home/widgets/home_events_widget.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -33,37 +33,36 @@ class UpcomingEventsWidget extends ConsumerWidget {
     final colorScheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context);
 
-    return GestureDetector(
+    return HomeSectionWidget(
+      title: l10n.upcomingEvents,
+      margin: const EdgeInsets.fromLTRB(4, 4, 4, 4),
+      trailing: Icon(
+        Icons.chevron_right_rounded,
+        color: colorScheme.primary,
+      ),
       onTap: () => _navigateToToday(context, ref),
-      child: HomeSectionWidget(
-        title: l10n.upcomingEvents,
-        trailing: Icon(
-          Icons.chevron_right_rounded,
-          color: colorScheme.primary,
-        ),
-        child: Column(
-          children: [
-            ...events.asMap().entries.map((entry) {
-              final index = entry.key;
-              final event = entry.value;
-              final isLast = index == events.length - 1;
+      child: Column(
+        children: [
+          ...events.asMap().entries.map((entry) {
+            final index = entry.key;
+            final event = entry.value;
+            final isLast = index == events.length - 1;
 
-              return Column(
-                children: [
-                  _EventItem(
-                    event: event,
-                    onTap: () => _navigateToToday(context, ref),
+            return Column(
+              children: [
+                _EventItem(
+                  event: event,
+                  onTap: () => _navigateToToday(context, ref),
+                ),
+                if (!isLast)
+                  Divider(
+                    height: 24,
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.5),
                   ),
-                  if (!isLast)
-                    Divider(
-                      height: 24,
-                      color: colorScheme.outlineVariant.withValues(alpha: 0.5),
-                    ),
-                ],
-              );
-            }),
-          ],
-        ),
+              ],
+            );
+          }),
+        ],
       ),
     );
   }
@@ -81,38 +80,88 @@ class _EventItem extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context);
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 4,
-            height: 60,
-            decoration: BoxDecoration(
-              color: _getCategoryColor(event.category, colorScheme),
-              borderRadius: BorderRadius.circular(2),
-            ),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 4,
+          height: 60,
+          decoration: BoxDecoration(
+            color: _getCategoryColor(event.category, colorScheme),
+            borderRadius: BorderRadius.circular(2),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    _getCategoryIcon(event.category),
+                    size: 16,
+                    color: _getCategoryColor(event.category, colorScheme),
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      event.title,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurface,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              if (event.description != null) ...[
+                Text(
+                  event.description!,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 6),
+              ],
+              Row(
+                children: [
+                  Icon(
+                    Icons.access_time_rounded,
+                    size: 14,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    event.isAllDay
+                        ? l10n.allDay
+                        : _formatTime(event.startTime, l10n.languageCode),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+              if (event.location != null) ...[
+                const SizedBox(height: 4),
                 Row(
                   children: [
                     Icon(
-                      _getCategoryIcon(event.category),
-                      size: 16,
-                      color: _getCategoryColor(event.category, colorScheme),
+                      Icons.location_on_outlined,
+                      size: 14,
+                      color: colorScheme.onSurfaceVariant,
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 4),
                     Expanded(
                       child: Text(
-                        event.title,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: colorScheme.onSurface,
+                        event.location!,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -120,64 +169,11 @@ class _EventItem extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
-                if (event.description != null) ...[
-                  Text(
-                    event.description!,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 6),
-                ],
-                Row(
-                  children: [
-                    Icon(
-                      Icons.access_time_rounded,
-                      size: 14,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      event.isAllDay
-                          ? l10n.allDay
-                          : _formatTime(event.startTime, l10n.languageCode),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-                if (event.location != null) ...[
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.location_on_outlined,
-                        size: 14,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          event.location!,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
               ],
-            ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -206,22 +202,22 @@ class _EventItem extends StatelessWidget {
     return time;
   }
 
-  Color _getCategoryColor(EventCategory category, ColorScheme colorScheme) {
+  Color _getCategoryColor(EventCategory category, ColorScheme cs) {
     switch (category) {
       case EventCategory.work:
-        return colorScheme.primary;
+        return cs.primary;
       case EventCategory.personal:
-        return colorScheme.secondary;
+        return cs.secondary;
       case EventCategory.health:
-        return colorScheme.tertiary;
+        return cs.tertiary;
       case EventCategory.family:
-        return colorScheme.primaryContainer;
+        return cs.primaryContainer;
       case EventCategory.education:
-        return colorScheme.secondaryContainer;
+        return cs.secondaryContainer;
       case EventCategory.social:
-        return colorScheme.tertiaryContainer;
+        return cs.tertiaryContainer;
       case EventCategory.other:
-        return colorScheme.outline;
+        return cs.outline;
     }
   }
 

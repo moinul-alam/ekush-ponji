@@ -16,7 +16,7 @@ class CalendarViewModel extends BaseViewModel {
 
   MonthData? _currentMonthData;
   DateTime? _selectedDate;
-  bool _isDayDetailsPanelExpanded = false;
+  bool _isDayDetailsPanelExpanded = true;
   bool _hasDateBeenSelected = false;
 
   bool get hasDateBeenSelected => _hasDateBeenSelected;
@@ -54,8 +54,9 @@ class CalendarViewModel extends BaseViewModel {
   Future<void> loadCurrentMonth() async {
     final now = DateTime.now();
     _hasDateBeenSelected = false;
-    _isDayDetailsPanelExpanded = false;
+    _isDayDetailsPanelExpanded = true;
     await jumpToMonth(now.year, now.month);
+    selectDate(now);
   }
 
   Future<void> jumpToMonth(int year, int month) async {

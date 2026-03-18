@@ -11,6 +11,7 @@ import 'package:ekush_ponji/features/holidays/models/holiday.dart';
 import 'package:ekush_ponji/features/holidays/holidays_viewmodel.dart';
 import 'package:ekush_ponji/features/holidays/widgets/holiday_gazette_section_widget.dart';
 import 'package:ekush_ponji/features/holidays/widgets/holiday_month_section_widget.dart';
+import 'package:ekush_ponji/features/holidays/widgets/holiday_type_legend_widget.dart';
 import 'package:ekush_ponji/features/holidays/providers/holiday_notification_provider.dart';
 
 class HolidaysScreen extends BaseScreen {
@@ -34,7 +35,6 @@ class _HolidaysScreenState extends BaseScreenState<HolidaysScreen>
     super.dispose();
   }
 
-  /// Refresh OS permission when user returns from OS Settings.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
@@ -57,7 +57,8 @@ class _HolidaysScreenState extends BaseScreenState<HolidaysScreen>
   @override
   void onRetry() {
     final vm = ref.read(holidaysViewModelProvider.notifier);
-    vm.loadHolidaysForYear(vm.selectedYear);
+    final l10n = AppLocalizations.of(context);
+    vm.loadHolidaysForYear(vm.selectedYear, l10n);
   }
 
   // ── AppBar ───────────────────────────────────────────────
@@ -67,25 +68,18 @@ class _HolidaysScreenState extends BaseScreenState<HolidaysScreen>
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
     final vm = ref.watch(holidaysViewModelProvider.notifier);
-    final isBn = l10n.languageCode == 'bn';
 
     final notifPrefs = ref.watch(holidayNotificationProvider);
     final osGranted = ref.watch(notificationPermissionProvider).value ?? false;
-
-    // Effective state: user wants it AND OS allows it
     final notifEffective = notifPrefs.enabled && osGranted;
 
     return AppBar(
-      title: Text(
-        isBn ? 'সকল ছুটির দিন' : 'All Holidays',
-        style: theme.textTheme.titleLarge,
-      ),
+      title: Text(l10n.allHolidays, style: theme.textTheme.titleLarge),
       centerTitle: false,
       actions: [
         IconButton(
-          tooltip: notifEffective
-              ? (isBn ? 'বিজ্ঞপ্তি চালু আছে' : 'Notifications on')
-              : (isBn ? 'বিজ্ঞপ্তি বন্ধ আছে' : 'Notifications off'),
+          tooltip:
+              notifEffective ? l10n.notificationsOn : l10n.notificationsOff,
           icon: Icon(
             notifEffective
                 ? Icons.notifications_active_outlined
@@ -95,15 +89,15 @@ class _HolidaysScreenState extends BaseScreenState<HolidaysScreen>
                 : theme.colorScheme.onSurfaceVariant,
           ),
           onPressed: () =>
-              _showNotificationDialog(context, ref, l10n, isBn, osGranted),
+              _showNotificationDialog(context, ref, l10n, osGranted),
         ),
       ],
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(56),
         child: _YearNavigatorBar(
           year: vm.selectedYear,
-          onPrevious: () => vm.goToPreviousYear(),
-          onNext: () => vm.goToNextYear(),
+          onPrevious: () => vm.goToPreviousYear(l10n),
+          onNext: () => vm.goToNextYear(l10n),
           l10n: l10n,
         ),
       ),
@@ -116,33 +110,27 @@ class _HolidaysScreenState extends BaseScreenState<HolidaysScreen>
     BuildContext context,
     WidgetRef ref,
     AppLocalizations l10n,
-    bool isBn,
     bool osGranted,
   ) {
     final currentlyEnabled = ref.read(holidayNotificationProvider).enabled;
 
-    // If OS permission denied, show Open Settings dialog instead
     if (!osGranted) {
       showDialog<void>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: Text(isBn ? 'নোটিফিকেশন অনুমতি' : 'Notification Permission'),
-          content: Text(
-            isBn
-                ? 'নোটিফিকেশন পাঠাতে অনুমতি প্রয়োজন। সেটিংস থেকে চালু করুন।'
-                : 'Notification permission is required. Please enable it in Settings.',
-          ),
+          title: Text(l10n.notificationPermissionTitle),
+          content: Text(l10n.notificationPermissionMessage),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: Text(isBn ? 'বাতিল' : 'Cancel'),
+              child: Text(l10n.cancel),
             ),
             FilledButton(
               onPressed: () async {
                 Navigator.of(ctx).pop();
                 await openAppSettings();
               },
-              child: Text(isBn ? 'সেটিংস খুলুন' : 'Open Settings'),
+              child: Text(l10n.openSettings),
             ),
           ],
         ),
@@ -150,24 +138,19 @@ class _HolidaysScreenState extends BaseScreenState<HolidaysScreen>
       return;
     }
 
-    // OS permission granted — show normal toggle dialog
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(isBn ? 'ছুটির বিজ্ঞপ্তি' : 'Holiday Notifications'),
+        title: Text(l10n.holidayNotificationsTitle),
         content: Text(
           currentlyEnabled
-              ? (isBn
-                  ? 'ছুটির দিনের সকালে বিজ্ঞপ্তি পাচ্ছেন। বন্ধ করতে চান?'
-                  : 'You\'re receiving morning notifications for holidays. Turn off?')
-              : (isBn
-                  ? 'ছুটির বিজ্ঞপ্তি বন্ধ আছে। চালু করতে চান?'
-                  : 'Holiday notifications are off. Turn on?'),
+              ? l10n.holidayNotifOnMessage
+              : l10n.holidayNotifOffMessage,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(isBn ? 'বাতিল' : 'Cancel'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () async {
@@ -180,11 +163,7 @@ class _HolidaysScreenState extends BaseScreenState<HolidaysScreen>
                     languageCode: l10n.languageCode,
                   );
             },
-            child: Text(
-              currentlyEnabled
-                  ? (isBn ? 'বন্ধ করুন' : 'Turn Off')
-                  : (isBn ? 'চালু করুন' : 'Turn On'),
-            ),
+            child: Text(currentlyEnabled ? l10n.turnOff : l10n.turnOn),
           ),
         ],
       ),
@@ -208,13 +187,7 @@ class _HolidaysScreenState extends BaseScreenState<HolidaysScreen>
     }
 
     if (vm.holidays.isEmpty) {
-      return buildEmptyWidget(
-        ViewStateEmpty(
-          l10n.languageCode == 'bn'
-              ? 'এই বছরের জন্য কোনো ছুটির তথ্য পাওয়া যায়নি'
-              : 'No holidays found for this year',
-        ),
-      );
+      return buildEmptyWidget(ViewStateEmpty(l10n.noHolidaysForYear));
     }
 
     return Column(
@@ -222,7 +195,7 @@ class _HolidaysScreenState extends BaseScreenState<HolidaysScreen>
         _ControlsBar(
           viewMode: vm.viewMode,
           isSyncing: vm.isSyncing,
-          onSync: () => vm.syncHolidays(),
+          onSync: () => vm.syncHolidays(l10n),
           onToggleView: () => vm.toggleViewMode(),
           l10n: l10n,
         ),
@@ -234,6 +207,7 @@ class _HolidaysScreenState extends BaseScreenState<HolidaysScreen>
                   year: vm.selectedYear,
                 ),
         ),
+        const HolidayTypeLegendWidget(),
       ],
     );
   }
@@ -322,7 +296,6 @@ class _ControlsBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isBn = l10n.languageCode == 'bn';
     final isMonthWise = viewMode == HolidaysViewMode.monthWise;
 
     return Container(
@@ -354,8 +327,7 @@ class _ControlsBar extends StatelessWidget {
                     children: [
                       const Icon(Icons.sync_rounded, size: 16),
                       const SizedBox(width: 6),
-                      Text(isBn ? 'আপডেট' : 'Sync',
-                          style: theme.textTheme.labelMedium),
+                      Text(l10n.sync, style: theme.textTheme.labelMedium),
                     ],
                   ),
           ),
@@ -378,9 +350,7 @@ class _ControlsBar extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  isMonthWise
-                      ? (isBn ? 'গেজেট অনুযায়ী' : 'By Gazette')
-                      : (isBn ? 'মাস অনুযায়ী' : 'By Month'),
+                  isMonthWise ? l10n.byHolidayTypes : l10n.byMonth,
                   style: theme.textTheme.labelMedium,
                 ),
               ],

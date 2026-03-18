@@ -17,7 +17,7 @@ import 'package:ekush_ponji/features/calendar/widgets/calendar_grid.dart';
 import 'package:ekush_ponji/features/calendar/widgets/calendar_visibilities.dart';
 import 'package:ekush_ponji/features/calendar/widgets/day_details_panel.dart';
 import 'package:ekush_ponji/features/calendar/widgets/calendar_holidays_widget.dart';
-import 'package:ekush_ponji/features/calendar/widgets/custom_month_year_picker.dart';
+import 'package:ekush_ponji/core/widgets/pickers/custom_month_year_picker.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
 import 'package:go_router/go_router.dart';
 
@@ -204,12 +204,11 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
             // ─── Day Details Panel ───────────────────────────
             // Shown when viewState changes trigger a rebuild and
             // hasDateBeenSelected becomes true
-            if (viewModel.hasDateBeenSelected)
-              DayDetailsPanel(
-                selectedDay: viewModel.selectedDay,
-                isExpanded: viewModel.isDayDetailsPanelExpanded,
-                onToggleExpanded: () => viewModel.toggleDayDetailsPanel(),
-              ),
+            DayDetailsPanel(
+              selectedDay: viewModel.selectedDay,
+              isExpanded: viewModel.isDayDetailsPanelExpanded,
+              onToggleExpanded: () => viewModel.toggleDayDetailsPanel(),
+            ),
 
             // ─── All Month Holidays ──────────────────────────
             CalendarHolidaysWidget(

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/features/calendar/providers/calendar_visibility_provider.dart';
+import 'package:ekush_ponji/core/themes/app_theme_extensions.dart';
 
 class CalendarLegend extends ConsumerWidget {
   const CalendarLegend({super.key});
@@ -16,6 +17,7 @@ class CalendarLegend extends ConsumerWidget {
     final isBn = l10n.languageCode == 'bn';
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final hijriExt = theme.extension<AppThemeExtension>();
 
     return Container(
       margin: EdgeInsets.zero,
@@ -57,9 +59,11 @@ class CalendarLegend extends ConsumerWidget {
                   ? (isBn ? 'হিজরি তারিখ লুকান' : 'Hide Hijri Date')
                   : (isBn ? 'হিজরি তারিখ দেখুন' : 'Show Hijri Date'),
               isActive: visibility.showHijriDate,
-              activeColor: colorScheme.tertiaryContainer,
-              activeLabelColor: colorScheme.onTertiaryContainer,
-              activeIconColor: colorScheme.tertiary,
+              activeColor:
+                  hijriExt?.hijriContainer ?? colorScheme.tertiaryContainer,
+              activeLabelColor:
+                  hijriExt?.onHijriContainer ?? colorScheme.onTertiaryContainer,
+              activeIconColor: hijriExt?.hijriColor ?? colorScheme.tertiary,
               icon: Icons.dark_mode_rounded,
               onTap: notifier.toggleHijriDate,
             ),

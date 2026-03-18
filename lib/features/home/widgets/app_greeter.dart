@@ -59,14 +59,14 @@ extension _PeriodData on _TimePeriod {
       case _TimePeriod.morning:
         return isDark
             ? [
-                const Color(0xFFB56A00), 
-                const Color(0xFF00513F), 
+                const Color(0xFFB56A00),
+                const Color(0xFF00513F),
                 const Color(0xFFFFE0B2),
                 const Color(0xFFFFCC80),
               ]
             : [
                 const Color(0xFFFFB74D),
-                const Color(0xFF7FF9D4), 
+                const Color(0xFF7FF9D4),
                 const Color(0xFF3E2000),
                 const Color(0xFF7A4100),
               ];
@@ -127,8 +127,7 @@ class AppGreeter extends StatefulWidget {
   State<AppGreeter> createState() => _AppGreeterState();
 }
 
-class _AppGreeterState extends State<AppGreeter>
-    with TickerProviderStateMixin {
+class _AppGreeterState extends State<AppGreeter> with TickerProviderStateMixin {
   // ── Period state ────────────────────────────────────────────
   late _TimePeriod _period;
   Timer? _boundaryTimer;
@@ -311,9 +310,9 @@ class _GreeterCard extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+      margin: const EdgeInsets.fromLTRB(2, 2, 2, 2),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(10),
         gradient: LinearGradient(
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,

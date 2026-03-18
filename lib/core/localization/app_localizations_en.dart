@@ -10,9 +10,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String translate(String key) => key;
 
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
   // APP INFO
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
 
   @override
   String get appName => 'Ekush Ponji';
@@ -23,9 +23,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get welcomeToApp => 'Welcome to {appName}';
 
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
   // NAVIGATION
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
 
   @override
   String get navHome => 'Home';
@@ -34,13 +34,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navCalendar => 'Calendar';
 
   @override
+  String get navHolidays => 'Holidays';
+
+  @override
   String get navCalculator => 'Calculator';
 
   @override
   String get navSettings => 'Settings';
-
-  @override
-  String get navHolidays => 'Holidays';
 
   @override
   String get navMore => 'More';
@@ -63,9 +63,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get navAbout => 'About';
 
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
   // COMMON ACTIONS
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
 
   @override
   String get ok => 'OK';
@@ -119,6 +119,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get retry => 'Retry';
 
   @override
+  String get confirm => 'Confirm';
+
+  @override
+  String get reset => 'Reset';
+
+  @override
+  String get share => 'Share';
+
+  @override
+  String get sync => 'Sync';
+
+  // ═══════════════════════════════════════════════════════════
+  // CALENDAR SYSTEM LABELS
+  // ═══════════════════════════════════════════════════════════
+
+  @override
   String get calendarShortGregorian => 'AD';
 
   @override
@@ -127,9 +143,37 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get calendarShortHijri => 'AH';
 
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
+  // MESSAGES
+  // ═══════════════════════════════════════════════════════════
+
+  @override
+  String get comingSoon => 'Coming soon';
+
+  @override
+  String get featureComingSoon => 'This feature is coming soon';
+
+  @override
+  String get loadingData => 'Loading data...';
+
+  @override
+  String get failedToLoadData => 'Failed to load data';
+
+  @override
+  String get noDataAvailable => 'No events or reminders added yet';
+
+  @override
+  String get pageNotFound => 'Page not found';
+
+  @override
+  String get goToHome => 'Go to Home';
+
+  @override
+  String get backToHome => 'Back to Home';
+
+  // ═══════════════════════════════════════════════════════════
   // HOME SCREEN
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
 
   @override
   String get homeTitle => 'Home';
@@ -148,6 +192,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get todayDate => 'Today\'s Date';
+
+  @override
+  String get today => 'Today';
+
+  @override
+  String get tomorrow => 'Tomorrow';
+
+  @override
+  String get yesterday => 'Yesterday';
+
+  @override
+  String get inDays => 'In {count} days';
+
+  @override
+  String get daysAgo => '{count} days ago';
 
   @override
   String get upcomingHolidays => 'Upcoming Holidays';
@@ -179,70 +238,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get example => 'Example';
 
-  @override
-  String get inDays => 'In {count} days';
-
-  @override
-  String get daysAgo => '{count} days ago';
-
-  @override
-  String get today => 'Today';
-
-  @override
-  String get tomorrow => 'Tomorrow';
-
-  @override
-  String get yesterday => 'Yesterday';
-
-  @override
-  String get eventTitle => 'Event Title';
-
-  @override
-  String get eventSubtitle => 'Add an event for this day';
-
-  @override
-  String get reminderTitle => 'Reminder Title';
-
-  @override
-  String get reminderSubtitle => 'Set a reminder for this event';
-
-  @override
-  String get location => 'Location';
-
-  @override
-  String get locationSubtitle => 'Where is the event taking place?';
-
-  @override
-  String get description => 'Description';
-
-  @override
-  String get descriptionSubtitle => 'Add more details about the event';
-
-  @override
-  String get notes => 'Notes';
-
-  @override
-  String get notesSubtitle => 'Additional notes or comments about the event';
-
-  @override
-  String get savedQuotes => 'Saved Quotes';
-
-  @override
-  String get savedWords => 'Saved Words';
-
-  @override
-  String get share => 'Share';
-
-  @override
-  String get adjustFontSize => 'Adjust font size';
-
-  @override
-  String get notificationsPermissionRequired =>
-      'Please allow notification permission to enable reminders.';
-
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
   // DRAWER
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
+
+  @override
+  String get welcome => 'Welcome!';
 
   @override
   String get profile => 'Profile';
@@ -256,15 +257,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings => 'Settings';
 
-  @override
-  String get welcome => 'Welcome!';
-
-  @override
-  String get allHolidays => 'All Holidays';
-
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
   // SETTINGS
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
 
   @override
   String get settingsTitle => 'Settings';
@@ -276,44 +271,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get language => 'Language';
 
   @override
-  String get theme => 'Theme';
+  String get languageBangla => 'Bangla';
 
   @override
-  String get notifications => 'Notifications';
-
-  @override
-  String get darkMode => 'Dark Mode';
-
-  @override
-  String get lightMode => 'Light Mode';
-
-  @override
-  String get systemDefault => 'System Default';
+  String get languageEnglish => 'English';
 
   @override
   String get languageChanged => 'Language changed';
 
   @override
+  String get theme => 'Theme';
+
+  @override
+  String get lightMode => 'Light Mode';
+
+  @override
+  String get darkMode => 'Dark Mode';
+
+  @override
+  String get systemDefault => 'System Default';
+
+  @override
   String get themeChanged => 'Theme changed';
 
   @override
-  String get notificationSubtitle =>
-      'Enable notifications to receive updates about holidays';
-
-  @override
-  String get dataAndStorage => 'Data & Storage';
-
-  @override
-  String get autoBackup => 'Auto Backup';
-
-  @override
-  String get autoBackupSubtitle => 'Automatically backup your data';
-
-  @override
-  String get deleteAllData => 'Clear All Data';
-
-  @override
-  String get deleteAllDataSubtitle => 'Reset app to default settings';
+  String get appVersionSubtitle => 'App version and information';
 
   @override
   String get privacyPolicy => 'Privacy Policy';
@@ -328,15 +310,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get termsOfServiceSubtitle => 'Read our terms of service';
 
   @override
-  String get appVersionSubtitle => 'App version and information';
-
-  @override
-  String get deleteAllDataConfirmMessage =>
-      'This will reset all settings to their defaults and erase all stored data. '
-      'This action cannot be undone.';
-
-  @override
   String get resetSettings => 'Reset Settings';
+
+  @override
+  String get resetSettingsSubtitle =>
+      'Reset all app settings to default values';
 
   @override
   String get resetSettingsConfirmMessage =>
@@ -344,58 +322,167 @@ class AppLocalizationsEn extends AppLocalizations {
       'This action cannot be undone.';
 
   @override
-  String get resetSettingsSubtitle =>
-      'Reset all app settings to default values';
+  String get deleteAllData => 'Clear All Data';
 
   @override
-  String get languageBangla => 'Bangla';
+  String get deleteAllDataSubtitle => 'Reset app to default settings';
 
   @override
-  String get languageEnglish => 'English';
+  String get deleteAllDataConfirmMessage =>
+      'This will reset all settings to their defaults and erase all stored data. '
+      'This action cannot be undone.';
 
   @override
-  String get pageNotFound => 'Page not found';
+  String get dataAndStorage => 'Data & Storage';
 
   @override
-  String get goToHome => 'Go to Home';
+  String get autoBackup => 'Auto Backup';
 
   @override
-  String get backToHome => 'Back to Home';
+  String get autoBackupSubtitle => 'Automatically backup your data';
+
+  // ═══════════════════════════════════════════════════════════
+  // DATA SYNC
+  // ═══════════════════════════════════════════════════════════
 
   @override
-  String get deleteEvent => 'Delete Event';
+  String get dataUpdate => 'Data Update';
 
   @override
-  String get deleteReminder => 'Delete Reminder';
+  String get updateAllData => 'Update All Data';
 
   @override
-  String get confirm => 'Confirm';
+  String get updateAllDataSubtitle => 'Holidays, quotes & words';
+
+  @override
+  String get syncFailed => 'Sync failed — check your connection';
+
+  @override
+  String get syncOffline => 'Offline — using local data';
+
+  @override
+  String get syncUpToDate => 'Everything is up to date';
+
+  @override
+  String syncUpdated(String list) => '$list updated';
+
+  @override
+  String get syncDatasetHolidays => 'Holidays';
+
+  @override
+  String get syncDatasetQuotes => 'Quotes';
+
+  @override
+  String get syncDatasetWords => 'Words';
+
+  @override
+  String get lastSynced => 'Last synced: ';
+
+  @override
+  String get lastSyncedNever => 'Never';
+
+  @override
+  String get lastSyncedJustNow => 'Just now';
+
+  @override
+  String lastSyncedMinutesAgo(int n) => '$n minutes ago';
+
+  @override
+  String lastSyncedHoursAgo(int n) => '$n hours ago';
+
+  @override
+  String lastSyncedDaysAgo(int n) => '$n days ago';
+
+  @override
+  String get lastSyncedYesterday => 'Yesterday';
+
+  @override
+  String get lastSyncedUnknown => 'Unknown';
+
+  // ═══════════════════════════════════════════════════════════
+  // NOTIFICATIONS
+  // ═══════════════════════════════════════════════════════════
+
+  @override
+  String get notifications => 'Notifications';
+
+  @override
+  String get notificationSubtitle =>
+      'Enable notifications to receive updates about holidays';
+
+  @override
+  String get notificationsPermissionRequired =>
+      'Please allow notification permission to enable reminders.';
+
+  @override
+  String get notificationPermissionTitle => 'Notification Permission';
+
+  @override
+  String get notificationPermissionMessage =>
+      'Notification permission is required. Please enable it in Settings.';
+
+  @override
+  String get notificationPermissionDeniedBanner =>
+      'Notification permission denied. Toggles below won\'t work.';
 
   @override
   String get openSettings => 'Open Settings';
 
-  // ========================================
-  // MESSAGES
-  // ========================================
+  @override
+  String get notificationsOn => 'Notifications on';
 
   @override
-  String get comingSoon => 'Coming soon';
+  String get notificationsOff => 'Notifications off';
 
   @override
-  String get featureComingSoon => 'This feature is coming soon';
+  String get holidayNotifications => 'Holiday Notifications';
 
   @override
-  String get loadingData => 'Loading data...';
+  String get holidayNotificationsSubtitle =>
+      'Turn holiday notifications on/off';
 
   @override
-  String get failedToLoadData => 'Failed to load data';
+  String get holidayNotificationsTitle => 'Holiday Notifications';
 
   @override
-  String get noDataAvailable => 'No events or reminders added yet';
+  String get holidayNotifOnMessage =>
+      'You\'re receiving morning notifications for holidays. Turn off?';
 
-  // ========================================
-  // CALENDAR
-  // ========================================
+  @override
+  String get holidayNotifOffMessage =>
+      'Holiday notifications are off. Turn on?';
+
+  @override
+  String get turnOn => 'Turn On';
+
+  @override
+  String get turnOff => 'Turn Off';
+
+  // ═══════════════════════════════════════════════════════════
+  // HOLIDAYS SCREEN
+  // ═══════════════════════════════════════════════════════════
+
+  @override
+  String get allHolidays => 'All Holidays';
+
+  @override
+  String get noHolidaysForYear => 'No holidays found for this year';
+
+  @override
+  String get byHolidayTypes => 'By Holiday Types';
+
+  @override
+  String get byMonth => 'By Month';
+
+  @override
+  String get showLess => 'Show less';
+
+  @override
+  String showMore(int count) => 'Show $count more';
+
+  // ═══════════════════════════════════════════════════════════
+  // CALENDAR SCREEN
+  // ═══════════════════════════════════════════════════════════
 
   @override
   String get selectMonth => 'Select Month';
@@ -453,9 +540,57 @@ class AppLocalizationsEn extends AppLocalizations {
   String formatUpcomingHolidaysInMonth(String monthName) =>
       'Upcoming Holidays in $monthName';
 
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
+  // EVENTS & REMINDERS
+  // ═══════════════════════════════════════════════════════════
+
+  @override
+  String get eventTitle => 'Event Title';
+
+  @override
+  String get eventSubtitle => 'Add an event for this day';
+
+  @override
+  String get reminderTitle => 'Reminder Title';
+
+  @override
+  String get reminderSubtitle => 'Set a reminder for this event';
+
+  @override
+  String get location => 'Location';
+
+  @override
+  String get locationSubtitle => 'Where is the event taking place?';
+
+  @override
+  String get description => 'Description';
+
+  @override
+  String get descriptionSubtitle => 'Add more details about the event';
+
+  @override
+  String get notes => 'Notes';
+
+  @override
+  String get notesSubtitle => 'Additional notes or comments about the event';
+
+  @override
+  String get deleteEvent => 'Delete Event';
+
+  @override
+  String get deleteEventConfirmMessage =>
+      'Are you sure you want to delete this event?';
+
+  @override
+  String get deleteReminder => 'Delete Reminder';
+
+  @override
+  String get deleteReminderConfirmMessage =>
+      'Are you sure you want to delete this reminder?';
+
+  // ═══════════════════════════════════════════════════════════
   // EVENT CATEGORIES
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
 
   @override
   String get categoryWork => 'Work';
@@ -478,9 +613,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get categoryOther => 'Other';
 
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
   // REMINDER PRIORITY
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
+
+  @override
+  String get priority => 'Priority';
 
   @override
   String get priorityLow => 'Low';
@@ -494,32 +632,96 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get priorityUrgent => 'Urgent';
 
-  @override
-  String get priority => 'Priority';
+  // ═══════════════════════════════════════════════════════════
+  // QUOTES & WORDS
+  // ═══════════════════════════════════════════════════════════
 
   @override
-  String getMonthAbbreviation(int month) {
-    const months = [
-      '',
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
-    return months[month];
-  }
+  String get savedQuotes => 'Saved Quotes';
 
-  // ========================================
+  @override
+  String get savedWords => 'Saved Words';
+
+  @override
+  String get adjustFontSize => 'Adjust font size';
+
+  // ═══════════════════════════════════════════════════════════
+  // CALCULATOR
+  // ═══════════════════════════════════════════════════════════
+
+  @override
+  String get calculatorTitle => 'Date Calculator';
+
+  @override
+  String get fromDate => 'From Date';
+
+  @override
+  String get toDate => 'To Date';
+
+  @override
+  String get selectDate => 'Select date';
+
+  @override
+  String get selectFromDate => 'Select From Date';
+
+  @override
+  String get selectToDate => 'Select To Date';
+
+  @override
+  String get copyResult => 'Copy';
+
+  @override
+  String get copiedToClipboard => 'Copied to clipboard';
+
+  @override
+  String get invalidDateRange => 'From date cannot be after To date';
+
+  @override
+  String get selectDatesToSeeResults => 'Select dates to see results';
+
+  @override
+  String get calculationResults => 'Calculation Results';
+
+  @override
+  String get yearsMonthsDays => 'Years Months Days';
+
+  @override
+  String get totalDays => 'Total Days';
+
+  @override
+  String get weeksAndDays => 'Weeks and Days';
+
+  // ═══════════════════════════════════════════════════════════
+  // TIME UNITS
+  // ═══════════════════════════════════════════════════════════
+
+  @override
+  String get year => 'Year';
+
+  @override
+  String get years => 'Years';
+
+  @override
+  String get month => 'Month';
+
+  @override
+  String get months => 'Months';
+
+  @override
+  String get day => 'Day';
+
+  @override
+  String get days => 'Days';
+
+  @override
+  String get week => 'Week';
+
+  @override
+  String get weeks => 'Weeks';
+
+  // ═══════════════════════════════════════════════════════════
   // DAYS OF WEEK
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
 
   @override
   String get monday => 'Monday';
@@ -563,9 +765,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get shortSaturday => 'Sat';
 
-  // ========================================
-  // MONTHS (ENGLISH CALENDAR)
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
+  // MONTHS — GREGORIAN
+  // ═══════════════════════════════════════════════════════════
 
   @override
   String get january => 'January';
@@ -603,9 +805,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get december => 'December';
 
-  // ========================================
-  // BANGLA MONTHS
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
+  // MONTHS — BENGALI
+  // ═══════════════════════════════════════════════════════════
 
   @override
   String get boishakh => 'Boishakh';
@@ -643,9 +845,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get choitra => 'Choitra';
 
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
   // SEASONS
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
 
   @override
   String get seasonGrishmo => 'Summer';
@@ -677,80 +879,27 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get seasonWinter => 'Winter';
 
-  // ========================================
-  // CALCULATOR
-  // ========================================
+  // ═══════════════════════════════════════════════════════════
+  // MONTH ABBREVIATIONS (override base)
+  // ═══════════════════════════════════════════════════════════
 
   @override
-  String get calculatorTitle => 'Date Calculator';
-
-  @override
-  String get fromDate => 'From Date';
-
-  @override
-  String get toDate => 'To Date';
-
-  @override
-  String get selectDate => 'Select date';
-
-  @override
-  String get selectFromDate => 'Select From Date';
-
-  @override
-  String get selectToDate => 'Select To Date';
-
-  @override
-  String get reset => 'Reset';
-
-  @override
-  String get copyResult => 'Copy';
-
-  @override
-  String get copiedToClipboard => 'Copied to clipboard';
-
-  @override
-  String get invalidDateRange => 'From date cannot be after To date';
-
-  @override
-  String get selectDatesToSeeResults => 'Select dates to see results';
-
-  @override
-  String get calculationResults => 'Calculation Results';
-
-  @override
-  String get yearsMonthsDays => 'Years Months Days';
-
-  @override
-  String get totalDays => 'Total Days';
-
-  @override
-  String get weeksAndDays => 'Weeks and Days';
-
-  // ========================================
-  // TIME UNITS
-  // ========================================
-
-  @override
-  String get year => 'Year';
-
-  @override
-  String get years => 'Years';
-
-  @override
-  String get month => 'Month';
-
-  @override
-  String get months => 'Months';
-
-  @override
-  String get day => 'Day';
-
-  @override
-  String get days => 'Days';
-
-  @override
-  String get week => 'Week';
-
-  @override
-  String get weeks => 'Weeks';
+  String getMonthAbbreviation(int month) {
+    const months = [
+      '',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return months[month];
+  }
 }

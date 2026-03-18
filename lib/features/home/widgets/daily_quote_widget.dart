@@ -21,19 +21,18 @@ class DailyQuoteWidget extends ConsumerWidget {
     final vm = ref.read(quotesViewModelProvider.notifier);
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.fromLTRB(4, 4, 4, 4),
       decoration: BoxDecoration(
-        color: cs.surfaceContainerHighest.withOpacity(0.35),
-        borderRadius: BorderRadius.circular(20),
+        color: cs.surfaceContainerHighest.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: cs.outlineVariant.withOpacity(0.4),
+          color: cs.outlineVariant.withValues(alpha: 0.4),
           width: 1,
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Header ────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
             child: Row(
@@ -74,10 +73,7 @@ class DailyQuoteWidget extends ConsumerWidget {
               ],
             ),
           ),
-
           const SizedBox(height: 12),
-
-          // ── Content ───────────────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
             child: viewState is ViewStateLoading

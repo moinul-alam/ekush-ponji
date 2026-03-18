@@ -1,46 +1,4 @@
 // lib/core/services/data_sync_service.dart
-//
-// SINGLE COORDINATOR for all dataset syncing: holidays, quotes, words.
-//
-// ── Architecture ─────────────────────────────────────────────────────────────
-//
-//   DataSyncService  ←── only entry point for all sync operations
-//       │
-//       ├── HolidaySyncService   (holidays worker)
-//       ├── QuotesSyncService    (quotes worker)
-//       └── WordsSyncService     (words worker)
-//
-// No screen, repository, or viewmodel should call a worker directly.
-// All callers go through DataSyncService.
-//
-// ── Sync Rules ───────────────────────────────────────────────────────────────
-//
-//   VERSION CHECK: Always runs. No call ever downloads if remote version
-//                  is same as or older than local. This is non-negotiable.
-//
-//   INTERVAL:      Each dataset tracks its own last-check timestamp.
-//                  Auto-sync only runs if the interval has passed.
-//
-//   force=true:    Skips the interval check ONLY. Version check still runs.
-//                  Used by: Settings "Sync All", pull-to-refresh.
-//
-// ── Sync Triggers ────────────────────────────────────────────────────────────
-//
-//   1. App startup (AppInitializer)
-//      → seedAll() on first launch
-//      → backgroundSyncOnStartup() — non-blocking, respects weekly interval
-//        controlled by [enableWeeklyAutoSync]
-//
-//   2. New version detected
-//      → Always syncs that dataset, regardless of interval or auto-sync flag
-//      → This cannot be disabled — it is the safety net
-//
-//   3. Settings "Sync All Data" button
-//      → forceSync() — skips interval, respects version
-//
-//   4. Holidays screen pull-to-refresh / manual sync button
-//      → syncHolidaysInBackground() — non-blocking, skips interval,
-//        respects version, reloads viewmodel if updated
 
 import 'dart:convert';
 
@@ -52,16 +10,12 @@ import 'package:ekush_ponji/core/models/app_manifest.dart';
 import 'package:ekush_ponji/features/holidays/services/holiday_sync_service.dart';
 import 'package:ekush_ponji/features/quotes/services/quotes_sync_service.dart';
 import 'package:ekush_ponji/features/words/services/words_sync_service.dart';
+import 'package:ekush_ponji/core/localization/app_localizations.dart';
 
 // ── Configuration ─────────────────────────────────────────────────────────────
 
-/// Set to false to disable the weekly background auto-sync entirely.
-/// Manual syncs (Settings, pull-to-refresh) are NOT affected by this flag.
-/// Version-triggered syncs are NOT affected — they always run.
 const bool enableWeeklyAutoSync = true;
 
-/// How often the background auto-sync is allowed to run.
-/// Must match HolidaySyncService._checkIntervalDays.
 const int autoSyncIntervalDays = 7;
 
 // ── Manifest URL ──────────────────────────────────────────────────────────────
@@ -240,7 +194,8 @@ class DataSyncService {
     );
 
     debugPrint(
-        '✅ DataSync: force sync complete — ${result.summary(isBn: false)}');
+        '✅ DataSync: force sync complete — holidays=${result.holidaysUpdated} quotes=${result.quotesUpdated} words=${result.wordsUpdated}');
+
     return result;
   }
 
@@ -294,29 +249,17 @@ class DataSyncResult {
   bool get anyUpdated => holidaysUpdated || quotesUpdated || wordsUpdated;
 
   /// Human-readable summary, bilingual.
-  String summary({required bool isBn}) {
-    if (!success) {
-      return isBn
-          ? 'সিঙ্ক ব্যর্থ — ইন্টারনেট সংযোগ পরীক্ষা করুন'
-          : 'Sync failed — check your connection';
-    }
-    if (localOnly) {
-      return isBn
-          ? 'অফলাইন — স্থানীয় ডেটা ব্যবহার করা হচ্ছে'
-          : 'Offline — using local data';
-    }
-    if (!anyUpdated) {
-      return isBn ? 'সব কিছু আপডেট আছে' : 'Everything is up to date';
-    }
+  String summary(AppLocalizations l10n) {
+    if (!success) return l10n.syncFailed;
+    if (localOnly) return l10n.syncOffline;
+    if (!anyUpdated) return l10n.syncUpToDate;
 
-    final updated = <String>[];
-    if (holidaysUpdated) updated.add(isBn ? 'ছুটির তালিকা' : 'Holidays');
-    if (quotesUpdated) updated.add(isBn ? 'উদ্ধৃতি' : 'Quotes');
-    if (wordsUpdated) updated.add(isBn ? 'শব্দ' : 'Words');
+    final updated = [
+      if (holidaysUpdated) l10n.syncDatasetHolidays,
+      if (quotesUpdated) l10n.syncDatasetQuotes,
+      if (wordsUpdated) l10n.syncDatasetWords,
+    ];
 
-    final list = updated.join(', ');
-    return isBn ? '$list আপডেট হয়েছে' : '$list updated';
+    return l10n.syncUpdated(updated.join(', '));
   }
 }
-
-// Provider lives in app_providers.dart — not declared here.

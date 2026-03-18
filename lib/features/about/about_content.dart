@@ -6,8 +6,8 @@ class AboutContent {
   // ── App description ───────────────────────────────────────────
 
   static String appDescription(bool isBn) => isBn
-      ? 'বাংলা, ইংরেজি ও হিজরি ক্যালেন্ডার, সরকারি ছুটির তালিকা, নামাজের সময়, ইভেন্ট ও রিমাইন্ডার — সব এক জায়গায়।'
-      : 'Bangla, Gregorian, and Hijri calendar, government holidays, prayer times, events, and reminders — all in one place.';
+      ? 'বাংলা, ইংরেজি ও হিজরি ক্যালেন্ডার, সরকারি ছুটির তালিকা, ইভেন্ট, রিমাইন্ডার, ক্যালকুলেটর — সব এক জায়গায়।'
+      : 'Bangla, Gregorian, and Hijri calendar, government holidays, events, reminders, calculator — all in one place.';
 
   // ── Privacy Policy ────────────────────────────────────────────
 

@@ -2,12 +2,13 @@
 
 import 'package:flutter/material.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
+import 'package:ekush_ponji/core/themes/app_theme_extensions.dart';
 
 class CalendarHeader extends StatelessWidget {
   final int gregorianYear;
   final int gregorianMonth;
   final String bengaliMonthsDisplay;
-  final String hijriMonthsDisplay;   // ← NEW
+  final String hijriMonthsDisplay; // ← NEW
   final VoidCallback onPreviousMonth;
   final VoidCallback onNextMonth;
   final VoidCallback onMonthTap;
@@ -18,7 +19,7 @@ class CalendarHeader extends StatelessWidget {
     required this.gregorianYear,
     required this.gregorianMonth,
     required this.bengaliMonthsDisplay,
-    required this.hijriMonthsDisplay,  // ← NEW
+    required this.hijriMonthsDisplay, // ← NEW
     required this.onPreviousMonth,
     required this.onNextMonth,
     required this.onMonthTap,
@@ -130,7 +131,10 @@ class CalendarHeader extends StatelessWidget {
                             hijriMonthsDisplay,
                             style: theme.textTheme.bodySmall?.copyWith(
                               fontSize: 13,
-                              color: theme.colorScheme.tertiary,
+                              color: Theme.of(context)
+                                      .extension<AppThemeExtension>()
+                                      ?.hijriColor ??
+                                  theme.colorScheme.tertiary,
                               fontWeight: FontWeight.w600,
                               letterSpacing: 0.1,
                             ),
