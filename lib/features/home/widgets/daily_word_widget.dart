@@ -113,32 +113,33 @@ class _WordContent extends StatelessWidget {
 
     if (word == null) return const SizedBox.shrink();
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            cs.tertiaryContainer.withValues(alpha: 0.4),
-            cs.primaryContainer.withValues(alpha: 0.4),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+    // WRAPPER: Making the whole card clickable
+    return InkWell(
+      onTap: onOpen,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              cs.tertiaryContainer.withValues(alpha: 0.4),
+              cs.primaryContainer.withValues(alpha: 0.4),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: cs.outline.withValues(alpha: 0.2)),
         ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: cs.outline.withValues(alpha: 0.2)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ── Word + part of speech + save ──────────────────
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              InkWell(
-                onTap: onOpen,
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // TEXT: No longer needs its own InkWell as parent handles it
+                Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Text(
                     word!.word,
@@ -149,86 +150,74 @@ class _WordContent extends StatelessWidget {
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: cs.tertiary,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  word!.partOfSpeech,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: cs.onTertiary,
-                    fontWeight: FontWeight.w600,
+                const SizedBox(width: 8),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: cs.tertiary,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    word!.partOfSpeech,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: cs.onTertiary,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
-              ),
-              const Spacer(),
-              if (onToggleSave != null)
-                IconButton(
-                  onPressed: onToggleSave,
-                  icon: Icon(
-                    word!.isSaved
-                        ? Icons.favorite_rounded
-                        : Icons.favorite_border_rounded,
-                    color: word!.isSaved ? cs.error : cs.onSurfaceVariant,
-                    size: 28,
+                const Spacer(),
+                if (onToggleSave != null)
+                  IconButton(
+                    onPressed: onToggleSave,
+                    icon: Icon(
+                      word!.isSaved
+                          ? Icons.favorite_rounded
+                          : Icons.favorite_border_rounded,
+                      color: word!.isSaved ? cs.error : cs.onSurfaceVariant,
+                      size: 28,
+                    ),
+                    visualDensity: VisualDensity.compact,
                   ),
-                  visualDensity: VisualDensity.compact,
-                ),
-            ],
-          ),
-
-          // ── Pronunciation ─────────────────────────────────
-          const SizedBox(height: 4),
-          Text(
-            word!.pronunciation,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: cs.onSurfaceVariant,
-              fontStyle: FontStyle.italic,
+              ],
             ),
-          ),
-
-          // ── Bangla meaning ────────────────────────────────
-          const SizedBox(height: 12),
-          Text(
-            word!.meaningBn,
-            style: theme.textTheme.titleLarge?.copyWith(
-              color: cs.onSurface,
-              fontWeight: FontWeight.w600,
-              height: 1.4,
+            const SizedBox(height: 4),
+            Text(
+              word!.pronunciation,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: cs.onSurfaceVariant,
+                fontStyle: FontStyle.italic,
+              ),
             ),
-          ),
-
-          // ── Divider ───────────────────────────────────────
-          const SizedBox(height: 16),
-          Divider(color: cs.outline.withValues(alpha: 0.3), height: 1),
-          const SizedBox(height: 16),
-
-          // ── English meaning ───────────────────────────────
-          _buildSection(context,
-              icon: Icons.lightbulb_outline_rounded,
-              title: l10n.meaningEnglish,
-              content: word!.meaningEn),
-          const SizedBox(height: 12),
-
-          // ── Synonym ───────────────────────────────────────
-          _buildSection(context,
-              icon: Icons.sync_alt_rounded,
-              title: l10n.synonym,
-              content: word!.synonym),
-          const SizedBox(height: 12),
-
-          // ── Example ───────────────────────────────────────
-          _buildSection(context,
-              icon: Icons.chat_bubble_outline_rounded,
-              title: l10n.example,
-              content: word!.example,
-              isItalic: true),
-        ],
+            const SizedBox(height: 12),
+            Text(
+              word!.meaningBn,
+              style: theme.textTheme.titleLarge?.copyWith(
+                color: cs.onSurface,
+                fontWeight: FontWeight.w600,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Divider(color: cs.outline.withValues(alpha: 0.3), height: 1),
+            const SizedBox(height: 16),
+            _buildSection(context,
+                icon: Icons.lightbulb_outline_rounded,
+                title: l10n.meaningEnglish,
+                content: word!.meaningEn),
+            const SizedBox(height: 12),
+            _buildSection(context,
+                icon: Icons.sync_alt_rounded,
+                title: l10n.synonym,
+                content: word!.synonym),
+            const SizedBox(height: 12),
+            _buildSection(context,
+                icon: Icons.chat_bubble_outline_rounded,
+                title: l10n.example,
+                content: word!.example,
+                isItalic: true),
+          ],
+        ),
       ),
     );
   }
