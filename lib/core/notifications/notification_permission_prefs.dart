@@ -1,19 +1,13 @@
-// lib/core/services/notification_permission_prefs.dart
-//
-// Tracks whether the app has already asked the user for notification
-// permission, and when to re-ask after a denial.
-//
-// Rules:
-//   • Ask on first successful prayer times load (never on cold launch).
-//   • If the user denies, wait 3 days before asking again.
-//   • If the user grants, never ask again (permission_handler handles the rest).
+// lib/core/notifications/notification_permission_prefs.dart
 
 import 'package:shared_preferences/shared_preferences.dart';
 
 class NotificationPermissionPrefs {
   static const String _askedKey = 'notif_permission_asked';
   static const String _deniedAtKey = 'notif_permission_denied_at';
-  static const int _retryDays = 3;
+  static const String _denialCountKey = 'notif_permission_denial_count';
+  static const int _retryDays = 7;
+  static const int _maxDenials = 2;
 
   // ── Public API ────────────────────────────────────────────────
 
@@ -21,17 +15,22 @@ class NotificationPermissionPrefs {
   ///
   /// Shows if:
   ///   • Never been asked before, OR
-  ///   • Was denied and at least [_retryDays] days have passed.
+  ///   • Was denied fewer than [_maxDenials] times AND
+  ///     at least [_retryDays] days have passed since last denial.
   static Future<bool> shouldAsk() async {
     final prefs = await SharedPreferences.getInstance();
+
+    // Check denial count first — hard stop at max denials
+    final denialCount = prefs.getInt(_denialCountKey) ?? 0;
+    if (denialCount >= _maxDenials) return false;
 
     final hasBeenAsked = prefs.getBool(_askedKey) ?? false;
     if (!hasBeenAsked) return true;
 
-    // Was asked before — check if it was denied and retry window has passed.
+    // Was asked before — check if denied and retry window has passed
     final deniedAtRaw = prefs.getString(_deniedAtKey);
     if (deniedAtRaw == null) {
-      // Was asked and granted (no denial recorded) — never ask again.
+      // Was asked and granted (no denial recorded) — never ask again
       return false;
     }
 
@@ -42,23 +41,32 @@ class NotificationPermissionPrefs {
     return daysSinceDenial >= _retryDays;
   }
 
-  /// Call this immediately before showing the system permission dialog.
+  /// Call this immediately before showing the permission dialog.
   static Future<void> markAsked() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_askedKey, true);
   }
 
   /// Call this if the user denied the permission.
-  /// Records the denial timestamp so [shouldAsk] can enforce the retry window.
+  /// Increments denial count and records timestamp.
   static Future<void> markDenied() async {
     final prefs = await SharedPreferences.getInstance();
+    final count = prefs.getInt(_denialCountKey) ?? 0;
+    await prefs.setInt(_denialCountKey, count + 1);
     await prefs.setString(_deniedAtKey, DateTime.now().toIso8601String());
   }
 
   /// Call this if the user granted the permission.
-  /// Clears any denial record so we never prompt again.
+  /// Clears denial record — never prompt again via global dialog.
   static Future<void> markGranted() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_deniedAtKey);
+    // Keep _denialCountKey as-is — granted means we stop asking anyway
+  }
+
+  /// Returns current denial count (for debugging / analytics).
+  static Future<int> denialCount() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_denialCountKey) ?? 0;
   }
 }

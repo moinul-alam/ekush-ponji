@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ekush_ponji/features/quotes/quotes_viewmodel.dart';
+import 'package:ekush_ponji/features/words/words_viewmodel.dart';
 
 class AppDrawer extends StatelessWidget {
   final String? userName;
@@ -131,7 +134,13 @@ class AppDrawer extends StatelessWidget {
             title: Text(l10n.quoteOfTheDay),
             onTap: () {
               Navigator.pop(context);
-              context.push(RouteNames.quotes);
+              final now = DateTime.now();
+              final vm = ProviderScope.containerOf(context)
+                  .read(quotesViewModelProvider.notifier);
+              final index = vm.allQuotes.indexWhere(
+                (q) => q.month == now.month && q.day == now.day,
+              );
+              context.push(RouteNames.quotes, extra: index < 0 ? 0 : index);
             },
           ),
           ListTile(
@@ -139,7 +148,13 @@ class AppDrawer extends StatelessWidget {
             title: Text(l10n.savedQuotes),
             onTap: () {
               Navigator.pop(context);
-              context.push(RouteNames.savedQuotes);
+              final now = DateTime.now();
+              final vm = ProviderScope.containerOf(context)
+                  .read(wordsViewModelProvider.notifier);
+              final index = vm.allWords.indexWhere(
+                (w) => w.month == now.month && w.day == now.day,
+              );
+              context.push(RouteNames.words, extra: index < 0 ? 0 : index);
             },
           ),
 

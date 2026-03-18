@@ -208,6 +208,7 @@ abstract class AppLocalizations {
   String get meaningBengali;
   String get synonym;
   String get example;
+  String get todayIsDayName;
 
   // ═══════════════════════════════════════════════════════════
   // DRAWER
@@ -292,6 +293,12 @@ abstract class AppLocalizations {
   String get holidayNotifOffMessage;
   String get turnOn;
   String get turnOff;
+  String get notNow;
+  String get enable;
+  String get quoteNotifications;
+  String get quoteNotificationsSubtitle;
+  String get wordNotifications;
+  String get wordNotificationsSubtitle;
 
   // ═══════════════════════════════════════════════════════════
   // HOLIDAYS SCREEN
@@ -375,6 +382,8 @@ abstract class AppLocalizations {
   String get savedQuotes;
   String get savedWords;
   String get adjustFontSize;
+  String get noSavedQuotes;
+  String get noSavedWords;
 
   // ═══════════════════════════════════════════════════════════
   // CALCULATOR

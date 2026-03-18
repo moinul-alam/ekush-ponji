@@ -1,90 +1,15 @@
 // lib/features/quotes/services/quote_notification_service.dart
-//
-// QuoteNotificationPrefs is defined HERE — the separate
-// quote_notification_prefs.dart file must be DELETED.
-// Having prefs in a separate file caused duplicate import errors because
-// both this service and its callers imported the prefs file independently.
-
-import 'dart:convert';
 
 import 'package:flutter/material.dart' show Color, debugPrint;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ekush_ponji/core/notifications/notification_id.dart';
 import 'package:ekush_ponji/core/notifications/notification_permission_service.dart';
 import 'package:ekush_ponji/core/services/local_notification_service.dart';
+import 'package:ekush_ponji/features/quotes/data/repositories/quotes_repository.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:ekush_ponji/features/quotes/data/datasources/local/quotes_local_datasource.dart';
-
-// ── Prefs ──────────────────────────────────────────────────────────────────────
-
-class QuoteNotificationPrefs {
-  static const String _prefsKey = 'quote_notification_prefs';
-
-  final bool enabled;
-  final int notifyHour;
-  final int notifyMinute;
-
-  const QuoteNotificationPrefs({
-    this.enabled = true,
-    this.notifyHour = 9,
-    this.notifyMinute = 0,
-  });
-
-  QuoteNotificationPrefs copyWith({
-    bool? enabled,
-    int? notifyHour,
-    int? notifyMinute,
-  }) {
-    return QuoteNotificationPrefs(
-      enabled: enabled ?? this.enabled,
-      notifyHour: notifyHour ?? this.notifyHour,
-      notifyMinute: notifyMinute ?? this.notifyMinute,
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-        'enabled': enabled,
-        'notifyHour': notifyHour,
-        'notifyMinute': notifyMinute,
-      };
-
-  factory QuoteNotificationPrefs.fromJson(Map<String, dynamic> json) {
-    return QuoteNotificationPrefs(
-      enabled: json['enabled'] as bool? ?? true,
-      notifyHour: json['notifyHour'] as int? ?? 9,
-      notifyMinute: json['notifyMinute'] as int? ?? 0,
-    );
-  }
-
-  static Future<QuoteNotificationPrefs> load() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final raw = prefs.getString(_prefsKey);
-      if (raw == null) return const QuoteNotificationPrefs();
-      return QuoteNotificationPrefs.fromJson(
-          jsonDecode(raw) as Map<String, dynamic>);
-    } catch (e) {
-      debugPrint('⚠️ QuoteNotificationPrefs.load error: $e');
-      return const QuoteNotificationPrefs();
-    }
-  }
-
-  Future<void> save() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_prefsKey, jsonEncode(toJson()));
-      debugPrint('✅ QuoteNotificationPrefs saved');
-    } catch (e) {
-      debugPrint('❌ QuoteNotificationPrefs.save error: $e');
-    }
-  }
-
-  @override
-  String toString() => 'QuoteNotificationPrefs(enabled=$enabled, '
-      'time=$notifyHour:${notifyMinute.toString().padLeft(2, "0")})';
-}
-
-// ── Service ────────────────────────────────────────────────────────────────────
+import 'package:ekush_ponji/features/quotes/models/quote.dart';
+import 'package:ekush_ponji/features/quotes/services/quote_notification_prefs.dart';
 
 class QuoteNotificationService {
   QuoteNotificationService._();
@@ -94,7 +19,7 @@ class QuoteNotificationService {
   static const int _accentColorValue = 0xFF006B54;
 
   static Future<void> scheduleUpcoming({
-    required QuotesLocalDatasource datasource,
+    QuotesRepository? repository,
     required QuoteNotificationPrefs prefs,
     required String languageCode,
   }) async {
@@ -111,6 +36,15 @@ class QuoteNotificationService {
       return;
     }
 
+    final repo = repository ??
+        QuotesRepository(
+          localDatasource: QuotesLocalDatasource(
+            savedBox: Hive.box<QuoteModel>(savedQuotesBoxName),
+            settingsBox: Hive.box('settings'),
+          ),
+        );
+    await repo.init();
+
     final now = DateTime.now();
 
     // ── Today ──────────────────────────────────────────────────────────────
@@ -123,7 +57,7 @@ class QuoteNotificationService {
     );
 
     if (todayFireTime.isAfter(now)) {
-      final todayQuote = datasource.getDailyQuote();
+      final todayQuote = repo.getDailyQuoteForDate(now);
       await _scheduleOne(
         id: NotificationId.quoteToday,
         fireTime: todayFireTime,
@@ -143,7 +77,7 @@ class QuoteNotificationService {
       prefs.notifyMinute,
     );
 
-    final tomorrowQuote = datasource.getDailyQuoteForDate(tomorrow);
+    final tomorrowQuote = repo.getDailyQuoteForDate(tomorrow);
     await _scheduleOne(
       id: NotificationId.quoteTomorrow,
       fireTime: tomorrowFireTime,

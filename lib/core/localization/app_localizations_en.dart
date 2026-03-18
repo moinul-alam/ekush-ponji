@@ -238,6 +238,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get example => 'Example';
 
+  @override
+  String get todayIsDayName => 'Today is';
+
   // ═══════════════════════════════════════════════════════════
   // DRAWER
   // ═══════════════════════════════════════════════════════════
@@ -458,6 +461,26 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get turnOff => 'Turn Off';
 
+  @override
+  String get enable => 'Enable';
+
+  @override
+  String get notNow => 'Not Now';
+
+  @override
+  String get quoteNotifications => 'Daily Quote';
+
+  @override
+  String get quoteNotificationsSubtitle =>
+      'Get a quote notification every morning';
+
+  @override
+  String get wordNotifications => 'Word of the Day';
+
+  @override
+  String get wordNotificationsSubtitle =>
+      'Get a new word notification every morning';
+
   // ═══════════════════════════════════════════════════════════
   // HOLIDAYS SCREEN
   // ═══════════════════════════════════════════════════════════
@@ -641,6 +664,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get savedWords => 'Saved Words';
+
+  @override
+  String get noSavedQuotes => 'No Saved Quotes Yet';
+
+  @override
+  String get noSavedWords => 'No Saved Words Yet';
 
   @override
   String get adjustFontSize => 'Adjust font size';

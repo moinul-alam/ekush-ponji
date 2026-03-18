@@ -7,6 +7,8 @@ import 'package:ekush_ponji/core/base/view_state.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/features/words/models/word.dart';
 import 'package:ekush_ponji/features/words/words_viewmodel.dart';
+import 'package:go_router/go_router.dart';
+import 'package:ekush_ponji/app/router/route_names.dart';
 
 class SavedWordsScreen extends BaseScreen {
   const SavedWordsScreen({super.key});
@@ -33,12 +35,38 @@ class _SavedWordsScreenState extends BaseScreenState<SavedWordsScreen> {
 
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final vm = ref.watch(wordsViewModelProvider.notifier);
     final savedWords = vm.savedWords;
 
     if (savedWords.isEmpty) {
-      return buildEmptyWidget(
-        const ViewStateEmpty('No saved words yet'),
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.favorite_border_rounded,
+              size: 64,
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurfaceVariant
+                  .withValues(alpha: 0.4),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              l10n.noSavedWords,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: () => context.push(RouteNames.words),
+              icon: const Icon(Icons.menu_book_rounded),
+              label: Text(l10n.wordOfTheDay),
+            ),
+          ],
+        ),
       );
     }
 
@@ -91,8 +119,8 @@ class _SavedWordCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: colorScheme.tertiaryContainer,
                     borderRadius: BorderRadius.circular(20),

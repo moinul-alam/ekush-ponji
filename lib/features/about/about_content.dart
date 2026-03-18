@@ -24,7 +24,7 @@ class AboutContent {
 আমরা কোনো তৃতীয় পক্ষের সাথে আপনার তথ্য বিক্রি বা ভাগ করি না।
 
 যোগাযোগ
-কোনো প্রশ্ন থাকলে আমাদের সাথে যোগাযোগ করুন।'''
+কোনো প্রশ্ন বা পরামর্শ থাকলে আমাদের ইমেইল করুন ekushponji@gmail.com'''
       : '''Ekush Ponji respects your privacy.
 
 What We Collect
@@ -37,7 +37,7 @@ Third Parties
 We do not sell or share your data with any third parties.
 
 Contact
-If you have any questions, please reach out to us.''';
+If you have any questions or suggestions, please email as at ekushponji@gmail.com.''';
 
   // ── Terms of Service ──────────────────────────────────────────
 

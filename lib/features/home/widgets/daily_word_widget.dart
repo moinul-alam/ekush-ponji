@@ -41,14 +41,6 @@ class DailyWordWidget extends ConsumerWidget {
               children: [
                 Row(
                   children: [
-                    Container(
-                      width: 4,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: cs.tertiary,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
                     const SizedBox(width: 10),
                     Text(
                       l10n.wordOfTheDay,
@@ -75,7 +67,7 @@ class DailyWordWidget extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
           Padding(
-            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            padding: const EdgeInsets.fromLTRB(4, 0, 4, 4),
             child: viewState is ViewStateLoading
                 ? const Center(child: CircularProgressIndicator())
                 : viewState is ViewStateError
@@ -88,7 +80,13 @@ class DailyWordWidget extends ConsumerWidget {
                       )
                     : _WordContent(
                         word: vm.dailyWord,
-                        onOpen: () => context.push(RouteNames.words),
+                        onOpen: () {
+                          final index = vm.allWords.indexWhere(
+                            (w) => w.storageKey == vm.dailyWord!.storageKey,
+                          );
+                          context.push(RouteNames.words,
+                              extra: index < 0 ? 0 : index);
+                        },
                         onToggleSave: vm.dailyWord != null
                             ? () => vm.toggleSave(vm.dailyWord!)
                             : null,
@@ -133,6 +131,7 @@ class _WordContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // ── Word + part of speech + save ──────────────────
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -143,7 +142,7 @@ class _WordContent extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Text(
                     word!.word,
-                    style: theme.textTheme.titleLarge?.copyWith(
+                    style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: cs.tertiary,
                       letterSpacing: 0.5,
@@ -182,6 +181,8 @@ class _WordContent extends StatelessWidget {
                 ),
             ],
           ),
+
+          // ── Pronunciation ─────────────────────────────────
           const SizedBox(height: 4),
           Text(
             word!.pronunciation,
@@ -190,24 +191,38 @@ class _WordContent extends StatelessWidget {
               fontStyle: FontStyle.italic,
             ),
           ),
+
+          // ── Bangla meaning ────────────────────────────────
+          const SizedBox(height: 12),
+          Text(
+            word!.meaningBn,
+            style: theme.textTheme.titleLarge?.copyWith(
+              color: cs.onSurface,
+              fontWeight: FontWeight.w600,
+              height: 1.4,
+            ),
+          ),
+
+          // ── Divider ───────────────────────────────────────
           const SizedBox(height: 16),
           Divider(color: cs.outline.withValues(alpha: 0.3), height: 1),
           const SizedBox(height: 16),
+
+          // ── English meaning ───────────────────────────────
           _buildSection(context,
               icon: Icons.lightbulb_outline_rounded,
               title: l10n.meaningEnglish,
               content: word!.meaningEn),
-          const SizedBox(height: 4),
-          _buildSection(context,
-              icon: Icons.translate_rounded,
-              title: l10n.meaningBengali,
-              content: word!.meaningBn),
           const SizedBox(height: 12),
+
+          // ── Synonym ───────────────────────────────────────
           _buildSection(context,
               icon: Icons.sync_alt_rounded,
               title: l10n.synonym,
               content: word!.synonym),
           const SizedBox(height: 12),
+
+          // ── Example ───────────────────────────────────────
           _buildSection(context,
               icon: Icons.chat_bubble_outline_rounded,
               title: l10n.example,

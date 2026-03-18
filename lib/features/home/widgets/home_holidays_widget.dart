@@ -40,7 +40,7 @@ class _HomeHolidaysWidgetState extends ConsumerState<HomeHolidaysWidget> {
     return GestureDetector(
       onTap: () => context.push(RouteNames.holidays),
       child: Container(
-        margin: const EdgeInsets.fromLTRB(4, 4, 4, 4),
+        margin: const EdgeInsets.fromLTRB(4, 1, 4, 1),
         decoration: BoxDecoration(
           color: cs.surfaceContainerHighest.withValues(alpha: 0.35),
           borderRadius: BorderRadius.circular(16),
@@ -61,14 +61,6 @@ class _HomeHolidaysWidgetState extends ConsumerState<HomeHolidaysWidget> {
                 children: [
                   Row(
                     children: [
-                      Container(
-                        width: 4,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          color: cs.primary,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
                       const SizedBox(width: 10),
                       Text(
                         l10n.upcomingHolidays,
@@ -139,7 +131,7 @@ class _HomeHolidaysWidgetState extends ConsumerState<HomeHolidaysWidget> {
             // ─── List ───────────────────────────────────────
             if (widget.holidays.isNotEmpty)
               Padding(
-                padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
+                padding: const EdgeInsets.fromLTRB(4, 0, 4, 4),
                 child: Column(
                   children: [
                     ...visibleHolidays.asMap().entries.map((entry) {
@@ -295,44 +287,27 @@ class _HolidayListItem extends StatelessWidget {
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
+                child: Row(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 7, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: typeColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(_typeIcon(holiday.category),
-                              color: typeColor, size: 11),
-                          const SizedBox(width: 4),
-                          Text(
-                            _typeLabel(holiday.category),
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: typeColor,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
-                      ),
+                    Icon(
+                      _typeIcon(holiday.category),
+                      color: typeColor,
+                      size: 16,
                     ),
-                    const SizedBox(height: 5),
-                    Text(
-                      l10n.languageCode == 'bn' ? holiday.namebn : holiday.name,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: cs.onSurface,
-                        height: 1.3,
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        l10n.languageCode == 'bn'
+                            ? holiday.namebn
+                            : holiday.name,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: cs.onSurface,
+                          height: 1.3,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
@@ -447,23 +422,23 @@ class _HolidayListItem extends StatelessWidget {
     }
   }
 
-  String _typeLabel(HolidayCategory category) {
-    final isBangla = l10n.languageCode == 'bn';
-    switch (category) {
-      case HolidayCategory.national:
-        return isBangla ? 'জাতীয়' : 'National';
-      case HolidayCategory.islamic:
-        return isBangla ? 'ইসলামী' : 'Islamic';
-      case HolidayCategory.hindu:
-        return isBangla ? 'হিন্দু' : 'Hindu';
-      case HolidayCategory.christian:
-        return isBangla ? 'খ্রিষ্টান' : 'Christian';
-      case HolidayCategory.buddhist:
-        return isBangla ? 'বৌদ্ধ' : 'Buddhist';
-      case HolidayCategory.ethnicMinority:
-        return isBangla ? 'নৃ-গোষ্ঠী' : 'Ethnic';
-      case HolidayCategory.cultural:
-        return isBangla ? 'সাংস্কৃতিক' : 'Cultural';
-    }
-  }
+  // String _typeLabel(HolidayCategory category) {
+  //   final isBangla = l10n.languageCode == 'bn';
+  //   switch (category) {
+  //     case HolidayCategory.national:
+  //       return isBangla ? 'জাতীয়' : 'National';
+  //     case HolidayCategory.islamic:
+  //       return isBangla ? 'ইসলামী' : 'Islamic';
+  //     case HolidayCategory.hindu:
+  //       return isBangla ? 'হিন্দু' : 'Hindu';
+  //     case HolidayCategory.christian:
+  //       return isBangla ? 'খ্রিষ্টান' : 'Christian';
+  //     case HolidayCategory.buddhist:
+  //       return isBangla ? 'বৌদ্ধ' : 'Buddhist';
+  //     case HolidayCategory.ethnicMinority:
+  //       return isBangla ? 'নৃ-গোষ্ঠী' : 'Ethnic';
+  //     case HolidayCategory.cultural:
+  //       return isBangla ? 'সাংস্কৃতিক' : 'Cultural';
+  //   }
+  // }
 }

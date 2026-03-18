@@ -72,3 +72,14 @@ class WordsViewModel extends BaseViewModel {
 
 final wordsViewModelProvider =
     NotifierProvider<WordsViewModel, ViewState>(WordsViewModel.new);
+
+/// Exposes WordsRepository directly for use outside the viewmodel
+/// (e.g. AppInitializer for notification scheduling)
+final wordsRepositoryProvider = Provider<WordsRepository>((ref) {
+  return WordsRepository(
+    localDatasource: WordsLocalDatasource(
+      savedBox: Hive.box<WordModel>(savedWordsBoxName),
+      settingsBox: Hive.box(settingsBoxName),
+    ),
+  );
+});

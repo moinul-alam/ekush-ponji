@@ -72,3 +72,12 @@ class QuotesViewModel extends BaseViewModel {
 
 final quotesViewModelProvider =
     NotifierProvider<QuotesViewModel, ViewState>(QuotesViewModel.new);
+
+final quotesRepositoryProvider = Provider<QuotesRepository>((ref) {
+  return QuotesRepository(
+    localDatasource: QuotesLocalDatasource(
+      savedBox: Hive.box<QuoteModel>(savedQuotesBoxName),
+      settingsBox: Hive.box(settingsBoxName),
+    ),
+  );
+});

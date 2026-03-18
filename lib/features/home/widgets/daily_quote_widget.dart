@@ -21,7 +21,7 @@ class DailyQuoteWidget extends ConsumerWidget {
     final vm = ref.read(quotesViewModelProvider.notifier);
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(4, 4, 4, 4),
+      margin: const EdgeInsets.fromLTRB(4, 1, 4, 1),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest.withValues(alpha: 0.35),
         borderRadius: BorderRadius.circular(16),
@@ -41,14 +41,6 @@ class DailyQuoteWidget extends ConsumerWidget {
               children: [
                 Row(
                   children: [
-                    Container(
-                      width: 4,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: cs.primary,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
                     const SizedBox(width: 10),
                     Text(
                       l10n.quoteOfTheDay,
@@ -75,7 +67,7 @@ class DailyQuoteWidget extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
           Padding(
-            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            padding: const EdgeInsets.fromLTRB(4, 0, 4, 4),
             child: viewState is ViewStateLoading
                 ? const Center(child: CircularProgressIndicator())
                 : viewState is ViewStateError
@@ -88,7 +80,13 @@ class DailyQuoteWidget extends ConsumerWidget {
                       )
                     : _QuoteContent(
                         quote: vm.dailyQuote,
-                        onOpen: () => context.push(RouteNames.quotes),
+                        onOpen: () {
+                          final index = vm.allQuotes.indexWhere(
+                            (q) => q.storageKey == vm.dailyQuote!.storageKey,
+                          );
+                          context.push(RouteNames.quotes,
+                              extra: index < 0 ? 0 : index);
+                        },
                         onToggleSave: vm.dailyQuote != null
                             ? () => vm.toggleSave(vm.dailyQuote!)
                             : null,
@@ -161,10 +159,11 @@ class _QuoteContent extends StatelessWidget {
               child: Text(
                 quote!.text,
                 style: theme.textTheme.bodyLarge?.copyWith(
-                  color: cs.onSurface,
-                  fontStyle: FontStyle.italic,
-                  height: 1.5,
-                ),
+                    color: cs.onSurface,
+                    fontStyle: FontStyle.italic,
+                    height: 1.5,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 20),
               ),
             ),
           ),

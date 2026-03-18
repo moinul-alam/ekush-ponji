@@ -7,6 +7,8 @@ import 'package:ekush_ponji/core/base/view_state.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/features/quotes/models/quote.dart';
 import 'package:ekush_ponji/features/quotes/quotes_viewmodel.dart';
+import 'package:go_router/go_router.dart';
+import 'package:ekush_ponji/app/router/route_names.dart';
 
 class SavedQuotesScreen extends BaseScreen {
   const SavedQuotesScreen({super.key});
@@ -33,14 +35,38 @@ class _SavedQuotesScreenState extends BaseScreenState<SavedQuotesScreen> {
 
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final vm = ref.watch(quotesViewModelProvider.notifier);
-
-    // Re-read saved quotes on every build so unsave reflects immediately
     final savedQuotes = vm.savedQuotes;
 
     if (savedQuotes.isEmpty) {
-      return buildEmptyWidget(
-        const ViewStateEmpty('No saved quotes yet'),
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.favorite_border_rounded,
+              size: 64,
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurfaceVariant
+                  .withValues(alpha: 0.4),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              l10n.noSavedQuotes,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: () => context.push(RouteNames.quotes),
+              icon: const Icon(Icons.format_quote_rounded),
+              label: Text(l10n.quoteOfTheDay),
+            ),
+          ],
+        ),
       );
     }
 
@@ -54,7 +80,6 @@ class _SavedQuotesScreenState extends BaseScreenState<SavedQuotesScreen> {
           quote: quote,
           onUnsave: () async {
             await vm.toggleSave(quote);
-            // Trigger rebuild to reflect removal
             ref.invalidate(quotesViewModelProvider);
           },
         );
@@ -93,8 +118,8 @@ class _SavedQuoteCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: colorScheme.primaryContainer,
                     borderRadius: BorderRadius.circular(20),

@@ -238,6 +238,9 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get example => 'উদাহরণ';
 
+  @override
+  String get todayIsDayName => 'আজ';
+
   // ═══════════════════════════════════════════════════════════
   // DRAWER
   // ═══════════════════════════════════════════════════════════
@@ -457,6 +460,24 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get turnOff => 'বন্ধ করুন';
 
+  @override
+  String get enable => 'চালু করুন';
+
+  @override
+  String get notNow => 'এখন নয়';
+
+  @override
+  String get quoteNotifications => 'দৈনিক উক্তি';
+
+  @override
+  String get quoteNotificationsSubtitle => 'প্রতিদিন সকালে একটি উক্তি পান';
+
+  @override
+  String get wordNotifications => 'আজকের শব্দ';
+
+  @override
+  String get wordNotificationsSubtitle => 'প্রতিদিন সকালে নতুন শব্দ শিখুন';
+
   // ═══════════════════════════════════════════════════════════
   // HOLIDAYS SCREEN
   // ═══════════════════════════════════════════════════════════
@@ -640,6 +661,12 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get savedWords => 'সংরক্ষিত শব্দ';
+
+  @override
+  String get noSavedQuotes => 'কোন ফেভারিট উক্তি নেই';
+
+  @override
+  String get noSavedWords => 'কোন ফেভারিট শব্দ নেই';
 
   @override
   String get adjustFontSize => 'ফন্ট সাইজ পরিবর্তন করুন';

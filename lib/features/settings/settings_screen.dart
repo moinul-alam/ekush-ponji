@@ -15,6 +15,29 @@ import 'package:ekush_ponji/core/constants/app_constants.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
 import 'package:ekush_ponji/features/holidays/providers/holiday_notification_provider.dart';
 import 'package:ekush_ponji/features/holidays/holidays_viewmodel.dart';
+import 'package:ekush_ponji/features/quotes/providers/quote_notification_pref_provider.dart';
+import 'package:ekush_ponji/features/words/providers/word_notification_pref_provider.dart';
+
+// ── Settings font sizes ───────────────────────────────────────
+
+abstract class _SettingsFonts {
+  // Section header
+  static const double sectionHeader = 13.0;
+
+  // Tile title
+  static const double tileTitle = 18.0;
+
+  // Tile subtitle
+  static const double tileSubtitle = 13.0;
+
+  // Sync / last synced line
+  static const double syncSubtitle = 13.0;
+
+  // Version text
+  static const double version = 13.0;
+}
+
+// ── Screen ────────────────────────────────────────────────────
 
 class SettingsScreen extends BaseScreen {
   const SettingsScreen({super.key});
@@ -95,7 +118,7 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen>
     return ListView(
       padding: const EdgeInsets.symmetric(vertical: 8),
       children: [
-        // ── Appearance ────────────────────────────────────────────
+        // ── Appearance ────────────────────────────────────────
         _SectionHeader(title: l10n.appearance),
         _SettingsTile(
           icon: Icons.palette_outlined,
@@ -114,21 +137,23 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen>
 
         const Divider(height: 32),
 
-        // ── Data Sync ─────────────────────────────────────────────
+        // ── Data Sync ─────────────────────────────────────────
         _SectionHeader(title: l10n.dataUpdate),
         ListTile(
           leading: Icon(Icons.sync_rounded, color: colorScheme.primary),
           title: Text(
             l10n.updateAllData,
             style: theme.textTheme.bodyLarge?.copyWith(
-              fontSize: 17,
+              fontSize: _SettingsFonts.tileTitle,
               fontWeight: FontWeight.w500,
             ),
           ),
           subtitle: Text(
             l10n.updateAllDataSubtitle,
-            style: theme.textTheme.bodySmall
-                ?.copyWith(color: colorScheme.onSurfaceVariant),
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontSize: _SettingsFonts.tileSubtitle,
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
           trailing: isSyncing
               ? SizedBox(
@@ -150,18 +175,21 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen>
           padding: const EdgeInsets.fromLTRB(72, 0, 16, 12),
           child: Text(
             _formatLastSyncLine(l10n),
-            style: theme.textTheme.bodySmall
-                ?.copyWith(color: colorScheme.onSurfaceVariant),
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontSize: _SettingsFonts.syncSubtitle,
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
         ),
 
         const Divider(height: 32),
 
-        // ── Notifications ─────────────────────────────────────────
+        // ── Notifications ─────────────────────────────────────
         _SectionHeader(title: l10n.notifications),
 
         if (!osGranted) _PermissionBanner(l10n: l10n),
 
+        // Holiday notifications
         Consumer(
           builder: (context, ref, _) {
             final holidayEnabled =
@@ -189,9 +217,55 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen>
           },
         ),
 
+        // Quote notifications
+        Consumer(
+          builder: (context, ref, _) {
+            final quotePrefs = ref.watch(quoteNotificationPrefsProvider);
+            final effectiveValue = quotePrefs.enabled && osGranted;
+            return _SettingsSwitchTile(
+              icon: Icons.format_quote_outlined,
+              title: l10n.quoteNotifications,
+              subtitle: l10n.quoteNotificationsSubtitle,
+              value: effectiveValue,
+              onChanged: (value) async {
+                if (value && !osGranted) {
+                  _showPermissionDialog(context, ref, l10n);
+                  return;
+                }
+                await ref
+                    .read(quoteNotificationPrefsProvider.notifier)
+                    .setEnabled(value, languageCode: l10n.languageCode);
+              },
+            );
+          },
+        ),
+
+        // Word notifications
+        Consumer(
+          builder: (context, ref, _) {
+            final wordPrefs = ref.watch(wordNotificationPrefsProvider);
+            final effectiveValue = wordPrefs.enabled && osGranted;
+            return _SettingsSwitchTile(
+              icon: Icons.menu_book_outlined,
+              title: l10n.wordNotifications,
+              subtitle: l10n.wordNotificationsSubtitle,
+              value: effectiveValue,
+              onChanged: (value) async {
+                if (value && !osGranted) {
+                  _showPermissionDialog(context, ref, l10n);
+                  return;
+                }
+                await ref
+                    .read(wordNotificationPrefsProvider.notifier)
+                    .setEnabled(value, languageCode: l10n.languageCode);
+              },
+            );
+          },
+        ),
+
         const Divider(height: 32),
 
-        // ── Data & Storage ────────────────────────────────────────
+        // ── Data & Storage ────────────────────────────────────
         _SectionHeader(title: l10n.dataAndStorage),
         _SettingsTile(
           icon: Icons.restore_outlined,
@@ -210,7 +284,7 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen>
 
         const Divider(height: 32),
 
-        // ── About ─────────────────────────────────────────────────
+        // ── About ─────────────────────────────────────────────
         _SectionHeader(title: l10n.about),
         _SettingsTile(
           icon: Icons.info_outline,
@@ -226,8 +300,10 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen>
             padding: const EdgeInsets.all(16),
             child: Text(
               'Version 1.0.0',
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: colorScheme.onSurfaceVariant),
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontSize: _SettingsFonts.version,
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
         ),
@@ -457,6 +533,7 @@ class _PermissionBanner extends StatelessWidget {
             child: Text(
               l10n.notificationPermissionDeniedBanner,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    fontSize: _SettingsFonts.tileSubtitle,
                     color: cs.onErrorContainer,
                   ),
             ),
@@ -467,7 +544,7 @@ class _PermissionBanner extends StatelessWidget {
   }
 }
 
-// ── Private widgets ───────────────────────────────────────────
+// ── Section header ────────────────────────────────────────────
 
 class _SectionHeader extends StatelessWidget {
   final String title;
@@ -482,7 +559,7 @@ class _SectionHeader extends StatelessWidget {
       child: Text(
         title.toUpperCase(),
         style: theme.textTheme.labelMedium?.copyWith(
-          fontSize: 13,
+          fontSize: _SettingsFonts.sectionHeader,
           color: colorScheme.primary,
           fontWeight: FontWeight.w700,
           letterSpacing: 1.2,
@@ -491,6 +568,8 @@ class _SectionHeader extends StatelessWidget {
     );
   }
 }
+
+// ── Settings tile ─────────────────────────────────────────────
 
 class _SettingsTile extends StatelessWidget {
   final IconData icon;
@@ -518,7 +597,7 @@ class _SettingsTile extends StatelessWidget {
       title: Text(
         title,
         style: theme.textTheme.bodyLarge?.copyWith(
-          fontSize: 17,
+          fontSize: _SettingsFonts.tileTitle,
           fontWeight: FontWeight.w500,
           color: titleColor,
         ),
@@ -526,8 +605,10 @@ class _SettingsTile extends StatelessWidget {
       subtitle: subtitle != null
           ? Text(
               subtitle!,
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: colorScheme.onSurfaceVariant),
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontSize: _SettingsFonts.tileSubtitle,
+                color: colorScheme.onSurfaceVariant,
+              ),
             )
           : null,
       trailing: trailing,
@@ -535,6 +616,8 @@ class _SettingsTile extends StatelessWidget {
     );
   }
 }
+
+// ── Settings switch tile ──────────────────────────────────────
 
 class _SettingsSwitchTile extends StatelessWidget {
   final IconData icon;
@@ -560,15 +643,17 @@ class _SettingsSwitchTile extends StatelessWidget {
       title: Text(
         title,
         style: theme.textTheme.bodyLarge?.copyWith(
-          fontSize: 17,
+          fontSize: _SettingsFonts.tileTitle,
           fontWeight: FontWeight.w500,
         ),
       ),
       subtitle: subtitle != null
           ? Text(
               subtitle!,
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: colorScheme.onSurfaceVariant),
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontSize: _SettingsFonts.tileSubtitle,
+                color: colorScheme.onSurfaceVariant,
+              ),
             )
           : null,
       value: value,

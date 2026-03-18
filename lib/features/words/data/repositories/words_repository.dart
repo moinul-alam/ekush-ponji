@@ -9,16 +9,14 @@ class WordsRepository {
   WordsRepository({required WordsLocalDatasource localDatasource})
       : _localDatasource = localDatasource;
 
-  /// Must be called once before any other method.
   Future<void> init() => _localDatasource.init();
-
-  /// Reload words from Hive after a sync — call when sync returns true.
   Future<void> reload() => _localDatasource.reload();
 
   WordModel getDailyWord() => _localDatasource.getDailyWord();
+  WordModel getDailyWordForDate(DateTime date) =>
+      _localDatasource.getDailyWordForDate(date);
 
   List<WordModel> getAllWords() => _localDatasource.getAllWords();
-
   List<WordModel> getSavedWords() => _localDatasource.getSavedWords();
 
   Future<void> toggleSave(WordModel word) async {

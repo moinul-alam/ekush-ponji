@@ -14,9 +14,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ekush_ponji/core/services/share_service.dart';
 import 'package:ekush_ponji/core/services/ad_service.dart';
 import 'package:ekush_ponji/features/quotes/services/quote_notification_service.dart';
-import 'package:ekush_ponji/features/quotes/data/datasources/local/quotes_local_datasource.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:ekush_ponji/app/providers/app_providers.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:ekush_ponji/core/notifications/notification_permission_service.dart';
+import 'package:ekush_ponji/core/notifications/notification_permission_prefs.dart';
+import 'package:ekush_ponji/core/notifications/notification_permission_provider.dart';
+import 'package:ekush_ponji/features/quotes/services/quote_notification_prefs.dart';
 
 class QuotesScreen extends BaseScreen {
   final int initialIndex;
@@ -40,7 +42,8 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
 
   // ── Notification state ─────────────────────────────────────
   bool _notifEnabled = false;
-  QuoteNotificationPrefs _notifPrefs = const QuoteNotificationPrefs(enabled: false);
+  QuoteNotificationPrefs _notifPrefs =
+      const QuoteNotificationPrefs(enabled: false);
 
   @override
   NotifierProvider<dynamic, ViewState> get viewModelProvider =>
@@ -93,16 +96,50 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
 
   // ── Notification prefs ─────────────────────────────────────
 
+  // ── Notification prefs ─────────────────────────────────────
+
   Future<void> _loadNotifPrefs() async {
     final prefs = await QuoteNotificationPrefs.load();
+    final osGranted = await NotificationPermissionService.isGranted();
     if (!mounted) return;
     setState(() {
       _notifPrefs = prefs;
-      _notifEnabled = prefs.enabled;
+      // Only show as enabled if BOTH user pref AND OS permission are true
+      _notifEnabled = prefs.enabled && osGranted;
     });
   }
 
   Future<void> _toggleNotification() async {
+    final l10n = AppLocalizations.of(context);
+
+    if (!_notifEnabled) {
+      // User wants to enable — check OS permission first
+      final osGranted = await NotificationPermissionService.isGranted();
+
+      if (!osGranted) {
+        // Request permission contextually
+        final granted = await NotificationPermissionService.ensurePermission();
+        if (granted) {
+          await NotificationPermissionPrefs.markGranted();
+          ref.read(notificationPermissionProvider.notifier).refresh();
+        } else {
+          await NotificationPermissionPrefs.markDenied();
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(l10n.languageCode == 'bn'
+                  ? 'নোটিফিকেশনের অনুমতি দেওয়া হয়নি'
+                  : 'Notification permission not granted'),
+              action: SnackBarAction(
+                label: l10n.languageCode == 'bn' ? 'সেটিংস' : 'Settings',
+                onPressed: () => openAppSettings(),
+              ),
+            ));
+          }
+          return;
+        }
+      }
+    }
+
     final newEnabled = !_notifEnabled;
     setState(() => _notifEnabled = newEnabled);
 
@@ -110,14 +147,8 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
     _notifPrefs = updated;
     await updated.save();
 
-    final l10n = AppLocalizations.of(context);
-    final datasource = QuotesLocalDatasource(
-      savedBox: Hive.box<QuoteModel>(savedQuotesBoxName),
-      settingsBox: Hive.box(settingsBoxName),
-    );
-    await datasource.init();
     await QuoteNotificationService.scheduleUpcoming(
-      datasource: datasource,
+      repository: ref.read(quotesRepositoryProvider),
       prefs: updated,
       languageCode: l10n.languageCode,
     );
@@ -126,10 +157,10 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(newEnabled
             ? (l10n.languageCode == 'bn'
-                ? 'উদ্ধৃতির বিজ্ঞপ্তি চালু হয়েছে'
+                ? 'উদ্ধৃতির নোটিফিকেশন চালু হয়েছে'
                 : 'Quote notifications enabled')
             : (l10n.languageCode == 'bn'
-                ? 'উদ্ধৃতির বিজ্ঞপ্তি বন্ধ হয়েছে'
+                ? 'উদ্ধৃতির নোটিফিকেশন বন্ধ হয়েছে'
                 : 'Quote notifications disabled')),
         duration: const Duration(seconds: 2),
       ));
@@ -223,8 +254,12 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
             color: _notifEnabled ? cs.primary : cs.onSurfaceVariant,
           ),
           tooltip: _notifEnabled
-              ? (l10n.languageCode == 'bn' ? 'বিজ্ঞপ্তি বন্ধ করুন' : 'Disable notifications')
-              : (l10n.languageCode == 'bn' ? 'বিজ্ঞপ্তি চালু করুন' : 'Enable notifications'),
+              ? (l10n.languageCode == 'bn'
+                  ? 'বিজ্ঞপ্তি বন্ধ করুন'
+                  : 'Disable notifications')
+              : (l10n.languageCode == 'bn'
+                  ? 'বিজ্ঞপ্তি চালু করুন'
+                  : 'Enable notifications'),
           onPressed: _toggleNotification,
         ),
         // ── Saved quotes ─────────────────────────────────
@@ -262,7 +297,8 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
     return GestureDetector(
       onHorizontalDragEnd: (details) {
         if (details.primaryVelocity == null) return;
-        if (details.primaryVelocity! < -300) _goToNext(quotes);
+        if (details.primaryVelocity! < -300)
+          _goToNext(quotes);
         else if (details.primaryVelocity! > 300) _goToPrevious(quotes);
       },
       child: Stack(
@@ -289,8 +325,12 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
                         position: _slideInAnimation,
                         child: _QuoteCard(
                           quote: quotes[_slideFromRight
-                              ? (_currentIndex < quotes.length - 1 ? _currentIndex + 1 : _currentIndex)
-                              : (_currentIndex > 0 ? _currentIndex - 1 : _currentIndex)],
+                              ? (_currentIndex < quotes.length - 1
+                                  ? _currentIndex + 1
+                                  : _currentIndex)
+                              : (_currentIndex > 0
+                                  ? _currentIndex - 1
+                                  : _currentIndex)],
                           onToggleSave: () => vm.toggleSave(quote),
                           quoteFontScale: _quoteFontScale,
                         ),
@@ -308,7 +348,9 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
           ),
           if (canGoPrev)
             Positioned(
-              left: 0, top: 0, bottom: 0,
+              left: 0,
+              top: 0,
+              bottom: 0,
               child: Center(
                 child: GestureDetector(
                   onTap: () => _goToPrevious(quotes),
@@ -327,7 +369,9 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
             ),
           if (canGoNext)
             Positioned(
-              right: 0, top: 0, bottom: 0,
+              right: 0,
+              top: 0,
+              bottom: 0,
               child: Center(
                 child: GestureDetector(
                   onTap: () => _goToNext(quotes),
@@ -395,8 +439,8 @@ class _QuoteCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: colorScheme.primaryContainer,
                       borderRadius: BorderRadius.circular(20),
@@ -414,8 +458,7 @@ class _QuoteCard extends StatelessWidget {
                       IconButton(
                         onPressed: () => ShareService.shareWidget(
                           widget: QuoteShareCard(quote: quote),
-                          fileBaseName:
-                              'ekush_ponji_quote_${quote.storageKey}',
+                          fileBaseName: 'ekush_ponji_quote_${quote.storageKey}',
                         ),
                         icon: Icon(Icons.share_rounded,
                             color: colorScheme.onSurfaceVariant),
@@ -471,8 +514,7 @@ class _QuoteCard extends StatelessWidget {
 
               Row(
                 children: [
-                  Container(
-                      width: 32, height: 2, color: colorScheme.primary),
+                  Container(width: 32, height: 2, color: colorScheme.primary),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
@@ -487,8 +529,8 @@ class _QuoteCard extends StatelessWidget {
                   Text(
                     'Ekush Ponji',
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant
-                          .withValues(alpha: 0.55),
+                      color:
+                          colorScheme.onSurfaceVariant.withValues(alpha: 0.55),
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0.6,
                     ),

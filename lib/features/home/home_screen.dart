@@ -7,7 +7,6 @@ import 'package:ekush_ponji/core/base/view_state.dart';
 import 'package:ekush_ponji/core/widgets/navigation/app_header.dart';
 import 'package:ekush_ponji/core/widgets/navigation/app_drawer.dart';
 import 'package:ekush_ponji/features/home/home_viewmodel.dart';
-import 'package:ekush_ponji/features/home/widgets/app_greeter.dart';
 import 'package:ekush_ponji/features/home/widgets/today_date_widget.dart';
 import 'package:ekush_ponji/features/home/widgets/home_holidays_widget.dart';
 import 'package:ekush_ponji/features/home/widgets/home_events_widget.dart';
@@ -78,9 +77,9 @@ class _HomeScreenState extends BaseScreenState<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const AppGreeter(),
+          // const AppGreeter(),
           const SizedBox(height: 8),
-          const TodayDateWidget(),
+          const HomeDateGreeterWidget(),
           const SizedBox(height: 8),
           HomeHolidaysWidget(holidays: viewModel.holidays),
           const SizedBox(height: 8),

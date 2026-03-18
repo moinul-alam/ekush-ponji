@@ -1,9 +1,12 @@
 // lib/core/base/base_screen.dart
 
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
+import 'package:ekush_ponji/core/notifications/notification_permission_dialog.dart';
+import 'package:ekush_ponji/core/notifications/notification_permission_service.dart';
 
 abstract class BaseScreen extends ConsumerStatefulWidget {
   const BaseScreen({super.key});
@@ -14,7 +17,6 @@ abstract class BaseScreen extends ConsumerStatefulWidget {
 
 abstract class BaseScreenState<T extends BaseScreen> extends ConsumerState<T> {
   /// Get the ViewState provider for this screen
-  /// Override this to connect to your specific ViewModel
   NotifierProvider<dynamic, ViewState>? get viewModelProvider => null;
 
   /// Build the main body of the screen
@@ -22,7 +24,8 @@ abstract class BaseScreenState<T extends BaseScreen> extends ConsumerState<T> {
 
   /// --- Optional UI slots ---
   PreferredSizeWidget? buildAppBar(BuildContext context, WidgetRef ref) => null;
-  Widget? buildFloatingActionButton(BuildContext context, WidgetRef ref) => null;
+  Widget? buildFloatingActionButton(BuildContext context, WidgetRef ref) =>
+      null;
   Widget? buildBottomNavigationBar(BuildContext context, WidgetRef ref) => null;
   Widget? buildDrawer(BuildContext context, WidgetRef ref) => null;
   Widget? buildEndDrawer(BuildContext context, WidgetRef ref) => null;
@@ -39,9 +42,15 @@ abstract class BaseScreenState<T extends BaseScreen> extends ConsumerState<T> {
   bool get extendBody => false;
   bool get extendBodyBehindAppBar => false;
 
-  /// --- Custom UI Builders ---
-  
-  /// Build loading widget (shown as overlay)
+  // ── Notification prompt ────────────────────────────────────
+  // Static flag — survives screen pushes/pops within same session.
+  // Once the dialog has been shown (or skipped because permission
+  // is already granted), no further screens will trigger it.
+  static bool _promptShownThisSession = false;
+  Timer? _notifPromptTimer;
+
+  // ── Loading widgets ────────────────────────────────────────
+
   Widget buildLoadingWidget() {
     return Container(
       color: Colors.black.withValues(alpha: 0.3),
@@ -51,7 +60,6 @@ abstract class BaseScreenState<T extends BaseScreen> extends ConsumerState<T> {
     );
   }
 
-  /// Build loading widget for pull-to-refresh
   Widget buildRefreshLoadingWidget() {
     return const Center(
       child: Padding(
@@ -61,18 +69,15 @@ abstract class BaseScreenState<T extends BaseScreen> extends ConsumerState<T> {
     );
   }
 
-  /// Build empty state widget
+  // ── Empty & error widgets ──────────────────────────────────
+
   Widget buildEmptyWidget(ViewStateEmpty state) {
     final l10n = AppLocalizations.of(context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.inbox_outlined,
-            size: 64,
-            color: Colors.grey[400],
-          ),
+          Icon(Icons.inbox_outlined, size: 64, color: Colors.grey[400]),
           const SizedBox(height: 16),
           Text(
             state.message ?? l10n.noDataAvailable,
@@ -92,7 +97,6 @@ abstract class BaseScreenState<T extends BaseScreen> extends ConsumerState<T> {
     );
   }
 
-  /// Build error widget with retry option
   Widget buildErrorWidget(ViewStateError state) {
     final l10n = AppLocalizations.of(context);
     return Center(
@@ -148,20 +152,12 @@ abstract class BaseScreenState<T extends BaseScreen> extends ConsumerState<T> {
     }
   }
 
-// ... Continuation of BaseScreenState
+  // ── Snackbar helpers ───────────────────────────────────────
 
-  /// --- Helper Methods ---
-  
   void showError(String message, {ErrorSeverity? severity}) {
     if (!mounted) return;
-    
-    Color backgroundColor;
-    if (severity != null) {
-      backgroundColor = _getErrorColor(severity);
-    } else {
-      backgroundColor = Colors.red;
-    }
-    
+    final backgroundColor =
+        severity != null ? _getErrorColor(severity) : Colors.red;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -179,9 +175,7 @@ abstract class BaseScreenState<T extends BaseScreen> extends ConsumerState<T> {
         action: SnackBarAction(
           label: 'Dismiss',
           textColor: Colors.white,
-          onPressed: () {
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          },
+          onPressed: () => ScaffoldMessenger.of(context).hideCurrentSnackBar(),
         ),
       ),
     );
@@ -240,7 +234,8 @@ abstract class BaseScreenState<T extends BaseScreen> extends ConsumerState<T> {
     );
   }
 
-  /// Show loading dialog (alternative to overlay)
+  // ── Dialog helpers ─────────────────────────────────────────
+
   void showLoadingDialog({String? message}) {
     showDialog(
       context: context,
@@ -263,14 +258,12 @@ abstract class BaseScreenState<T extends BaseScreen> extends ConsumerState<T> {
     );
   }
 
-  /// Hide loading dialog
   void hideLoadingDialog() {
     if (mounted && Navigator.canPop(context)) {
       Navigator.pop(context);
     }
   }
 
-  /// Show confirmation dialog
   Future<bool> showConfirmDialog({
     required String title,
     required String message,
@@ -301,82 +294,82 @@ abstract class BaseScreenState<T extends BaseScreen> extends ConsumerState<T> {
     return result ?? false;
   }
 
-  /// --- State Change Callbacks ---
-  
-  /// Called when ViewState changes to Success
+  // ── State change callbacks ─────────────────────────────────
+
   void onSuccess(ViewStateSuccess state) {
     if (autoHandleSuccess && state.message != null) {
       showSuccess(state.message!);
     }
   }
 
-  /// Called when ViewState changes to Error
   void onError(ViewStateError state) {
     if (autoHandleError) {
       showError(state.message, severity: state.severity);
     }
   }
 
-  /// Called when ViewState changes to Empty
   void onEmpty(ViewStateEmpty state) {}
-
-  /// Called when ViewState changes to Loading
   void onLoading(ViewStateLoading state) {}
+  void onRetry() {}
+  void onEmptyAction() {}
+  Future<void> onRefresh() async {}
 
-  /// Called when retry button is pressed in error widget
-  void onRetry() {
-    // Default implementation - override in child classes
-    // Typically would call viewModel.refresh() or reload data
-  }
+  // ── Lifecycle ──────────────────────────────────────────────
 
-  /// Called when action button is pressed in empty widget
-  void onEmptyAction() {
-    // Default implementation - override in child classes
-  }
-
-  /// Handle pull to refresh
-  Future<void> onRefresh() async {
-    // Default implementation - override in child classes
-    // Typically would call viewModel.refresh()
-  }
-
-  /// --- Lifecycle Hooks ---
-  
   @override
   void initState() {
     super.initState();
     onScreenInit();
+    _scheduleNotificationPrompt();
   }
 
   @override
   void dispose() {
+    _notifPromptTimer?.cancel();
     onScreenDispose();
     super.dispose();
   }
 
-  /// Called when screen is initialized
+  void _scheduleNotificationPrompt() {
+    // Already shown once this session — skip immediately
+    if (_promptShownThisSession) return;
+
+    _notifPromptTimer = Timer(const Duration(seconds: 3), () async {
+      // Permission already granted — nothing to ask
+      final already = await NotificationPermissionService.isGranted();
+      if (already) return;
+
+      // Screen may have been disposed during the 3s wait
+      if (!mounted) return;
+
+      // Mark before showing — prevents a second screen from
+      // racing through while the dialog is still open
+      _promptShownThisSession = true;
+
+      await NotificationPermissionDialog.show(context, ref);
+    });
+  }
+
+  /// Called when screen is initialized — override in child classes
   void onScreenInit() {}
 
-  /// Called when screen is disposed
+  /// Called when screen is disposed — override in child classes
   void onScreenDispose() {}
 
-  /// --- State Management ---
-  
+  // ── State management ───────────────────────────────────────
+
   ViewState? _previousState;
 
   @override
   Widget build(BuildContext context) {
-    // Listen to ViewState changes if provider is set
     final viewState = viewModelProvider != null
         ? ref.watch(viewModelProvider!)
         : const ViewStateInitial();
 
-    // Handle state changes automatically
     if (viewModelProvider != null) {
       ref.listen<ViewState>(
         viewModelProvider!,
         (previous, next) {
-          // Avoid duplicate notifications
           if (_previousState != null &&
               _previousState.runtimeType == next.runtimeType &&
               _previousState == next) {
@@ -385,7 +378,6 @@ abstract class BaseScreenState<T extends BaseScreen> extends ConsumerState<T> {
 
           _previousState = next;
 
-          // Handle different states
           if (next is ViewStateLoading) {
             onLoading(next);
           } else if (next is ViewStateSuccess) {
@@ -400,12 +392,11 @@ abstract class BaseScreenState<T extends BaseScreen> extends ConsumerState<T> {
     }
 
     final isLoading = viewState is ViewStateLoading;
-    final isRefreshing = viewState is ViewStateLoading &&
-        (viewState).isRefreshing;
+    final isRefreshing =
+        viewState is ViewStateLoading && viewState.isRefreshing;
 
     Widget body = buildBody(context, ref);
 
-    // Wrap with RefreshIndicator if enabled
     if (enablePullToRefresh) {
       body = RefreshIndicator(
         onRefresh: onRefresh,
@@ -413,7 +404,6 @@ abstract class BaseScreenState<T extends BaseScreen> extends ConsumerState<T> {
       );
     }
 
-    // Wrap with SafeArea if enabled
     if (useSafeArea) {
       body = SafeArea(child: body);
     }

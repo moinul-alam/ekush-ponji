@@ -5,13 +5,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:workmanager/workmanager.dart';
+
 import 'package:ekush_ponji/app/providers/app_providers.dart';
 import 'package:ekush_ponji/core/themes/app_theme.dart';
 import 'package:ekush_ponji/features/holidays/models/holiday.dart';
 import 'package:ekush_ponji/features/quotes/models/quote.dart';
 import 'package:ekush_ponji/features/words/models/word.dart';
-import 'package:ekush_ponji/features/quotes/data/datasources/local/quotes_local_datasource.dart';
-import 'package:ekush_ponji/features/words/data/datasources/local/words_local_datasource.dart';
 import 'package:ekush_ponji/features/quotes/quotes_viewmodel.dart';
 import 'package:ekush_ponji/features/words/words_viewmodel.dart';
 import 'package:ekush_ponji/core/services/local_notification_service.dart';
@@ -20,83 +20,90 @@ import 'package:ekush_ponji/features/calendar/data/calendar_repository.dart';
 import 'package:ekush_ponji/features/holidays/services/holiday_notification_prefs.dart';
 import 'package:ekush_ponji/features/holidays/services/holiday_notification_service.dart';
 import 'package:ekush_ponji/features/quotes/services/quote_notification_service.dart';
+import 'package:ekush_ponji/features/quotes/services/quote_notification_prefs.dart';
 import 'package:ekush_ponji/features/words/services/word_notification_service.dart';
-import 'package:workmanager/workmanager.dart';
+import 'package:ekush_ponji/features/words/services/word_notification_prefs.dart';
+
+// Box name constants — defined in their respective datasource files
+import 'package:ekush_ponji/features/quotes/data/datasources/local/quotes_local_datasource.dart'
+    show savedQuotesBoxName;
+import 'package:ekush_ponji/features/words/data/datasources/local/words_local_datasource.dart'
+    show savedWordsBoxName;
+
+// Repository providers — must be defined in their respective viewmodel/provider files
+import 'package:ekush_ponji/features/quotes/quotes_viewmodel.dart'
+    show quotesRepositoryProvider;
+import 'package:ekush_ponji/features/words/words_viewmodel.dart'
+    show wordsRepositoryProvider;
 
 class AppInitializer {
-  // ── Phase 1: Critical path ─────────────────────────────────
+  static late final SharedPreferences _prefs;
+  static bool _adaptersRegistered = false;
+
+  static void _log(String msg) => debugPrint('[AppInit] $msg');
+
+  // ── Phase 1: Critical (Blocking) ──────────────────────────────────────────
 
   static Future<void> initializeCore() async {
     try {
       await Future.wait([
         _setDeviceOrientation(),
-        _initializeHiveAndSettings(),
+        _initializeHive(),
       ]);
       await _openSecondaryHiveBoxes();
-      debugPrint('✅ Core initialization completed');
-    } catch (e, stackTrace) {
-      debugPrint('❌ Core initialization failed: $e');
-      debugPrint('StackTrace: $stackTrace');
+      _log('✅ Core initialization completed');
+    } catch (e, st) {
+      _log('❌ Core init failed: $e');
+      debugPrintStack(stackTrace: st);
       rethrow;
     }
   }
 
-  // ── Phase 2: Background ────────────────────────────────────
+  // ── Phase 2: Background (Non-blocking) ────────────────────────────────────
 
   static Future<void> initializeBackground(ProviderContainer container) async {
     try {
-      await Future.wait([
-        _initializeSharedPreferences(),
-        _initializeWorkManager(),
-      ]);
-
-      await Future.wait([
-        _initializeNotifications(),
-        _performDataSyncWithTimeout(container),
-      ]);
+      await _initializeSharedPreferences();
+      await _initializeWorkManager();
+      await _initializeNotifications();
+      await _performDataSync(container);
 
       await Future.wait([
         _scheduleHolidayNotifications(container),
-        _scheduleQuoteNotifications(),
-        _scheduleWordNotifications(),
+        _scheduleQuoteNotifications(container),
+        _scheduleWordNotifications(container),
       ]);
 
-      debugPrint('✅ Background initialization completed');
-    } catch (e, stackTrace) {
-      debugPrint('❌ Background initialization error: $e');
-      debugPrint('StackTrace: $stackTrace');
+      _log('✅ Background initialization completed');
+    } catch (e, st) {
+      _log('⚠️ Background init error: $e');
+      debugPrintStack(stackTrace: st);
     }
   }
 
-  // ── Phase 1 Steps ──────────────────────────────────────────
+  // ── Phase 1 Steps ──────────────────────────────────────────────────────────
 
   static Future<void> _setDeviceOrientation() async {
     await SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
-    debugPrint('✅ Device orientation set');
   }
 
-  static Future<void> _initializeHiveAndSettings() async {
-    try {
-      await Hive.initFlutter();
-      _registerHiveAdapters();
-      await Hive.openBox('settings');
-      debugPrint('✅ Hive + settings box ready');
-    } catch (e) {
-      debugPrint('❌ Hive initialization failed: $e');
-      rethrow;
-    }
+  static Future<void> _initializeHive() async {
+    await Hive.initFlutter();
+    _registerAdapters();
+    await Hive.openBox('settings');
   }
 
-  static void _registerHiveAdapters() {
+  static void _registerAdapters() {
+    if (_adaptersRegistered) return;
     Hive.registerAdapter(HolidayAdapter());
     Hive.registerAdapter(GazetteTypeAdapter());
     Hive.registerAdapter(HolidayCategoryAdapter());
     Hive.registerAdapter(QuoteModelAdapter());
     Hive.registerAdapter(WordModelAdapter());
-    debugPrint('✅ Hive adapters registered');
+    _adaptersRegistered = true;
   }
 
   static Future<void> _openSecondaryHiveBoxes() async {
@@ -106,195 +113,119 @@ class AppInitializer {
         Hive.openBox<QuoteModel>(savedQuotesBoxName),
         Hive.openBox<WordModel>(savedWordsBoxName),
       ]);
-      debugPrint('✅ Secondary Hive boxes opened');
     } catch (e) {
-      debugPrint('⚠️ Secondary Hive boxes warning: $e');
+      _log('⚠️ Secondary boxes warning: $e');
     }
   }
 
-  // ── Phase 2 Steps ──────────────────────────────────────────
+  // ── Phase 2 Steps ──────────────────────────────────────────────────────────
 
   static Future<void> _initializeSharedPreferences() async {
-    try {
-      await SharedPreferences.getInstance();
-      debugPrint('✅ SharedPreferences warmed up');
-    } catch (e) {
-      debugPrint('⚠️ SharedPreferences warning: $e');
-    }
+    _prefs = await SharedPreferences.getInstance();
   }
 
   static Future<void> _initializeWorkManager() async {
     try {
-      await Workmanager().initialize(
-        callbackDispatcher,
-        isInDebugMode: false,
-      );
-
-      await Future.wait([
-        Workmanager().registerOneOffTask(
-          kRescheduleQuoteTask,
-          kRescheduleQuoteTask,
-          initialDelay: const Duration(seconds: 30),
-          existingWorkPolicy: ExistingWorkPolicy.replace,
-          constraints: Constraints(networkType: NetworkType.notRequired),
-        ),
-        Workmanager().registerOneOffTask(
-          kRescheduleWordTask,
-          kRescheduleWordTask,
-          initialDelay: const Duration(seconds: 30),
-          existingWorkPolicy: ExistingWorkPolicy.replace,
-          constraints: Constraints(networkType: NetworkType.notRequired),
-        ),
-      ]);
-
-      debugPrint('✅ WorkManager initialized — quote, word tasks registered');
+      await Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
+      if (!(_prefs.getBool('wm_initialized') ?? false)) {
+        await Future.wait([
+          Workmanager().registerOneOffTask(
+            kRescheduleQuoteTask,
+            kRescheduleQuoteTask,
+            initialDelay: const Duration(seconds: 30),
+            existingWorkPolicy: ExistingWorkPolicy.replace,
+          ),
+          Workmanager().registerOneOffTask(
+            kRescheduleWordTask,
+            kRescheduleWordTask,
+            initialDelay: const Duration(seconds: 30),
+            existingWorkPolicy: ExistingWorkPolicy.replace,
+          ),
+        ]);
+        await _prefs.setBool('wm_initialized', true);
+      }
     } catch (e) {
-      debugPrint('⚠️ WorkManager warning: $e');
+      _log('⚠️ WorkManager error: $e');
     }
   }
 
   static Future<void> _initializeNotifications() async {
-    try {
-      await LocalNotificationService.initialize();
-      debugPrint('✅ Notifications initialized');
-    } catch (e) {
-      debugPrint('⚠️ Notifications warning: $e');
-    }
+    await LocalNotificationService.initialize();
   }
 
-  static Future<void> _performDataSyncWithTimeout(
-    ProviderContainer container,
-  ) async {
+  static Future<void> _performDataSync(ProviderContainer container) async {
     try {
-      debugPrint('🌱 Starting data seed + sync...');
       final syncService = container.read(dataSyncServiceProvider);
       await syncService.initialize().timeout(
-        const Duration(seconds: 8),
-        onTimeout: () {
-          debugPrint('⏱️ Data sync timed out — using cached/bundled data');
-        },
-      );
-
+            const Duration(seconds: 8),
+            onTimeout: () => _log('Data sync timeout → using cache'),
+          );
       container.read(quotesViewModelProvider.notifier).loadQuotes();
       container.read(wordsViewModelProvider.notifier).loadWords();
-
-      debugPrint('✅ Quotes + Words viewmodels reloaded after sync');
     } catch (e) {
-      debugPrint('⚠️ Data sync error: $e');
+      _log('⚠️ Sync error: $e');
     }
   }
-
-  // ── Notification scheduling ────────────────────────────────
 
   static Future<void> _scheduleHolidayNotifications(
-    ProviderContainer container,
-  ) async {
+      ProviderContainer container) async {
     try {
-      debugPrint('🔔 Scheduling holiday notifications...');
-
       final prefs = await HolidayNotificationPrefs.load();
-      if (!prefs.enabled) {
-        debugPrint('ℹ️ Holiday notifications disabled — skipping');
-        return;
-      }
-
-      final sp = await SharedPreferences.getInstance();
-      final languageCode = sp.getString('languageCode') ?? 'bn';
-
-      final calendarRepo = container.read(calendarRepositoryProvider);
-      final holidays = await calendarRepo.getUpcomingHolidays(days: 60);
-
-      if (holidays.isEmpty) {
-        debugPrint('ℹ️ No upcoming holidays found — nothing to schedule');
-        return;
-      }
-
+      if (!prefs.enabled) return;
+      final lang = _prefs.getString('languageCode') ?? 'bn';
+      final holidays = await container
+          .read(calendarRepositoryProvider)
+          .getUpcomingHolidays(days: 60);
+      if (holidays.isEmpty) return;
       await HolidayNotificationService.scheduleAll(
-        holidays: holidays,
+        holidays: holidays.take(30).toList(),
         prefs: prefs,
-        languageCode: languageCode,
+        languageCode: lang,
       );
-
-      debugPrint(
-          '✅ Holiday notifications scheduled (${holidays.length} checked)');
     } catch (e) {
-      debugPrint('⚠️ Holiday notification scheduling error: $e');
+      _log('⚠️ Holiday scheduling error: $e');
     }
   }
 
-  static Future<void> _scheduleQuoteNotifications() async {
+  static Future<void> _scheduleQuoteNotifications(
+      ProviderContainer container) async {
     try {
-      debugPrint('🔔 Scheduling quote notifications...');
-
       final prefs = await QuoteNotificationPrefs.load();
-      if (!prefs.enabled) {
-        debugPrint('ℹ️ Quote notifications disabled — skipping');
-        return;
-      }
-
-      final sp = await SharedPreferences.getInstance();
-      final languageCode = sp.getString('languageCode') ?? 'bn';
-
-      final datasource = QuotesLocalDatasource(
-        savedBox: Hive.box<QuoteModel>(savedQuotesBoxName),
-        settingsBox: Hive.box('settings'),
-      );
-      await datasource.init();
-
+      if (!prefs.enabled) return;
+      final lang = _prefs.getString('languageCode') ?? 'bn';
       await QuoteNotificationService.scheduleUpcoming(
-        datasource: datasource,
+        repository: container.read(quotesRepositoryProvider),
         prefs: prefs,
-        languageCode: languageCode,
+        languageCode: lang,
       );
-
-      debugPrint('✅ Quote notifications scheduled');
     } catch (e) {
-      debugPrint('⚠️ Quote notification scheduling error: $e');
+      _log('⚠️ Quote scheduling error: $e');
     }
   }
 
-  static Future<void> _scheduleWordNotifications() async {
+  static Future<void> _scheduleWordNotifications(
+      ProviderContainer container) async {
     try {
-      debugPrint('🔔 Scheduling word notifications...');
-
       final prefs = await WordNotificationPrefs.load();
-      if (!prefs.enabled) {
-        debugPrint('ℹ️ Word notifications disabled — skipping');
-        return;
-      }
-
-      final sp = await SharedPreferences.getInstance();
-      final languageCode = sp.getString('languageCode') ?? 'bn';
-
-      final datasource = WordsLocalDatasource(
-        savedBox: Hive.box<WordModel>(savedWordsBoxName),
-        settingsBox: Hive.box('settings'),
-      );
-      await datasource.init();
-
+      if (!prefs.enabled) return;
+      final lang = _prefs.getString('languageCode') ?? 'bn';
       await WordNotificationService.scheduleUpcoming(
-        datasource: datasource,
+        repository: container.read(wordsRepositoryProvider),
         prefs: prefs,
-        languageCode: languageCode,
+        languageCode: lang,
       );
-
-      debugPrint('✅ Word notifications scheduled');
     } catch (e) {
-      debugPrint('⚠️ Word notification scheduling error: $e');
+      _log('⚠️ Word scheduling error: $e');
     }
   }
 
-  // ── System UI ──────────────────────────────────────────────
+  // ── System UI ──────────────────────────────────────────────────────────────
 
   static void updateSystemUIFromTheme(
-    BuildContext context,
-    ThemeMode themeMode,
-  ) {
-    final platformBrightness = MediaQuery.of(context).platformBrightness;
+      BuildContext context, ThemeMode themeMode) {
+    final brightness = MediaQuery.of(context).platformBrightness;
     final isDark = themeMode == ThemeMode.dark ||
-        (themeMode == ThemeMode.system &&
-            platformBrightness == Brightness.dark);
-
+        (themeMode == ThemeMode.system && brightness == Brightness.dark);
     final colorScheme = isDark
         ? AppTheme.darkTheme.colorScheme
         : AppTheme.lightTheme.colorScheme;
@@ -308,14 +239,9 @@ class AppInitializer {
     ));
   }
 
-  // ── Cleanup ────────────────────────────────────────────────
+  // ── Cleanup ────────────────────────────────────────────────────────────────
 
   static Future<void> dispose() async {
-    try {
-      await Hive.close();
-      debugPrint('✅ Hive boxes closed');
-    } catch (e) {
-      debugPrint('❌ Failed to close Hive boxes: $e');
-    }
+    await Hive.close();
   }
 }

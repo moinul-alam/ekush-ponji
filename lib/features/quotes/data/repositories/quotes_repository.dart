@@ -9,16 +9,14 @@ class QuotesRepository {
   QuotesRepository({required QuotesLocalDatasource localDatasource})
       : _localDatasource = localDatasource;
 
-  /// Must be called once before any other method.
   Future<void> init() => _localDatasource.init();
-
-  /// Reload quotes from Hive after a sync — call when sync returns true.
   Future<void> reload() => _localDatasource.reload();
 
   QuoteModel getDailyQuote() => _localDatasource.getDailyQuote();
+  QuoteModel getDailyQuoteForDate(DateTime date) =>
+      _localDatasource.getDailyQuoteForDate(date);
 
   List<QuoteModel> getAllQuotes() => _localDatasource.getAllQuotes();
-
   List<QuoteModel> getSavedQuotes() => _localDatasource.getSavedQuotes();
 
   Future<void> toggleSave(QuoteModel quote) async {
