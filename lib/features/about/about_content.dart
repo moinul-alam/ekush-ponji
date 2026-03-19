@@ -54,7 +54,7 @@ If you have any questions or suggestions, please email as at ekushponji@gmail.co
 আমরা যেকোনো সময় এই শর্তাবলি পরিবর্তন করার অধিকার রাখি।
 
 যোগাযোগ
-কোনো প্রশ্ন থাকলে আমাদের সাথে যোগাযোগ করুন।'''
+কোনো প্রশ্ন বা মতামত থাকলে আমাদের ইমেইল করুন ekushponji@gmail.com'''
       : '''By using Ekush Ponji, you agree to the following terms.
 
 License
@@ -67,5 +67,5 @@ Changes
 We reserve the right to modify these terms at any time. Continued use of the app after changes constitutes your acceptance of the updated terms.
 
 Contact
-If you have any questions, please reach out to us.''';
+If you have any questions, please email us at ekushponji@gmail.com''';
 }

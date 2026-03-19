@@ -32,7 +32,7 @@ class AboutScreen extends StatelessWidget {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(20),
                   child: Image.asset(
-                    'assets/images/about.png',
+                    'assets/images/splash_logo.png',
                     width: 88,
                     height: 88,
                     fit: BoxFit.cover,
@@ -117,7 +117,6 @@ class AboutScreen extends StatelessWidget {
           ),
 
           const SizedBox(height: 40),
-
         ],
       ),
     );

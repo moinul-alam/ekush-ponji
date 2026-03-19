@@ -5,15 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ekush_ponji/app/providers/app_providers.dart';
 import 'package:ekush_ponji/features/splash/widgets/logo_splash_widget.dart';
-import 'package:ekush_ponji/features/splash/widgets/app_loading_widget.dart';
 
 class SplashScreen extends ConsumerWidget {
   const SplashScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Read destination once — provider caches the Hive result.
-    // Using ref.read (not watch) because this never needs to rebuild.
     final destination = ref.read(initialDestinationProvider);
 
     ref.listen<bool>(appReadyProvider, (_, isReady) {
@@ -32,17 +29,6 @@ class SplashScreen extends ConsumerWidget {
           children: [
             const _SplashBackground(),
             const Center(child: LogoSplashWidget()),
-            Positioned(
-              bottom: 72,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: AppLoadingWidget(
-                  color: const Color(0xFF4DA6FF).withValues(alpha: 0.75),
-                  animationType: AnimationType.bouncingWeekdays,
-                ),
-              ),
-            ),
           ],
         ),
       ),
@@ -65,7 +51,6 @@ class _SplashBackground extends StatelessWidget {
 class _BackgroundPainter extends CustomPainter {
   final Size size;
 
-  // Cached paints — created once in the constructor, never on paint().
   late final Paint _topRightPaint;
   late final Paint _centerPaint;
   late final Paint _bottomLeftPaint;
