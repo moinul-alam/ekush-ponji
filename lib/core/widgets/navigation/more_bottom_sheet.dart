@@ -136,12 +136,15 @@ class _MoreItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context); // Cache theme for cleaner code
+    final colorScheme = theme.colorScheme;
 
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
+        padding: const EdgeInsets.symmetric(
+            horizontal: 4), // Added padding for longer text
         decoration: BoxDecoration(
           color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(12),
@@ -154,16 +157,20 @@ class _MoreItem extends StatelessWidget {
               size: 26,
               color: colorScheme.primary,
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 8), // Increased spacing slightly
             Text(
               label,
               textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: colorScheme.onSurface,
-                    fontWeight: FontWeight.w500,
-                  ),
+              style: theme.textTheme.labelMedium?.copyWith(
+                // Switched to labelMedium
+                color: colorScheme.onSurface,
+                fontWeight:
+                    FontWeight.w600, // Bolded slightly for better readability
+                fontSize: 13, // <--- MANUALLY INCREASE THIS NUMBER
+                height: 1.2, // Tighter line height for grid items
+              ),
             ),
           ],
         ),

@@ -51,7 +51,6 @@ class _OnboardingPageTwoState extends ConsumerState<OnboardingPageTwo> {
 
       final languageCode = widget.state.selectedLanguage;
 
-      // Capture notifiers
       final quoteNotifier = ref.read(quoteNotificationPrefsProvider.notifier);
       final wordNotifier = ref.read(wordNotificationPrefsProvider.notifier);
       final holidayNotifier = ref.read(holidayNotificationProvider.notifier);
@@ -83,13 +82,12 @@ class _OnboardingPageTwoState extends ConsumerState<OnboardingPageTwo> {
         languageCode: languageCode,
       );
 
-      // Refresh OS permission provider
       ref.read(notificationPermissionProvider.notifier).refresh();
     } else {
       await NotificationPermissionPrefs.markDenied();
       setState(() {
         _notifEnabled = false;
-        _notifRequested = false; // allow retry
+        _notifRequested = false;
       });
     }
   }
@@ -101,8 +99,6 @@ class _OnboardingPageTwoState extends ConsumerState<OnboardingPageTwo> {
     await notifier.complete(ref);
     if (mounted) context.go(RouteNames.home);
   }
-
-  // ── Build ──────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -118,13 +114,13 @@ class _OnboardingPageTwoState extends ConsumerState<OnboardingPageTwo> {
         children: [
           const SizedBox(height: 32),
 
-          // ── Logo only ──────────────────────────
+          // ── Logo ───────────────────────────────────
           ClipRRect(
             borderRadius: BorderRadius.circular(20),
             child: Image.asset(
-              'assets/images/logo.png',
-              width: 80,
-              height: 80,
+              'assets/images/splash_logo.png',
+              width: 100,
+              height: 100,
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => Container(
                 width: 80,
@@ -144,11 +140,9 @@ class _OnboardingPageTwoState extends ConsumerState<OnboardingPageTwo> {
 
           const SizedBox(height: 20),
 
-          // ── Title ──────────────────────────────
+          // ── Title ──────────────────────────────────
           Text(
-            isBn
-                ? 'শুরু করার আগে একটি ছোট অনুরোধ'
-                : 'A Quick Note Before You Begin',
+            isBn ? 'শুরু করার আগে...' : 'A Quick Note Before You Begin',
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
               color: colorScheme.onSurface,
@@ -158,15 +152,17 @@ class _OnboardingPageTwoState extends ConsumerState<OnboardingPageTwo> {
 
           const SizedBox(height: 28),
 
-          // ── Notification card ──────────────────
+          // ── Notification card ──────────────────────
           _TransparencyCard(
             icon: Icons.notifications_outlined,
             iconColor: colorScheme.primary,
             iconBg: colorScheme.primaryContainer,
             title: isBn ? 'নোটিফিকেশন' : 'Notifications',
-            body: isBn
-                ? 'ছুটির আগাম বার্তা, প্রতিদিনের উক্তি ও নতুন শব্দ পেতে নোটিফিকেশন চালু রাখুন — যাতে কোনো মুহূর্ত মিস না হয়।'
-                : 'Enable notifications for holiday alerts, daily quotes, and new words — so you never miss a moment.',
+            body: Text(
+              isBn
+                  ? 'ছুটির আগাম নোটিফিকেশন, প্রতিদিন নতুন উক্তি ও নতুন শব্দ পেতে নোটিফিকেশন চালু রাখুন — যাতে কোনো কিছু মিস না হয়ে যায়।'
+                  : 'Enable notifications for holiday alerts, daily quotes, and new words — so you never miss a moment.',
+            ),
             action: _notifEnabled
                 ? _EnabledBadge(isBn: isBn)
                 : _EnableButton(
@@ -177,21 +173,36 @@ class _OnboardingPageTwoState extends ConsumerState<OnboardingPageTwo> {
 
           const SizedBox(height: 16),
 
-          // ── Ads card ───────────────────────────
+          // ── Ads card ───────────────────────────────
           _TransparencyCard(
             icon: Icons.volunteer_activism_outlined,
             iconColor: colorScheme.tertiary,
             iconBg: colorScheme.tertiaryContainer,
             title: isBn ? 'বিজ্ঞাপন' : 'Ads',
-            body: isBn
-                ? 'একুশ পঞ্জি সম্পূর্ণ ফ্রি। অ্যাপটি সচল রাখতে আমরা খুব সামান্য এবং বিরক্তিহীন বিজ্ঞাপন ব্যবহার করি। আপনার যেকোনো মূল্যবান মতামত জানাতে ইমেইল করুন: ekushponji@gmail.com'
-                : 'Ekush Ponji is free for everyone. To keep the app running, we show minimal, non-intrusive ads. We value your experience — feedback welcome at ekushponji@gmail.com',
+            body: Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: isBn
+                        ? 'একুশ পঞ্জি অ্যাপ সম্পূর্ণ ফ্রি। অ্যাপটি সচল রাখতে আমরা খুব সামান্য এবং বিরক্তিহীন বিজ্ঞাপন ব্যবহার করি। আপনার যেকোনো মূল্যবান মতামত জানাতে ইমেইল করুন: '
+                        : 'Ekush Ponji is free for everyone. To keep the app running, we show minimal, non-intrusive ads. We value your experience — feedback welcome at ',
+                  ),
+                  TextSpan(
+                    text: 'ekushponji@gmail.com',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.primary, // Primary color for email
+                    ),
+                  ),
+                ],
+              ),
+            ),
             action: null,
           ),
 
           const Spacer(),
 
-          // ── Back + Get Started ─────────────────
+          // ── Back + Get Started ─────────────────────
           Row(
             children: [
               OutlinedButton(
@@ -257,7 +268,7 @@ class _TransparencyCard extends StatelessWidget {
   final Color iconColor;
   final Color iconBg;
   final String title;
-  final String body;
+  final Widget body; // Accept Widget instead of String
   final Widget? action;
 
   const _TransparencyCard({
@@ -288,7 +299,6 @@ class _TransparencyCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Icon + title ─────────────────────
           Row(
             children: [
               Container(
@@ -312,16 +322,16 @@ class _TransparencyCard extends StatelessWidget {
 
           const SizedBox(height: 14),
 
-          // ── Body ─────────────────────────────
-          Text(
-            body,
-            style: theme.textTheme.bodyMedium?.copyWith(
+          // ── Body Text Styling ──────────────────────
+          DefaultTextStyle(
+            style: theme.textTheme.bodyMedium!.copyWith(
               color: colorScheme.onSurfaceVariant,
-              height: 1.7,
+              height: 1.6,
+              fontSize: 15, // Increased from default 14
             ),
+            child: body,
           ),
 
-          // ── Action ───────────────────────────
           if (action != null) ...[
             const SizedBox(height: 16),
             action!,
@@ -332,12 +342,11 @@ class _TransparencyCard extends StatelessWidget {
   }
 }
 
-// ── Enable button ─────────────────────────────────────────────
+// ── Components ────────────────────────────────────────────────
 
 class _EnableButton extends StatelessWidget {
   final bool isBn;
   final VoidCallback onTap;
-
   const _EnableButton({required this.isBn, required this.onTap});
 
   @override
@@ -357,11 +366,8 @@ class _EnableButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.notifications_outlined,
-              size: 20,
-              color: colorScheme.primary,
-            ),
+            Icon(Icons.notifications_outlined,
+                size: 20, color: colorScheme.primary),
             const SizedBox(width: 8),
             Text(
               isBn ? 'নোটিফিকেশন চালু করুন' : 'Enable Notifications',
@@ -378,8 +384,6 @@ class _EnableButton extends StatelessWidget {
   }
 }
 
-// ── Enabled badge ─────────────────────────────────────────────
-
 class _EnabledBadge extends StatelessWidget {
   final bool isBn;
   const _EnabledBadge({required this.isBn});
@@ -389,11 +393,7 @@ class _EnabledBadge extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     return Row(
       children: [
-        Icon(
-          Icons.check_circle_rounded,
-          color: colorScheme.primary,
-          size: 20,
-        ),
+        Icon(Icons.check_circle_rounded, color: colorScheme.primary, size: 20),
         const SizedBox(width: 8),
         Text(
           isBn ? 'নোটিফিকেশন চালু আছে' : 'Notifications enabled',
