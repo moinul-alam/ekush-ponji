@@ -11,16 +11,35 @@ class QuoteNotificationPrefsNotifier extends Notifier<QuoteNotificationPrefs> {
     return const QuoteNotificationPrefs();
   }
 
+  // ── Internal ───────────────────────────────────────────
+
   Future<void> _load() async {
     final loaded = await QuoteNotificationPrefs.load();
     state = loaded;
   }
 
+  // ── Public API ─────────────────────────────────────────
+
+  /// Reload from disk — call after external code modifies prefs.
+  Future<void> reload() async {
+    final loaded = await QuoteNotificationPrefs.load();
+    state = loaded;
+  }
+
+  /// Directly set state without disk read.
+  /// Used by NotificationPermissionDialog after it has already
+  /// saved to disk — avoids an extra async round-trip.
+  void forceState(QuoteNotificationPrefs prefs) {
+    state = prefs;
+  }
+
+  /// Toggle enabled and reschedule.
   Future<void> setEnabled(bool value, {required String languageCode}) async {
-    state = state.copyWith(enabled: value);
-    await state.save();
+    final updated = state.copyWith(enabled: value);
+    state = updated;
+    await updated.save();
     await QuoteNotificationService.scheduleUpcoming(
-      prefs: state,
+      prefs: updated,
       languageCode: languageCode,
     );
   }

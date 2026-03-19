@@ -5,39 +5,38 @@ import 'package:ekush_ponji/features/holidays/models/holiday.dart';
 import 'package:ekush_ponji/features/holidays/services/holiday_notification_prefs.dart';
 import 'package:ekush_ponji/features/holidays/services/holiday_notification_service.dart';
 
-/// Synchronous Notifier that owns [HolidayNotificationPrefs] state.
-///
-/// We use a plain [Notifier] (not AsyncNotifier) so consumers can read
-/// [state] directly — no .when() / .value / .valueOrNull needed anywhere.
-///
-/// Prefs are loaded once at provider build time via [HolidayNotificationPrefs.load].
-/// The initial state is the default (enabled=true) and is replaced by the
-/// real persisted value as soon as the async load completes.
-///
-/// Usage:
-///   final prefs = ref.watch(holidayNotificationProvider);
-///   prefs.enabled  // ← plain bool, always safe
-///
-///   ref.read(holidayNotificationProvider.notifier).setEnabled(true, ...);
 class HolidayNotificationNotifier extends Notifier<HolidayNotificationPrefs> {
+  bool _prefsLoaded = false;
+
   @override
   HolidayNotificationPrefs build() {
-    // Return defaults immediately so widgets don't need to handle null.
-    // Then kick off the async load and update state once complete.
+    _prefsLoaded = false;
     _loadPersistedPrefs();
     return const HolidayNotificationPrefs();
   }
 
-  // ── Internal ───────────────────────────────────────────────────────────────
+  // ── Internal ───────────────────────────────────────────────
 
   Future<void> _loadPersistedPrefs() async {
     final loaded = await HolidayNotificationPrefs.load();
     state = loaded;
+    _prefsLoaded = true;
   }
 
-  // ── Public API ─────────────────────────────────────────────────────────────
+  /// Waits for persisted prefs to finish loading.
+  /// Guards against race conditions when methods are called
+  /// immediately after provider initialisation.
+  Future<HolidayNotificationPrefs> _awaitLoadedPrefs() async {
+    if (_prefsLoaded) return state;
+    while (!_prefsLoaded) {
+      await Future.delayed(const Duration(milliseconds: 20));
+    }
+    return state;
+  }
 
-  /// Toggle the master enabled switch, persist the change, and reschedule.
+  // ── Public API ─────────────────────────────────────────────
+
+  /// Toggle the master enabled switch, persist, and reschedule.
   Future<void> setEnabled(
     bool value, {
     required List<Holiday> holidays,
@@ -54,14 +53,32 @@ class HolidayNotificationNotifier extends Notifier<HolidayNotificationPrefs> {
     );
   }
 
-  /// Re-run scheduling with the current prefs (call after holidays sync).
+  /// Re-run scheduling with current prefs.
+  /// Call after holidays data syncs from remote.
   Future<void> reschedule({
     required List<Holiday> holidays,
     required String languageCode,
   }) async {
+    final prefs = await _awaitLoadedPrefs();
     await HolidayNotificationService.scheduleAll(
       holidays: holidays,
-      prefs: state,
+      prefs: prefs,
+      languageCode: languageCode,
+    );
+  }
+
+  /// Called after OS permission is granted globally.
+  /// Only reschedules if holiday notifications were already enabled —
+  /// never force-enables. Waits for prefs to load first.
+  Future<void> rescheduleIfEnabled({
+    required List<Holiday> holidays,
+    required String languageCode,
+  }) async {
+    final prefs = await _awaitLoadedPrefs();
+    if (!prefs.enabled) return;
+    await HolidayNotificationService.scheduleAll(
+      holidays: holidays,
+      prefs: prefs,
       languageCode: languageCode,
     );
   }

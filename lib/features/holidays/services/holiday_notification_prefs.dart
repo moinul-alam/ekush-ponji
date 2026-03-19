@@ -4,24 +4,16 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Stores and loads holiday notification preferences.
-///
-/// Persisted as a single JSON blob under [_prefsKey] in SharedPreferences.
-///
-/// Fields:
-///   [enabled]      — master switch (default: true)
-///   [notifyHour]   — hour of day to fire (default: 8, i.e. 8:00 AM)
-///   [notifyMinute] — minute of hour to fire (default: 0)
 class HolidayNotificationPrefs {
   static const String _prefsKey = 'holiday_notification_prefs';
 
   final bool enabled;
-  final int notifyHour;
-  final int notifyMinute;
+  final int notifyHour; // default 21 → 9 PM
+  final int notifyMinute; // default 0
 
   const HolidayNotificationPrefs({
     this.enabled = true,
-    this.notifyHour = 8,
+    this.notifyHour = 21, // 9 PM BD time — evening before the holiday
     this.notifyMinute = 0,
   });
 
@@ -37,8 +29,6 @@ class HolidayNotificationPrefs {
     );
   }
 
-  // ── Serialisation ──────────────────────────────────────────────────────────
-
   Map<String, dynamic> toJson() => {
         'enabled': enabled,
         'notifyHour': notifyHour,
@@ -48,14 +38,11 @@ class HolidayNotificationPrefs {
   factory HolidayNotificationPrefs.fromJson(Map<String, dynamic> json) {
     return HolidayNotificationPrefs(
       enabled: json['enabled'] as bool? ?? true,
-      notifyHour: json['notifyHour'] as int? ?? 8,
+      notifyHour: json['notifyHour'] as int? ?? 21,
       notifyMinute: json['notifyMinute'] as int? ?? 0,
     );
   }
 
-  // ── SharedPreferences persistence ─────────────────────────────────────────
-
-  /// Load from SharedPreferences. Returns defaults if nothing saved yet.
   static Future<HolidayNotificationPrefs> load() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -69,7 +56,6 @@ class HolidayNotificationPrefs {
     }
   }
 
-  /// Persist to SharedPreferences.
   Future<void> save() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -81,7 +67,6 @@ class HolidayNotificationPrefs {
   }
 
   @override
-  String toString() =>
-      'HolidayNotificationPrefs(enabled=$enabled, '
+  String toString() => 'HolidayNotificationPrefs(enabled=$enabled, '
       'time=$notifyHour:${notifyMinute.toString().padLeft(2, "0")})';
 }

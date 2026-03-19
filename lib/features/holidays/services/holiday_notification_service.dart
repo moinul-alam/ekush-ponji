@@ -1,25 +1,14 @@
 // lib/features/holidays/services/holiday_notification_service.dart
-//
-// CHANGED:
-//   • Replaced private _isPermissionGranted() with
-//     NotificationPermissionService.isGranted() — single source of truth.
-//   • Replaced private _stableId() with NotificationId.forHoliday() —
-//     no more duplication.
-//   • scheduleAll() still never requests permission — silent check only.
 
 import 'package:flutter/material.dart' show Color, debugPrint;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/timezone.dart' as tz;
 import 'package:ekush_ponji/core/notifications/notification_id.dart';
 import 'package:ekush_ponji/core/notifications/notification_permission_service.dart';
 import 'package:ekush_ponji/core/services/local_notification_service.dart';
 import 'package:ekush_ponji/features/holidays/models/holiday.dart';
 import 'package:ekush_ponji/features/holidays/services/holiday_notification_prefs.dart';
 
-/// Schedules a morning notification for every upcoming holiday
-/// within the next [_lookaheadDays] days.
-///
-/// Notification ID range: 600_000_000 – 699_999_999
-/// Payload: 'holiday' → tap opens the Holidays screen.
 class HolidayNotificationService {
   HolidayNotificationService._();
 
@@ -28,14 +17,8 @@ class HolidayNotificationService {
   static const int _accentColorValue = 0xFF006B54;
   static const int _lookaheadDays = 60;
 
-  // ── Public API ─────────────────────────────────────────────────────────────
+  // ── Public API ─────────────────────────────────────────────
 
-  /// Cancel all existing holiday notifications then reschedule fresh ones.
-  ///
-  /// Safe to call on every app launch — cancels stale IDs before rescheduling.
-  ///
-  /// Uses a SILENT permission check — called from AppInitializer during splash.
-  /// Never triggers a permission dialog.
   static Future<void> scheduleAll({
     required List<Holiday> holidays,
     required HolidayNotificationPrefs prefs,
@@ -48,33 +31,36 @@ class HolidayNotificationService {
       return;
     }
 
-    // Silent check — never prompt the user.
+    // Silent check — never prompts the user
     final granted = await NotificationPermissionService.isGranted();
     if (!granted) {
-      debugPrint(
-          'ℹ️ Holiday notifications skipped — permission not yet granted');
+      debugPrint('ℹ️ Holiday notifications skipped — permission not granted');
       return;
     }
 
     await _cancelAll(holidays);
 
-    final now = DateTime.now();
+    // Always use Asia/Dhaka — holiday dates are BD-specific
+    final bdZone = tz.getLocation('Asia/Dhaka');
+    final now = tz.TZDateTime.now(bdZone);
     final cutoff = now.add(const Duration(days: _lookaheadDays));
     int scheduled = 0;
 
     for (final holiday in holidays) {
-      final fireTime = DateTime(
+      // Fire at 9 PM BD time the EVENING BEFORE the holiday
+      final fireTime = tz.TZDateTime(
+        bdZone,
         holiday.startDate.year,
         holiday.startDate.month,
-        holiday.startDate.day,
-        prefs.notifyHour,
-        prefs.notifyMinute,
+        holiday.startDate.day - 1, // day before
+        prefs.notifyHour, // 21
+        prefs.notifyMinute, // 0
       );
 
       if (fireTime.isAfter(now) && fireTime.isBefore(cutoff)) {
         await _scheduleOne(
           holiday: holiday,
-          fireTime: fireTime,
+          fireTime: fireTime.toLocal(), // convert back for scheduleZoned
           languageCode: languageCode,
         );
         scheduled++;
@@ -84,12 +70,11 @@ class HolidayNotificationService {
     debugPrint('✅ Scheduled $scheduled holiday notifications');
   }
 
-  /// Cancel a single holiday notification by holiday ID.
   static Future<void> cancelOne(String holidayId) async {
     await LocalNotificationService.cancel(NotificationId.forHoliday(holidayId));
   }
 
-  // ── Internal ───────────────────────────────────────────────────────────────
+  // ── Internal ───────────────────────────────────────────────
 
   static Future<void> _cancelAll(List<Holiday> holidays) async {
     for (final holiday in holidays) {
@@ -105,7 +90,9 @@ class HolidayNotificationService {
   }) async {
     final isBn = languageCode == 'bn';
     final name = isBn ? holiday.namebn : holiday.name;
-    final title = isBn ? 'আজ $name 🇧🇩' : 'Today is $name 🇧🇩';
+
+    // Notification copy — "Tomorrow is X"
+    final title = isBn ? 'আগামীকাল $name 🇧🇩' : 'Tomorrow is $name 🇧🇩';
     final body = isBn
         ? 'একুশ পঞ্জি • ${holiday.category.displayNameBn}'
         : 'Ekush Ponji • ${holiday.category.displayName}';

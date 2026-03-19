@@ -421,7 +421,7 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get notificationPermissionMessage =>
-      'নোটিফিকেশন পাঠাতে অনুমতি প্রয়োজন। সেটিংস থেকে চালু করুন।';
+      'নোটিফিকেশন পাঠাতে অনুমতি প্রয়োজন।';
 
   @override
   String get notificationPermissionDeniedBanner =>

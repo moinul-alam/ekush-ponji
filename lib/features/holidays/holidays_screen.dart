@@ -2,7 +2,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:ekush_ponji/app/router/route_names.dart';
 import 'package:ekush_ponji/core/base/base_screen.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
@@ -61,8 +63,6 @@ class _HolidaysScreenState extends BaseScreenState<HolidaysScreen>
     vm.loadHolidaysForYear(vm.selectedYear, l10n);
   }
 
-  // ── AppBar ───────────────────────────────────────────────
-
   @override
   PreferredSizeWidget? buildAppBar(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
@@ -73,9 +73,20 @@ class _HolidaysScreenState extends BaseScreenState<HolidaysScreen>
     final osGranted = ref.watch(notificationPermissionProvider).value ?? false;
     final notifEffective = notifPrefs.enabled && osGranted;
 
+    // Bottom nav switches branches without pushing a route so canPop = false.
+    // Drawer pushes a route so Flutter adds the back button automatically.
+    // We only add a manual back button when there is nothing to pop.
+    final canPop = Navigator.of(context).canPop();
+
     return AppBar(
       title: Text(l10n.allHolidays, style: theme.textTheme.titleLarge),
       centerTitle: false,
+      leading: canPop
+          ? null
+          : IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () => context.go(RouteNames.home),
+            ),
       actions: [
         IconButton(
           tooltip:
@@ -103,8 +114,6 @@ class _HolidaysScreenState extends BaseScreenState<HolidaysScreen>
       ),
     );
   }
-
-  // ── Notification dialog ───────────────────────────────────
 
   void _showNotificationDialog(
     BuildContext context,
@@ -170,8 +179,6 @@ class _HolidaysScreenState extends BaseScreenState<HolidaysScreen>
     );
   }
 
-  // ── Body ─────────────────────────────────────────────────
-
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
     final viewState = ref.watch(holidaysViewModelProvider);
@@ -212,10 +219,6 @@ class _HolidaysScreenState extends BaseScreenState<HolidaysScreen>
     );
   }
 }
-
-// ─────────────────────────────────────────────────────────────
-// YEAR NAVIGATOR BAR
-// ─────────────────────────────────────────────────────────────
 
 class _YearNavigatorBar extends StatelessWidget {
   final int year;
@@ -272,10 +275,6 @@ class _YearNavigatorBar extends StatelessWidget {
     );
   }
 }
-
-// ─────────────────────────────────────────────────────────────
-// CONTROLS BAR
-// ─────────────────────────────────────────────────────────────
 
 class _ControlsBar extends StatelessWidget {
   final HolidaysViewMode viewMode;
@@ -362,10 +361,6 @@ class _ControlsBar extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-// GAZETTE TYPE VIEW
-// ─────────────────────────────────────────────────────────────
-
 class _GazetteTypeView extends StatelessWidget {
   final Map<GazetteType, List<Holiday>> grouped;
   const _GazetteTypeView({required this.grouped});
@@ -385,10 +380,6 @@ class _GazetteTypeView extends StatelessWidget {
     );
   }
 }
-
-// ─────────────────────────────────────────────────────────────
-// MONTH WISE VIEW
-// ─────────────────────────────────────────────────────────────
 
 class _MonthWiseView extends StatelessWidget {
   final Map<int, List<Holiday>> grouped;

@@ -15,8 +15,8 @@ import 'package:ekush_ponji/core/constants/app_constants.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
 import 'package:ekush_ponji/features/holidays/providers/holiday_notification_provider.dart';
 import 'package:ekush_ponji/features/holidays/holidays_viewmodel.dart';
-import 'package:ekush_ponji/features/quotes/providers/quote_notification_pref_provider.dart';
-import 'package:ekush_ponji/features/words/providers/word_notification_pref_provider.dart';
+import 'package:ekush_ponji/features/quotes/providers/quote_notification_prefs_provider.dart';
+import 'package:ekush_ponji/features/words/providers/word_notification_prefs_provider.dart';
 
 // ── Settings font sizes ───────────────────────────────────────
 

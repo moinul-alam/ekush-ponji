@@ -16,13 +16,18 @@ abstract class BaseScreen extends ConsumerStatefulWidget {
 }
 
 abstract class BaseScreenState<T extends BaseScreen> extends ConsumerState<T> {
-  /// Get the ViewState provider for this screen
+  // ── ViewModel ──────────────────────────────────────────────
+
+  /// Override to connect to your screen's ViewModel provider.
   NotifierProvider<dynamic, ViewState>? get viewModelProvider => null;
 
-  /// Build the main body of the screen
+  // ── Abstract ───────────────────────────────────────────────
+
+  /// Must be implemented — builds the main screen content.
   Widget buildBody(BuildContext context, WidgetRef ref);
 
-  /// --- Optional UI slots ---
+  // ── Optional UI slots ──────────────────────────────────────
+
   PreferredSizeWidget? buildAppBar(BuildContext context, WidgetRef ref) => null;
   Widget? buildFloatingActionButton(BuildContext context, WidgetRef ref) =>
       null;
@@ -31,7 +36,8 @@ abstract class BaseScreenState<T extends BaseScreen> extends ConsumerState<T> {
   Widget? buildEndDrawer(BuildContext context, WidgetRef ref) => null;
   Widget? buildBottomSheet(BuildContext context, WidgetRef ref) => null;
 
-  /// --- Configurations ---
+  // ── Configurations ─────────────────────────────────────────
+
   bool get useSafeArea => true;
   bool get resizeToAvoidBottomInset => true;
   Color? get backgroundColor => null;
@@ -43,11 +49,47 @@ abstract class BaseScreenState<T extends BaseScreen> extends ConsumerState<T> {
   bool get extendBodyBehindAppBar => false;
 
   // ── Notification prompt ────────────────────────────────────
-  // Static flag — survives screen pushes/pops within same session.
-  // Once the dialog has been shown (or skipped because permission
-  // is already granted), no further screens will trigger it.
+
+  /// Static flag — persists across screen pushes/pops for the
+  /// entire app session. Once the dialog fires (or is skipped
+  /// because permission is already granted), no other screen
+  /// will trigger it again until the app is restarted.
   static bool _promptShownThisSession = false;
   Timer? _notifPromptTimer;
+
+  /// Seconds to wait after the screen mounts before showing the
+  /// notification permission dialog.
+  /// Override per screen if you need a different delay.
+  /// Defaults to 10 seconds — long enough for the screen to settle
+  /// but short enough to feel contextual.
+  int get notificationPromptDelaySeconds => 10;
+
+  void _scheduleNotificationPrompt() {
+    // Already shown once this session — bail out immediately
+    if (_promptShownThisSession) return;
+
+    _notifPromptTimer = Timer(
+      Duration(seconds: notificationPromptDelaySeconds),
+      () async {
+        // Permission already granted — nothing to ask
+        final already = await NotificationPermissionService.isGranted();
+        if (already) {
+          // Mark so we never check again this session
+          _promptShownThisSession = true;
+          return;
+        }
+
+        // Screen may have been disposed during the wait
+        if (!mounted) return;
+
+        // Mark BEFORE showing — prevents a second screen from
+        // racing through while the dialog is still open
+        _promptShownThisSession = true;
+
+        await NotificationPermissionDialog.show(context, ref);
+      },
+    );
+  }
 
   // ── Loading widgets ────────────────────────────────────────
 
@@ -156,8 +198,6 @@ abstract class BaseScreenState<T extends BaseScreen> extends ConsumerState<T> {
 
   void showError(String message, {ErrorSeverity? severity}) {
     if (!mounted) return;
-    final backgroundColor =
-        severity != null ? _getErrorColor(severity) : Colors.red;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -170,7 +210,8 @@ abstract class BaseScreenState<T extends BaseScreen> extends ConsumerState<T> {
             Expanded(child: Text(message)),
           ],
         ),
-        backgroundColor: backgroundColor,
+        backgroundColor:
+            severity != null ? _getErrorColor(severity) : Colors.red,
         behavior: SnackBarBehavior.floating,
         action: SnackBarAction(
           label: 'Dismiss',
@@ -296,22 +337,38 @@ abstract class BaseScreenState<T extends BaseScreen> extends ConsumerState<T> {
 
   // ── State change callbacks ─────────────────────────────────
 
+  /// Called when ViewState becomes Success.
+  /// Shows a snackbar automatically if [autoHandleSuccess] is true
+  /// and the state carries a message.
   void onSuccess(ViewStateSuccess state) {
     if (autoHandleSuccess && state.message != null) {
       showSuccess(state.message!);
     }
   }
 
+  /// Called when ViewState becomes Error.
+  /// Shows a snackbar automatically if [autoHandleError] is true.
   void onError(ViewStateError state) {
     if (autoHandleError) {
       showError(state.message, severity: state.severity);
     }
   }
 
+  /// Called when ViewState becomes Empty.
   void onEmpty(ViewStateEmpty state) {}
+
+  /// Called when ViewState becomes Loading.
   void onLoading(ViewStateLoading state) {}
+
+  /// Called when the retry button in [buildErrorWidget] is tapped.
+  /// Override to reload data.
   void onRetry() {}
+
+  /// Called when the action button in [buildEmptyWidget] is tapped.
   void onEmptyAction() {}
+
+  /// Called when pull-to-refresh is triggered.
+  /// Override to reload data. Only fires when [enablePullToRefresh] is true.
   Future<void> onRefresh() async {}
 
   // ── Lifecycle ──────────────────────────────────────────────
@@ -330,30 +387,12 @@ abstract class BaseScreenState<T extends BaseScreen> extends ConsumerState<T> {
     super.dispose();
   }
 
-  void _scheduleNotificationPrompt() {
-    // Already shown once this session — skip immediately
-    if (_promptShownThisSession) return;
-
-    _notifPromptTimer = Timer(const Duration(seconds: 3), () async {
-      // Permission already granted — nothing to ask
-      final already = await NotificationPermissionService.isGranted();
-      if (already) return;
-
-      // Screen may have been disposed during the 3s wait
-      if (!mounted) return;
-
-      // Mark before showing — prevents a second screen from
-      // racing through while the dialog is still open
-      _promptShownThisSession = true;
-
-      await NotificationPermissionDialog.show(context, ref);
-    });
-  }
-
-  /// Called when screen is initialized — override in child classes
+  /// Called once when the screen is first mounted.
+  /// Override instead of [initState] to avoid super call boilerplate.
   void onScreenInit() {}
 
-  /// Called when screen is disposed — override in child classes
+  /// Called once when the screen is removed from the tree.
+  /// Override instead of [dispose] to avoid super call boilerplate.
   void onScreenDispose() {}
 
   // ── State management ───────────────────────────────────────
@@ -370,6 +409,7 @@ abstract class BaseScreenState<T extends BaseScreen> extends ConsumerState<T> {
       ref.listen<ViewState>(
         viewModelProvider!,
         (previous, next) {
+          // Skip if state type and value are identical to previous
           if (_previousState != null &&
               _previousState.runtimeType == next.runtimeType &&
               _previousState == next) {
