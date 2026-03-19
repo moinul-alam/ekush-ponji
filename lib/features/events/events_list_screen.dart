@@ -1,18 +1,13 @@
 // lib/features/events/events_list_screen.dart
-//
-// Displays all user events grouped by date, sorted chronologically.
-// Past events are dimmed. Today's section is highlighted.
-// FAB opens AddEventScreen via the standalone /events/add route.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
+import 'package:ekush_ponji/core/widgets/ads/native_ad_widget.dart';
 import 'package:ekush_ponji/features/events/models/event.dart';
 import 'package:ekush_ponji/features/events/data/event_repository.dart';
-
-// ── Provider ──────────────────────────────────────────────────────────────────
 
 final _allEventsProvider = FutureProvider<List<Event>>((ref) async {
   final repo = ref.read(eventRepositoryProvider);
@@ -20,8 +15,6 @@ final _allEventsProvider = FutureProvider<List<Event>>((ref) async {
   all.sort((a, b) => a.startTime.compareTo(b.startTime));
   return all;
 });
-
-// ── Screen ────────────────────────────────────────────────────────────────────
 
 class EventsListScreen extends ConsumerWidget {
   const EventsListScreen({super.key});
@@ -39,11 +32,7 @@ class EventsListScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          // Uses standalone /events/add — not the calendar-nested route
-          await context.push(
-            RouteNames.addEvent,
-            extra: DateTime.now(),
-          );
+          await context.push(RouteNames.addEvent, extra: DateTime.now());
           ref.invalidate(_allEventsProvider);
         },
         tooltip: l10n.addEvent,
@@ -60,8 +49,6 @@ class EventsListScreen extends ConsumerWidget {
     );
   }
 }
-
-// ── Date-grouped list ─────────────────────────────────────────────────────────
 
 class _EventDateList extends StatelessWidget {
   final List<Event> events;
@@ -84,25 +71,32 @@ class _EventDateList extends StatelessWidget {
     }
     final keys = grouped.keys.toList()..sort();
 
-    return ListView.builder(
+    // Build items list with native ad injected after the 2nd date group
+    final items = <Widget>[];
+    for (int i = 0; i < keys.length; i++) {
+      final key = keys[i];
+      final dayEvents = grouped[key]!;
+      final date = DateTime.parse(key);
+
+      items.add(_DateSection(
+        date: date,
+        events: dayEvents,
+        l10n: l10n,
+        onRefresh: () => ref.invalidate(_allEventsProvider),
+      ));
+
+      // Inject native ad after the 2nd date group
+      if (i == 1) {
+        items.add(const NativeAdWidget(style: NativeAdStyle.card));
+      }
+    }
+
+    return ListView(
       padding: const EdgeInsets.only(bottom: 100),
-      itemCount: keys.length,
-      itemBuilder: (context, index) {
-        final key = keys[index];
-        final dayEvents = grouped[key]!;
-        final date = DateTime.parse(key);
-        return _DateSection(
-          date: date,
-          events: dayEvents,
-          l10n: l10n,
-          onRefresh: () => ref.invalidate(_allEventsProvider),
-        );
-      },
+      children: items,
     );
   }
 }
-
-// ── Date section ──────────────────────────────────────────────────────────────
 
 class _DateSection extends StatelessWidget {
   final DateTime date;
@@ -184,8 +178,6 @@ class _DateSection extends StatelessWidget {
   }
 }
 
-// ── Event card ────────────────────────────────────────────────────────────────
-
 class _EventCard extends StatelessWidget {
   final Event event;
   final bool isPast;
@@ -248,7 +240,6 @@ class _EventCard extends StatelessWidget {
           trailing:
               Icon(Icons.chevron_right, color: cs.onSurfaceVariant, size: 18),
           onTap: () async {
-            // Uses standalone /events/edit — not the calendar-nested route
             await context.push(RouteNames.editEvent, extra: event);
             onRefresh();
           },
@@ -270,8 +261,6 @@ class _EventCard extends StatelessWidget {
     return timeStr;
   }
 }
-
-// ── Empty state ───────────────────────────────────────────────────────────────
 
 class _EmptyState extends StatelessWidget {
   final bool isBn;

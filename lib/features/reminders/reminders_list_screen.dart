@@ -1,19 +1,13 @@
 // lib/features/reminders/reminders_list_screen.dart
-//
-// Displays all user reminders grouped by date, sorted chronologically.
-// Past reminders are dimmed. Overdue reminders show a warning tint.
-// Today's section is highlighted.
-// FAB opens AddReminderScreen via the standalone /reminders/add route.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
+import 'package:ekush_ponji/core/widgets/ads/native_ad_widget.dart';
 import 'package:ekush_ponji/features/reminders/models/reminder.dart';
 import 'package:ekush_ponji/features/reminders/data/reminder_repository.dart';
-
-// ── Provider ──────────────────────────────────────────────────────────────────
 
 final _allRemindersProvider = FutureProvider<List<Reminder>>((ref) async {
   final repo = ref.read(reminderRepositoryProvider);
@@ -21,8 +15,6 @@ final _allRemindersProvider = FutureProvider<List<Reminder>>((ref) async {
   all.sort((a, b) => a.dateTime.compareTo(b.dateTime));
   return all;
 });
-
-// ── Screen ────────────────────────────────────────────────────────────────────
 
 class RemindersListScreen extends ConsumerWidget {
   const RemindersListScreen({super.key});
@@ -40,11 +32,7 @@ class RemindersListScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          // Uses standalone /reminders/add — not the calendar-nested route
-          await context.push(
-            RouteNames.addReminder,
-            extra: DateTime.now(),
-          );
+          await context.push(RouteNames.addReminder, extra: DateTime.now());
           ref.invalidate(_allRemindersProvider);
         },
         tooltip: isBn ? 'রিমাইন্ডার যোগ করুন' : 'Add Reminder',
@@ -61,8 +49,6 @@ class RemindersListScreen extends ConsumerWidget {
     );
   }
 }
-
-// ── Date-grouped list ─────────────────────────────────────────────────────────
 
 class _ReminderDateList extends StatelessWidget {
   final List<Reminder> reminders;
@@ -85,25 +71,32 @@ class _ReminderDateList extends StatelessWidget {
     }
     final keys = grouped.keys.toList()..sort();
 
-    return ListView.builder(
+    // Build items list with native ad injected after the 2nd date group
+    final items = <Widget>[];
+    for (int i = 0; i < keys.length; i++) {
+      final key = keys[i];
+      final dayReminders = grouped[key]!;
+      final date = DateTime.parse(key);
+
+      items.add(_DateSection(
+        date: date,
+        reminders: dayReminders,
+        l10n: l10n,
+        onRefresh: () => ref.invalidate(_allRemindersProvider),
+      ));
+
+      // Inject native ad after the 2nd date group
+      if (i == 1) {
+        items.add(const NativeAdWidget(style: NativeAdStyle.card));
+      }
+    }
+
+    return ListView(
       padding: const EdgeInsets.only(bottom: 100),
-      itemCount: keys.length,
-      itemBuilder: (context, index) {
-        final key = keys[index];
-        final dayReminders = grouped[key]!;
-        final date = DateTime.parse(key);
-        return _DateSection(
-          date: date,
-          reminders: dayReminders,
-          l10n: l10n,
-          onRefresh: () => ref.invalidate(_allRemindersProvider),
-        );
-      },
+      children: items,
     );
   }
 }
-
-// ── Date section ──────────────────────────────────────────────────────────────
 
 class _DateSection extends StatelessWidget {
   final DateTime date;
@@ -184,8 +177,6 @@ class _DateSection extends StatelessWidget {
     return '$day $month $year';
   }
 }
-
-// ── Reminder card ─────────────────────────────────────────────────────────────
 
 class _ReminderCard extends StatelessWidget {
   final Reminder reminder;
@@ -281,7 +272,6 @@ class _ReminderCard extends StatelessWidget {
           trailing:
               Icon(Icons.chevron_right, color: cs.onSurfaceVariant, size: 18),
           onTap: () async {
-            // Uses standalone /reminders/edit — not the calendar-nested route
             await context.push(RouteNames.editReminder, extra: reminder);
             onRefresh();
           },
@@ -302,8 +292,6 @@ class _ReminderCard extends StatelessWidget {
     return timeStr;
   }
 }
-
-// ── Empty state ───────────────────────────────────────────────────────────────
 
 class _EmptyState extends StatelessWidget {
   final bool isBn;

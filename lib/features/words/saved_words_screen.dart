@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ekush_ponji/core/base/base_screen.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
+import 'package:ekush_ponji/core/widgets/ads/native_ad_widget.dart';
 import 'package:ekush_ponji/features/words/models/word.dart';
 import 'package:ekush_ponji/features/words/words_viewmodel.dart';
 import 'package:go_router/go_router.dart';
@@ -28,9 +29,7 @@ class _SavedWordsScreenState extends BaseScreenState<SavedWordsScreen> {
   @override
   PreferredSizeWidget? buildAppBar(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    return AppBar(
-      title: Text(l10n.savedWords),
-    );
+    return AppBar(title: Text(l10n.savedWords));
   }
 
   @override
@@ -70,33 +69,39 @@ class _SavedWordsScreenState extends BaseScreenState<SavedWordsScreen> {
       );
     }
 
-    return ListView.separated(
+    // Build list with native ad injected after the 3rd word
+    final items = <Widget>[];
+    for (int i = 0; i < savedWords.length; i++) {
+      final word = savedWords[i];
+      items.add(_SavedWordCard(
+        word: word,
+        onUnsave: () async {
+          await vm.toggleSave(word);
+          ref.invalidate(wordsViewModelProvider);
+        },
+      ));
+
+      // Inject native ad after the 3rd word (index 2)
+      if (i == 2) {
+        items.add(const Padding(
+          padding: EdgeInsets.symmetric(vertical: 4),
+          child: NativeAdWidget(style: NativeAdStyle.card),
+        ));
+      }
+    }
+
+    return ListView(
       padding: const EdgeInsets.all(16),
-      itemCount: savedWords.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        final word = savedWords[index];
-        return _SavedWordCard(
-          word: word,
-          onUnsave: () async {
-            await vm.toggleSave(word);
-            ref.invalidate(wordsViewModelProvider);
-          },
-        );
-      },
+      children: items,
     );
   }
 }
 
-// ─── Saved Word Card ──────────────────────────────────────────
 class _SavedWordCard extends StatelessWidget {
   final WordModel word;
   final VoidCallback onUnsave;
 
-  const _SavedWordCard({
-    required this.word,
-    required this.onUnsave,
-  });
+  const _SavedWordCard({required this.word, required this.onUnsave});
 
   @override
   Widget build(BuildContext context) {
@@ -104,112 +109,85 @@ class _SavedWordCard extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context);
 
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Top row: part of speech + unsave
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: colorScheme.tertiaryContainer,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    word.partOfSpeech,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: colorScheme.onTertiaryContainer,
-                      fontWeight: FontWeight.w600,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: colorScheme.tertiaryContainer,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      word.partOfSpeech,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: colorScheme.onTertiaryContainer,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
-                ),
-                IconButton(
-                  onPressed: onUnsave,
-                  icon: Icon(
-                    Icons.favorite_rounded,
-                    color: colorScheme.primary,
+                  IconButton(
+                    onPressed: onUnsave,
+                    icon: Icon(Icons.favorite_rounded,
+                        color: colorScheme.primary),
+                    tooltip: 'Remove from saved',
+                    visualDensity: VisualDensity.compact,
                   ),
-                  tooltip: 'Remove from saved',
-                  visualDensity: VisualDensity.compact,
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                word.word,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.tertiary,
                 ),
-              ],
-            ),
-
-            const SizedBox(height: 8),
-
-            // Word + pronunciation
-            Text(
-              word.word,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: colorScheme.tertiary,
               ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              word.pronunciation,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-                fontStyle: FontStyle.italic,
+              const SizedBox(height: 2),
+              Text(
+                word.pronunciation,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontStyle: FontStyle.italic,
+                ),
               ),
-            ),
-
-            const SizedBox(height: 12),
-
-            Divider(
-                color: colorScheme.outline.withValues(alpha: 0.3), height: 1),
-
-            const SizedBox(height: 12),
-
-            // Meaning EN
-            _buildSection(
-              context,
-              icon: Icons.lightbulb_outline_rounded,
-              title: l10n.meaningEnglish,
-              content: word.meaningEn,
-            ),
-
-            const SizedBox(height: 4),
-
-            // Meaning BN
-            _buildSection(
-              context,
-              icon: Icons.translate_rounded,
-              title: 'অর্থ',
-              content: word.meaningBn,
-            ),
-
-            const SizedBox(height: 10),
-
-            // Synonym
-            _buildSection(
-              context,
-              icon: Icons.sync_alt_rounded,
-              title: l10n.synonym,
-              content: word.synonym,
-            ),
-
-            const SizedBox(height: 10),
-
-            // Example
-            _buildSection(
-              context,
-              icon: Icons.chat_bubble_outline_rounded,
-              title: l10n.example,
-              content: word.example,
-              isItalic: true,
-            ),
-          ],
+              const SizedBox(height: 12),
+              Divider(
+                  color: colorScheme.outline.withValues(alpha: 0.3), height: 1),
+              const SizedBox(height: 12),
+              _buildSection(context,
+                  icon: Icons.lightbulb_outline_rounded,
+                  title: l10n.meaningEnglish,
+                  content: word.meaningEn),
+              const SizedBox(height: 4),
+              _buildSection(context,
+                  icon: Icons.translate_rounded,
+                  title: 'অর্থ',
+                  content: word.meaningBn),
+              const SizedBox(height: 10),
+              _buildSection(context,
+                  icon: Icons.sync_alt_rounded,
+                  title: l10n.synonym,
+                  content: word.synonym),
+              const SizedBox(height: 10),
+              _buildSection(context,
+                  icon: Icons.chat_bubble_outline_rounded,
+                  title: l10n.example,
+                  content: word.example,
+                  isItalic: true),
+            ],
+          ),
         ),
       ),
     );

@@ -45,6 +45,9 @@ class QuoteNotificationService {
         );
     await repo.init();
 
+    // Load full list once so we can find the correct index for each quote
+    final allQuotes = repo.getAllQuotes();
+
     final now = DateTime.now();
 
     // ── Today ──────────────────────────────────────────────────────────────
@@ -58,12 +61,17 @@ class QuoteNotificationService {
 
     if (todayFireTime.isAfter(now)) {
       final todayQuote = repo.getDailyQuoteForDate(now);
+      // Find index so tap navigates to the correct quote
+      final todayIndex = allQuotes.indexWhere(
+        (q) => q.month == todayQuote.month && q.day == todayQuote.day,
+      );
       await _scheduleOne(
         id: NotificationId.quoteToday,
         fireTime: todayFireTime,
         quoteText: todayQuote.text,
         author: todayQuote.author,
         languageCode: languageCode,
+        index: todayIndex < 0 ? 0 : todayIndex,
       );
     }
 
@@ -78,12 +86,16 @@ class QuoteNotificationService {
     );
 
     final tomorrowQuote = repo.getDailyQuoteForDate(tomorrow);
+    final tomorrowIndex = allQuotes.indexWhere(
+      (q) => q.month == tomorrowQuote.month && q.day == tomorrowQuote.day,
+    );
     await _scheduleOne(
       id: NotificationId.quoteTomorrow,
       fireTime: tomorrowFireTime,
       quoteText: tomorrowQuote.text,
       author: tomorrowQuote.author,
       languageCode: languageCode,
+      index: tomorrowIndex < 0 ? 0 : tomorrowIndex,
     );
 
     debugPrint('✅ Quote notifications scheduled (today + tomorrow)');
@@ -101,17 +113,20 @@ class QuoteNotificationService {
     required String quoteText,
     required String author,
     required String languageCode,
+    required int index,
   }) async {
     final isBn = languageCode == 'bn';
     final title = isBn ? 'আজকের উদ্ধৃতি 💬' : 'Quote of the Day 💬';
     final body = '"$quoteText"\n— $author';
 
+    // Payload format: 'quote:INDEX' — parsed by LocalNotificationService
+    // to open the quotes screen at the correct position.
     await LocalNotificationService.scheduleZoned(
       id: id,
       scheduledTime: fireTime,
       title: title,
       body: body,
-      payload: 'quote',
+      payload: 'quote:$index',
       details: NotificationDetails(
         android: AndroidNotificationDetails(
           _channelId,

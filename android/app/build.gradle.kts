@@ -74,7 +74,7 @@ android {
     splits {
         abi {
             // Enable splitting only for APK tasks, not for App Bundles (AAB)
-            isEnable = gradle.startParameter.taskNames.any { it.contains("AssembleRelease") }
+            isEnable = true
             reset()
             include("arm64-v8a", "armeabi-v7a", "x86_64")
             isUniversalApk = false

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ekush_ponji/core/base/base_screen.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
+import 'package:ekush_ponji/core/widgets/ads/native_ad_widget.dart';
 import 'package:ekush_ponji/features/quotes/models/quote.dart';
 import 'package:ekush_ponji/features/quotes/quotes_viewmodel.dart';
 import 'package:go_router/go_router.dart';
@@ -28,9 +29,7 @@ class _SavedQuotesScreenState extends BaseScreenState<SavedQuotesScreen> {
   @override
   PreferredSizeWidget? buildAppBar(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    return AppBar(
-      title: Text(l10n.savedQuotes),
-    );
+    return AppBar(title: Text(l10n.savedQuotes));
   }
 
   @override
@@ -70,113 +69,107 @@ class _SavedQuotesScreenState extends BaseScreenState<SavedQuotesScreen> {
       );
     }
 
-    return ListView.separated(
+    // Build list with native ad injected after the 3rd quote
+    final items = <Widget>[];
+    for (int i = 0; i < savedQuotes.length; i++) {
+      final quote = savedQuotes[i];
+      items.add(_SavedQuoteCard(
+        quote: quote,
+        onUnsave: () async {
+          await vm.toggleSave(quote);
+          ref.invalidate(quotesViewModelProvider);
+        },
+      ));
+
+      // Inject native ad after the 3rd quote (index 2)
+      if (i == 2) {
+        items.add(const Padding(
+          padding: EdgeInsets.symmetric(vertical: 4),
+          child: NativeAdWidget(style: NativeAdStyle.card),
+        ));
+      }
+    }
+
+    return ListView(
       padding: const EdgeInsets.all(16),
-      itemCount: savedQuotes.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        final quote = savedQuotes[index];
-        return _SavedQuoteCard(
-          quote: quote,
-          onUnsave: () async {
-            await vm.toggleSave(quote);
-            ref.invalidate(quotesViewModelProvider);
-          },
-        );
-      },
+      children: items,
     );
   }
 }
 
-// ─── Saved Quote Card ─────────────────────────────────────────
 class _SavedQuoteCard extends StatelessWidget {
   final QuoteModel quote;
   final VoidCallback onUnsave;
 
-  const _SavedQuoteCard({
-    required this.quote,
-    required this.onUnsave,
-  });
+  const _SavedQuoteCard({required this.quote, required this.onUnsave});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Category + unsave row
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    quote.category,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: colorScheme.onPrimaryContainer,
-                      fontWeight: FontWeight.w600,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      quote.category,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: colorScheme.onPrimaryContainer,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
-                ),
-                IconButton(
-                  onPressed: onUnsave,
-                  icon: Icon(
-                    Icons.favorite_rounded,
-                    color: colorScheme.primary,
+                  IconButton(
+                    onPressed: onUnsave,
+                    icon: Icon(Icons.favorite_rounded,
+                        color: colorScheme.primary),
+                    tooltip: 'Remove from saved',
+                    visualDensity: VisualDensity.compact,
                   ),
-                  tooltip: 'Remove from saved',
-                  visualDensity: VisualDensity.compact,
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 12),
-
-            // Quote text
-            Text(
-              quote.text,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                fontStyle: FontStyle.italic,
-                height: 1.5,
-                color: colorScheme.onSurface,
+                ],
               ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // Author
-            Row(
-              children: [
-                Container(
-                  width: 24,
-                  height: 2,
-                  color: colorScheme.primary,
+              const SizedBox(height: 12),
+              Text(
+                quote.text,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  fontStyle: FontStyle.italic,
+                  height: 1.5,
+                  color: colorScheme.onSurface,
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  quote.author,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: colorScheme.onSurface,
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Container(width: 24, height: 2, color: colorScheme.primary),
+                  const SizedBox(width: 8),
+                  Text(
+                    quote.author,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: colorScheme.onSurface,
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

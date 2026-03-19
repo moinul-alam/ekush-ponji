@@ -9,7 +9,6 @@ import 'package:ekush_ponji/features/reminders/models/reminder.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ekush_ponji/core/services/local_notification_service.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:ekush_ponji/core/services/ad_service.dart';
 import 'package:ekush_ponji/core/widgets/pickers/app_date_time_picker.dart';
 
 class AddReminderScreen extends ConsumerStatefulWidget {
@@ -38,12 +37,10 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
       viewModel.resetForm();
 
       if (widget.reminderToEdit != null) {
-        // ── Edit mode: prefill viewmodel and controllers ──
         viewModel.prefillReminder(widget.reminderToEdit!);
         _titleController.text = widget.reminderToEdit!.title;
         _descriptionController.text = widget.reminderToEdit!.description ?? '';
       } else {
-        // ── Add mode: clear and optionally prefill date ──
         _titleController.clear();
         _descriptionController.clear();
         if (widget.prefilledDate != null) {
@@ -73,9 +70,7 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(l10n.deleteReminder),
-        content: Text(
-          l10n.deleteReminderConfirmMessage,
-        ),
+        content: Text(l10n.deleteReminderConfirmMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -91,9 +86,7 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
         ],
       ),
     );
-
     if (confirmed != true) return;
-
     final viewModel = ref.read(addReminderViewModelProvider.notifier);
     await viewModel.deleteReminder();
   }
@@ -123,11 +116,7 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
     ref.listen(addReminderViewModelProvider, (prev, next) {
       if (next is ViewStateSuccess && next.message != null) {
         _showSnackbar(next.message!);
-        ref.read(adServiceProvider).showInterstitialIfAvailable(
-          onClosed: () {
-            if (mounted) context.pop();
-          },
-        );
+        if (mounted) context.pop();
       }
       if (next is ViewStateError) {
         _showSnackbar(next.message, isError: true);
@@ -139,7 +128,6 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
         title: Text(isEditMode ? l10n.editReminder : l10n.addReminder),
         centerTitle: true,
         actions: [
-          // ── Delete button (edit mode only) ──
           if (isEditMode)
             IconButton(
               onPressed: isLoading ? null : _onDelete,
@@ -151,7 +139,6 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
               ),
               tooltip: l10n.deleteReminder,
             ),
-          // ── Save button ──
           TextButton(
             onPressed: isLoading ? null : _onSave,
             child: Text(
@@ -171,7 +158,6 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ─── Title ─────────────────────────────────────
             TextField(
               controller: _titleController,
               decoration: InputDecoration(
@@ -182,24 +168,16 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
               textCapitalization: TextCapitalization.sentences,
             ),
             const SizedBox(height: 16),
-
-            // ─── Date & Time ────────────────────────────────
             _ReminderDateTimePicker(
               dateTime: viewModel.dateTime,
               onPick: viewModel.setDateTime,
               l10n: l10n,
             ),
             const SizedBox(height: 16),
-
-            // ─── Priority ───────────────────────────────────
             _PrioritySelector(viewModel: viewModel, l10n: l10n),
             const SizedBox(height: 16),
-
-            // ─── Notification Toggle ────────────────────────
             _NotificationToggle(viewModel: viewModel, l10n: l10n),
             const SizedBox(height: 16),
-
-            // ─── Description ────────────────────────────────
             TextField(
               controller: _descriptionController,
               maxLines: 3,
@@ -211,8 +189,6 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
               ),
             ),
             const SizedBox(height: 32),
-
-            // ─── Save Button ─────────────────────────────────
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -458,10 +434,3 @@ class _NotificationToggle extends ConsumerWidget {
     );
   }
 }
-// ```
-
-// ---
-
-// **Note:** Add these to your arb files:
-// ```
-// "editReminder": "Edit Reminder"

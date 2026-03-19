@@ -1,13 +1,13 @@
 // lib/core/services/ad_service.dart
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:ekush_ponji/app/config/ad_config.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BANNER NOTIFIER
-// Watched by AppAdBannerBottom — flips to true when banner loads.
 // ─────────────────────────────────────────────────────────────────────────────
 
 class BannerLoadedNotifier extends Notifier<bool> {
@@ -23,18 +23,14 @@ final bannerLoadedProvider =
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AD SERVICE
-// MobileAds.instance.initialize() is called separately in app_initializer.
-// AdService just loads ads — safe to call after MobileAds is initialized.
 // ─────────────────────────────────────────────────────────────────────────────
 
 class AdService {
   final Ref _ref;
 
   AdService(this._ref) {
-    // Both ads load on construction — RootScaffold owns the banner widget
-    // permanently so AdWidget is never duplicated across screen changes.
-    _loadBanner();
-    _loadInterstitial();
+    if (AdConfig.enableBannerAds) _loadBanner();
+    if (AdConfig.enableInterstitialAds) _loadInterstitial();
   }
 
   // ── Banner ────────────────────────────────────────────────────
@@ -52,24 +48,35 @@ class AdService {
   static const int _maxPerSession = 3;
 
   DateTime? _lastShownAt;
-  static const Duration _minInterval = Duration(minutes: 3);
+  static const Duration _minInterval = Duration(minutes: 5);
 
   // ─────────────────────────────────────────────────────────────
-  // BANNER — adaptive width
-  // Takes the screen width in logical pixels as an int.
-  // Call loadBanner(screenWidth) from AppAdBannerBottom once context
-  // is available, so we get the correct device width.
-  // Falls back to AdSize.banner (320×50) if adaptive call fails.
+  // BANNER
+  // Reads the real device screen width in logical pixels so the
+  // adaptive banner fills the full bottom bar on any screen size.
+  // Falls back to 360 if the view is not yet available.
   // ─────────────────────────────────────────────────────────────
 
   Future<void> _loadBanner() async {
+    if (!AdConfig.enableBannerAds) return;
+
+    // Read real logical screen width from the platform view.
+    // This is safe inside an async method — the view is always
+    // available by the time this executes.
+    int screenWidth = 360; // fallback for safety
+    try {
+      final view = WidgetsBinding.instance.platformDispatcher.views.first;
+      screenWidth =
+          (view.physicalSize.width / view.devicePixelRatio).truncate();
+    } catch (e) {
+      debugPrint('⚠️ AdService: could not read screen width, using 360 — $e');
+    }
+
     AdSize adSize;
     try {
-      // 360 is a safe default logical width covering most Android phones.
-      // The adaptive API returns the best size for this width.
-      const int defaultWidth = 360;
-      final adaptive = await AdSize
-          .getCurrentOrientationAnchoredAdaptiveBannerAdSize(defaultWidth);
+      final adaptive =
+          await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
+              screenWidth);
       adSize = adaptive ?? AdSize.banner;
     } catch (e) {
       debugPrint('⚠️ AdService: adaptive size failed, using fixed — $e');
@@ -82,7 +89,8 @@ class AdService {
       request: const AdRequest(),
       listener: BannerAdListener(
         onAdLoaded: (_) {
-          debugPrint('✅ AdService: banner loaded (${adSize.width}×${adSize.height})');
+          debugPrint(
+              '✅ AdService: banner loaded (${adSize.width}×${adSize.height})');
           _bannerLoaded = true;
           _ref.read(bannerLoadedProvider.notifier).setLoaded();
         },
@@ -104,6 +112,8 @@ class AdService {
   // ─────────────────────────────────────────────────────────────
 
   void _loadInterstitial() {
+    if (!AdConfig.enableInterstitialAds) return;
+
     InterstitialAd.load(
       adUnitId: AdConfig.interstitial,
       request: const AdRequest(),
@@ -141,6 +151,7 @@ class AdService {
   }
 
   bool get _canShow {
+    if (!AdConfig.enableInterstitialAds) return false;
     if (!_interstitialReady || _interstitialAd == null) return false;
     if (_interstitialsShownThisSession >= _maxPerSession) return false;
     if (_lastShownAt != null &&
@@ -177,8 +188,8 @@ class AdService {
     );
 
     _interstitialAd!.show();
-    debugPrint(
-        '📢 AdService: showing interstitial ($_interstitialsShownThisSession/$_maxPerSession this session)');
+    debugPrint('📢 AdService: showing interstitial '
+        '($_interstitialsShownThisSession/$_maxPerSession this session)');
   }
 
   // ─────────────────────────────────────────────────────────────

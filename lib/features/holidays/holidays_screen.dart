@@ -9,6 +9,7 @@ import 'package:ekush_ponji/core/base/base_screen.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/core/notifications/notification_permission_provider.dart';
+import 'package:ekush_ponji/core/widgets/ads/native_ad_widget.dart';
 import 'package:ekush_ponji/features/holidays/models/holiday.dart';
 import 'package:ekush_ponji/features/holidays/holidays_viewmodel.dart';
 import 'package:ekush_ponji/features/holidays/widgets/holiday_gazette_section_widget.dart';
@@ -73,9 +74,6 @@ class _HolidaysScreenState extends BaseScreenState<HolidaysScreen>
     final osGranted = ref.watch(notificationPermissionProvider).value ?? false;
     final notifEffective = notifPrefs.enabled && osGranted;
 
-    // Bottom nav switches branches without pushing a route so canPop = false.
-    // Drawer pushes a route so Flutter adds the back button automatically.
-    // We only add a manual back button when there is nothing to pop.
     final canPop = Navigator.of(context).canPop();
 
     return AppBar(
@@ -188,11 +186,7 @@ class _HolidaysScreenState extends BaseScreenState<HolidaysScreen>
     if (viewState is ViewStateLoading && !viewState.isRefreshing) {
       return const Center(child: CircularProgressIndicator());
     }
-
-    if (viewState is ViewStateError) {
-      return buildErrorWidget(viewState);
-    }
-
+    if (viewState is ViewStateError) return buildErrorWidget(viewState);
     if (vm.holidays.isEmpty) {
       return buildEmptyWidget(ViewStateEmpty(l10n.noHolidaysForYear));
     }
@@ -219,6 +213,8 @@ class _HolidaysScreenState extends BaseScreenState<HolidaysScreen>
     );
   }
 }
+
+// ── Year navigator bar ────────────────────────────────────────
 
 class _YearNavigatorBar extends StatelessWidget {
   final int year;
@@ -275,6 +271,8 @@ class _YearNavigatorBar extends StatelessWidget {
     );
   }
 }
+
+// ── Controls bar ──────────────────────────────────────────────
 
 class _ControlsBar extends StatelessWidget {
   final HolidaysViewMode viewMode;
@@ -361,25 +359,37 @@ class _ControlsBar extends StatelessWidget {
   }
 }
 
+// ── Gazette type view — native ad between 2nd and 3rd section ─
+
 class _GazetteTypeView extends StatelessWidget {
   final Map<GazetteType, List<Holiday>> grouped;
   const _GazetteTypeView({required this.grouped});
 
   @override
   Widget build(BuildContext context) {
+    final entries = grouped.entries.toList();
+
     return ListView.builder(
       padding: const EdgeInsets.only(bottom: 24),
-      itemCount: grouped.length,
+      itemCount: entries.length,
       itemBuilder: (context, index) {
-        final entry = grouped.entries.elementAt(index);
-        return HolidayGazetteSectionWidget(
-          gazetteType: entry.key,
-          holidays: entry.value,
+        final entry = entries[index];
+        return Column(
+          children: [
+            HolidayGazetteSectionWidget(
+              gazetteType: entry.key,
+              holidays: entry.value,
+            ),
+            // Native ad as section separator after the 2nd gazette section
+            if (index == 1) const NativeAdWidget(style: NativeAdStyle.section),
+          ],
         );
       },
     );
   }
 }
+
+// ── Month wise view — native ad after 3rd month section ───────
 
 class _MonthWiseView extends StatelessWidget {
   final Map<int, List<Holiday>> grouped;
@@ -389,17 +399,25 @@ class _MonthWiseView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
+    final entries = grouped.entries.toList();
+
     return ListView.builder(
       padding: const EdgeInsets.only(bottom: 24),
-      itemCount: grouped.length,
+      itemCount: entries.length,
       itemBuilder: (context, index) {
-        final entry = grouped.entries.elementAt(index);
+        final entry = entries[index];
         final month = entry.key;
-        return HolidayMonthSectionWidget(
-          month: month,
-          year: year,
-          holidays: entry.value,
-          initiallyExpanded: month == now.month && year == now.year,
+        return Column(
+          children: [
+            HolidayMonthSectionWidget(
+              month: month,
+              year: year,
+              holidays: entry.value,
+              initiallyExpanded: month == now.month && year == now.year,
+            ),
+            // Native ad after the 3rd month section
+            if (index == 2) const NativeAdWidget(style: NativeAdStyle.section),
+          ],
         );
       },
     );

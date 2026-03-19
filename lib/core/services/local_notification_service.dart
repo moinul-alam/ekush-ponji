@@ -100,12 +100,12 @@ class LocalNotificationService {
   /// Schedule a notification at [scheduledTime] in the device's local timezone.
   ///
   /// Payload format — determines navigation on tap:
-  ///   'prayer'      → Prayer Times screen
-  ///   'holiday'     → Holidays screen
-  ///   'quote'       → Quotes screen
-  ///   'word'        → Words screen
-  ///   'event:id'    → Calendar screen
-  ///   'reminder:id' → Reminders screen
+  ///   'prayer'        → Prayer Times screen
+  ///   'holiday'       → Holidays screen
+  ///   'quote:INDEX'   → Quotes screen at the given list index
+  ///   'word:INDEX'    → Words screen at the given list index
+  ///   'event:id'      → Calendar screen
+  ///   'reminder:id'   → Reminders screen
   static Future<void> scheduleZoned({
     required int id,
     required DateTime scheduledTime,
@@ -144,6 +144,13 @@ class LocalNotificationService {
 
   /// Called when the user taps a notification.
   /// Navigates using AppRouter.router — no BuildContext needed.
+  ///
+  /// Payload formats:
+  ///   'holiday'       → Holidays screen
+  ///   'quote:INDEX'   → Quotes screen at INDEX (int)
+  ///   'word:INDEX'    → Words screen at INDEX (int)
+  ///   'event:ID'      → Calendar screen
+  ///   'reminder:ID'   → Reminders screen
   static void _onNotificationTapped(NotificationResponse response) {
     final payload = response.payload;
     debugPrint('🔔 Notification tapped: id=${response.id}, payload=$payload');
@@ -158,21 +165,29 @@ class LocalNotificationService {
       return;
     }
 
-    if (payload == 'quote') {
-      AppRouter.router.go(RouteNames.quotes);
+    // 'quote:INDEX' — open quotes screen at the scheduled quote's position
+    if (payload.startsWith('quote:')) {
+      final indexStr = payload.substring('quote:'.length);
+      final index = int.tryParse(indexStr) ?? 0;
+      AppRouter.router.go(RouteNames.quotes, extra: index);
       return;
     }
 
-    if (payload == 'word') {
-      AppRouter.router.go(RouteNames.words);
+    // 'word:INDEX' — open words screen at the scheduled word's position
+    if (payload.startsWith('word:')) {
+      final indexStr = payload.substring('word:'.length);
+      final index = int.tryParse(indexStr) ?? 0;
+      AppRouter.router.go(RouteNames.words, extra: index);
       return;
     }
 
+    // 'event:ID' — open calendar (ID not currently used for navigation)
     if (payload.startsWith('event:')) {
       AppRouter.router.go(RouteNames.calendar);
       return;
     }
 
+    // 'reminder:ID' — open reminders list (ID not currently used for navigation)
     if (payload.startsWith('reminder:')) {
       AppRouter.router.go(RouteNames.reminders);
       return;

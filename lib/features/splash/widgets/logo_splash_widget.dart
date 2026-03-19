@@ -2,6 +2,8 @@
 
 import 'package:flutter/material.dart';
 
+const Color _kTaglineColor = Color(0xFF8BAFD4);
+
 class LogoSplashWidget extends StatefulWidget {
   const LogoSplashWidget({super.key});
 
@@ -56,7 +58,7 @@ class _LogoSplashWidgetState extends State<LogoSplashWidget>
 
           const SizedBox(height: 24),
 
-          // App title banner
+          // App title banner image
           Image.asset(
             'assets/images/app_title.png',
             height: 44,
@@ -73,6 +75,16 @@ class _LogoSplashWidgetState extends State<LogoSplashWidget>
           ),
 
           const SizedBox(height: 16),
+
+          // Tagline
+          Text(
+            'Your Daily Companion.',
+            style: theme.textTheme.titleLarge?.copyWith(
+              color: _kTaglineColor,
+              letterSpacing: 0.5,
+              height: 1.4,
+            ),
+          ),
         ],
       ),
     );

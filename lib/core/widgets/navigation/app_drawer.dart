@@ -27,8 +27,8 @@ class AppDrawer extends StatelessWidget {
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
-          // ── Header ────────────────────────────────────────────
-          DrawerHeader(
+          // ── Compact Header ────────────────────────────────
+          Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
@@ -39,45 +39,51 @@ class AppDrawer extends StatelessWidget {
                 end: Alignment.bottomRight,
               ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.end,
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top + 12,
+              left: 16,
+              right: 16,
+              bottom: 12,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                // App logo — 3px top margin aligns it with app_title baseline
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Image.asset(
+                    'assets/images/splash_logo.png',
+                    width: 36,
+                    height: 36,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => Icon(
+                      Icons.calendar_month_rounded,
+                      size: 36,
+                      color: colorScheme.primary,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                // App title
                 Image.asset(
                   'assets/images/app_title.png',
-                  height: 40,
+                  height: 34,
                   fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Text(
-                      l10n.appName,
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onPrimaryContainer,
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 12),
-                if (userName != null && userName!.isNotEmpty)
-                  Text(
-                    userName!,
-                    style: theme.textTheme.titleMedium?.copyWith(
+                  errorBuilder: (_, __, ___) => Text(
+                    l10n.appName,
+                    style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: colorScheme.onPrimaryContainer,
                     ),
-                  ),
-                Text(
-                  l10n.formatNamed(
-                      l10n.welcomeToApp, {'appName': l10n.appName}),
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSecondaryContainer,
                   ),
                 ),
               ],
             ),
           ),
 
-          // ── Main Navigation ───────────────────────────────────
+          const SizedBox(height: 4),
+
+          // ── Main Navigation ───────────────────────────────
           ListTile(
             leading: const Icon(Icons.calendar_month_outlined),
             title: Text(l10n.navCalendar),
@@ -105,7 +111,7 @@ class AppDrawer extends StatelessWidget {
 
           const Divider(),
 
-          // ── Events & Reminders ────────────────────────────────
+          // ── Events & Reminders ────────────────────────────
           _SectionLabel(
               label: isBn ? 'ইভেন্ট ও রিমাইন্ডার' : 'Events & Reminders'),
           ListTile(
@@ -127,7 +133,7 @@ class AppDrawer extends StatelessWidget {
 
           const Divider(),
 
-          // ── Quotes ────────────────────────────────────────────
+          // ── Quotes ────────────────────────────────────────
           _SectionLabel(label: l10n.quoteOfTheDay),
           ListTile(
             leading: const Icon(Icons.format_quote_rounded),
@@ -148,6 +154,19 @@ class AppDrawer extends StatelessWidget {
             title: Text(l10n.savedQuotes),
             onTap: () {
               Navigator.pop(context);
+              context.push(RouteNames.savedQuotes);
+            },
+          ),
+
+          const Divider(),
+
+          // ── Words ─────────────────────────────────────────
+          _SectionLabel(label: l10n.wordOfTheDay),
+          ListTile(
+            leading: const Icon(Icons.book_rounded),
+            title: Text(l10n.wordOfTheDay),
+            onTap: () {
+              Navigator.pop(context);
               final now = DateTime.now();
               final vm = ProviderScope.containerOf(context)
                   .read(wordsViewModelProvider.notifier);
@@ -155,19 +174,6 @@ class AppDrawer extends StatelessWidget {
                 (w) => w.month == now.month && w.day == now.day,
               );
               context.push(RouteNames.words, extra: index < 0 ? 0 : index);
-            },
-          ),
-
-          const Divider(),
-
-          // ── Words ─────────────────────────────────────────────
-          _SectionLabel(label: l10n.wordOfTheDay),
-          ListTile(
-            leading: const Icon(Icons.book_rounded),
-            title: Text(l10n.wordOfTheDay),
-            onTap: () {
-              Navigator.pop(context);
-              context.push(RouteNames.words);
             },
           ),
           ListTile(
@@ -181,7 +187,7 @@ class AppDrawer extends StatelessWidget {
 
           const Divider(),
 
-          // ── App ───────────────────────────────────────────────
+          // ── App ───────────────────────────────────────────
           ListTile(
             leading: const Icon(Icons.settings_outlined),
             title: Text(l10n.settings),

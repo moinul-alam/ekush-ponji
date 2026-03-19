@@ -45,6 +45,9 @@ class WordNotificationService {
         );
     await repo.init();
 
+    // Load full list once so we can find the correct index for each word
+    final allWords = repo.getAllWords();
+
     final now = DateTime.now();
 
     // ── Today ──────────────────────────────────────────────────────────────
@@ -58,6 +61,10 @@ class WordNotificationService {
 
     if (todayFireTime.isAfter(now)) {
       final todayWord = repo.getDailyWordForDate(now);
+      // Find index so tap navigates to the correct word
+      final todayIndex = allWords.indexWhere(
+        (w) => w.month == todayWord.month && w.day == todayWord.day,
+      );
       await _scheduleOne(
         id: NotificationId.wordToday,
         fireTime: todayFireTime,
@@ -65,6 +72,7 @@ class WordNotificationService {
         meaning:
             languageCode == 'bn' ? todayWord.meaningBn : todayWord.meaningEn,
         languageCode: languageCode,
+        index: todayIndex < 0 ? 0 : todayIndex,
       );
     }
 
@@ -79,6 +87,9 @@ class WordNotificationService {
     );
 
     final tomorrowWord = repo.getDailyWordForDate(tomorrow);
+    final tomorrowIndex = allWords.indexWhere(
+      (w) => w.month == tomorrowWord.month && w.day == tomorrowWord.day,
+    );
     await _scheduleOne(
       id: NotificationId.wordTomorrow,
       fireTime: tomorrowFireTime,
@@ -87,6 +98,7 @@ class WordNotificationService {
           ? tomorrowWord.meaningBn
           : tomorrowWord.meaningEn,
       languageCode: languageCode,
+      index: tomorrowIndex < 0 ? 0 : tomorrowIndex,
     );
 
     debugPrint('✅ Word notifications scheduled (today + tomorrow)');
@@ -104,17 +116,20 @@ class WordNotificationService {
     required String word,
     required String meaning,
     required String languageCode,
+    required int index,
   }) async {
     final isBn = languageCode == 'bn';
     final title = isBn ? 'আজকের শব্দ 📖' : 'Word of the Day 📖';
     final body = '$word — $meaning';
 
+    // Payload format: 'word:INDEX' — parsed by LocalNotificationService
+    // to open the words screen at the correct position.
     await LocalNotificationService.scheduleZoned(
       id: id,
       scheduledTime: fireTime,
       title: title,
       body: body,
-      payload: 'word',
+      payload: 'word:$index',
       details: NotificationDetails(
         android: AndroidNotificationDetails(
           _channelId,

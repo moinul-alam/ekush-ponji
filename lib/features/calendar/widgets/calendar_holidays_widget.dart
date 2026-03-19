@@ -1,12 +1,16 @@
 // lib/features/calendar/widgets/calendar_holidays_widget.dart
 
 import 'package:flutter/material.dart';
+import 'package:ekush_ponji/core/widgets/ads/native_ad_widget.dart';
 import 'package:ekush_ponji/features/holidays/models/holiday.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 
 /// Displays all holidays for the selected calendar month in two sections:
 /// 1. সরকারি ছুটি  — Mandatory (সাধারণ + নির্বাহী আদেশে ছুটি)
 /// 2. ঔচ্ছিক ছুটি — Optional (community-specific holidays)
+///
+/// A native ad is placed between the two sections when optional
+/// holidays exist — non-disruptive and natural reading pause point.
 class CalendarHolidaysWidget extends StatelessWidget {
   final String monthName;
   final List<Holiday> holidays;
@@ -52,15 +56,11 @@ class CalendarHolidaysWidget extends StatelessWidget {
             isMandatory: true,
           ),
 
-          // ─── Section separator ──────────────────────────────
+          // ─── Native ad between sections (only if optional exist) ──
           if (optional.isNotEmpty) ...[
-            Divider(
-              height: 1,
-              thickness: 1,
-              color: theme.colorScheme.outlineVariant.withOpacity(0.5),
-            ),
+            const NativeAdWidget(style: NativeAdStyle.section),
 
-            // ─── Optional Section ─────────────────────────────
+            // ─── Optional Section ───────────────────────────
             _HolidaySection(
               monthName: monthName,
               holidays: optional,
@@ -118,7 +118,6 @@ class _HolidaySection extends StatelessWidget {
         : 'No optional holidays in $monthName';
   }
 
-  // Total calendar days covered by all holidays in this section
   int get _totalDays => holidays.fold(0, (sum, h) => sum + h.durationDays);
 
   String get _totalDaysLabel {
@@ -128,7 +127,6 @@ class _HolidaySection extends StatelessWidget {
     return '(Total $_totalDays days)';
   }
 
-  // Mandatory uses primary; optional uses tertiary
   Color get _headerColor =>
       isMandatory ? theme.colorScheme.primary : theme.colorScheme.tertiary;
 
@@ -143,7 +141,6 @@ class _HolidaySection extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Left: icon + title + total days
               Row(
                 children: [
                   Icon(
@@ -177,7 +174,6 @@ class _HolidaySection extends StatelessWidget {
                   ),
                 ],
               ),
-              // Right: count badge
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
@@ -353,7 +349,6 @@ class _HolidayItem extends StatelessWidget {
                           ),
                         ),
                       ),
-                      // Star icon for moon-sighting-dependent dates
                       if (holiday.isApproximate) ...[
                         const SizedBox(width: 4),
                         Icon(
@@ -365,7 +360,6 @@ class _HolidayItem extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 3),
-                  // Gazette type
                   Text(
                     isBangla
                         ? holiday.gazetteType.displayNameBn
@@ -375,7 +369,6 @@ class _HolidayItem extends StatelessWidget {
                       fontSize: 12,
                     ),
                   ),
-                  // Regional note if applicable
                   if (holiday.isRegional) ...[
                     const SizedBox(height: 2),
                     Row(
@@ -410,7 +403,6 @@ class _HolidayItem extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                // Category chip
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
@@ -421,11 +413,8 @@ class _HolidayItem extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                        _categoryIcon(holiday.category),
-                        color: catColor,
-                        size: 10,
-                      ),
+                      Icon(_categoryIcon(holiday.category),
+                          color: catColor, size: 10),
                       const SizedBox(width: 3),
                       Text(
                         isBangla
@@ -441,7 +430,6 @@ class _HolidayItem extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                // Countdown / passed label
                 Text(
                   isPast
                       ? localizations.passed

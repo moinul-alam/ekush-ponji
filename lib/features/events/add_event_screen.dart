@@ -9,7 +9,6 @@ import 'package:ekush_ponji/features/events/models/event.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ekush_ponji/core/services/local_notification_service.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:ekush_ponji/core/services/ad_service.dart';
 import 'package:ekush_ponji/core/widgets/pickers/app_date_time_picker.dart';
 
 class AddEventScreen extends ConsumerStatefulWidget {
@@ -41,14 +40,12 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
       viewModel.resetForm();
 
       if (widget.eventToEdit != null) {
-        // ── Edit mode: prefill viewmodel and controllers ──
         viewModel.prefillEvent(widget.eventToEdit!);
         _titleController.text = widget.eventToEdit!.title;
         _descriptionController.text = widget.eventToEdit!.description ?? '';
         _locationController.text = widget.eventToEdit!.location ?? '';
         _notesController.text = widget.eventToEdit!.notes ?? '';
       } else {
-        // ── Add mode: clear and optionally prefill date ──
         _titleController.clear();
         _descriptionController.clear();
         _locationController.clear();
@@ -56,7 +53,6 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
         if (widget.prefilledDate != null) {
           viewModel.prefillDate(widget.prefilledDate!);
         }
-        // Request focus on title field in add mode
         _titleFocusNode.requestFocus();
       }
     });
@@ -87,9 +83,7 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(l10n.deleteEvent),
-        content: Text(
-          l10n.deleteEventConfirmMessage,
-        ),
+        content: Text(l10n.deleteEventConfirmMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -105,9 +99,7 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
         ],
       ),
     );
-
     if (confirmed != true) return;
-
     final viewModel = ref.read(addEventViewModelProvider.notifier);
     await viewModel.deleteEvent();
   }
@@ -137,12 +129,7 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
     ref.listen(addEventViewModelProvider, (prev, next) {
       if (next is ViewStateSuccess && next.message != null) {
         _showSnackbar(next.message!);
-        // Show interstitial if caps allow, then pop
-        ref.read(adServiceProvider).showInterstitialIfAvailable(
-          onClosed: () {
-            if (mounted) context.pop();
-          },
-        );
+        if (mounted) context.pop();
       }
       if (next is ViewStateError) {
         _showSnackbar(next.message, isError: true);
@@ -154,7 +141,6 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
         title: Text(isEditMode ? l10n.editEvent : l10n.addEvent),
         centerTitle: true,
         actions: [
-          // ── Delete button ──
           if (isEditMode)
             IconButton(
               onPressed: isLoading ? null : _onDelete,
@@ -166,7 +152,6 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
               ),
               tooltip: l10n.deleteEvent,
             ),
-          // ── Save button ──
           TextButton(
             onPressed: isLoading ? null : _onSave,
             child: Text(
@@ -186,8 +171,6 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ─── Title ─────────────────────────────────────
-
             TextField(
               controller: _titleController,
               focusNode: _titleFocusNode,
@@ -199,8 +182,6 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
               textCapitalization: TextCapitalization.sentences,
             ),
             const SizedBox(height: 16),
-
-            // ─── Date + Time Picker ─────────────────────────
             _DateTimePicker(
               label: l10n.selectDate,
               icon: Icons.calendar_today,
@@ -209,12 +190,8 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
               l10n: l10n,
             ),
             const SizedBox(height: 16),
-
-            // ─── Notification Toggle ────────────────────────
             _NotificationToggle(viewModel: viewModel, l10n: l10n),
             const SizedBox(height: 16),
-
-            // ─── Location ───────────────────────────────────
             TextField(
               controller: _locationController,
               decoration: InputDecoration(
@@ -224,8 +201,6 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
               ),
             ),
             const SizedBox(height: 16),
-
-            // ─── Description ────────────────────────────────
             TextField(
               controller: _descriptionController,
               maxLines: 3,
@@ -237,8 +212,6 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
               ),
             ),
             const SizedBox(height: 16),
-
-            // ─── Notes ──────────────────────────────────────
             TextField(
               controller: _notesController,
               maxLines: 2,
@@ -250,8 +223,6 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
               ),
             ),
             const SizedBox(height: 32),
-
-            // ─── Save Button ─────────────────────────────────
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -441,7 +412,6 @@ class _DateTimePicker extends ConsumerWidget {
       context: context,
       initial: dateTime ?? DateTime.now(),
       l10n: l10n,
-      // showTimeTab defaults to true — no change needed
     );
     if (result != null) onPick(result);
   }
