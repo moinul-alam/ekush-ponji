@@ -27,7 +27,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 class HijriOffsetSyncService {
   static const String _settingsBoxName = 'settings';
   static const String _baseUrl =
-      'https://raw.githubusercontent.com/moinul-alam/ekush-ponji-data/main';
+      'https://raw.githubusercontent.com/moinul-alam/ekush_ponji/main/assets/data';
 
   // ── Hive key helpers ───────────────────────────────────
 
@@ -58,7 +58,7 @@ class HijriOffsetSyncService {
   // ── Internal ───────────────────────────────────────────
 
   Future<void> _syncYear(int year) async {
-    final url = '$_baseUrl/assets/data/hijri/$year.json';
+    final url = '$_baseUrl/hijri/$year.json';
     try {
       debugPrint('🌙 HijriOffsetSync: fetching $year from $url');
 

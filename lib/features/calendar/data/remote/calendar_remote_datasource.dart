@@ -14,7 +14,7 @@ class CalendarRemoteDatasource {
 
   // ── GitHub raw base URL ───────────────────────────────
   static const String _baseUrl =
-      'https://raw.githubusercontent.com/moinul-alam/ekush-ponji-data/main';
+      'https://raw.githubusercontent.com/moinul-alam/ekush_ponji/main/assets/data';
 
   CalendarRemoteDatasource({Dio? dio})
       : _dio = dio ??
@@ -28,7 +28,7 @@ class CalendarRemoteDatasource {
   /// Fetch government holidays for a specific year from GitHub.
   /// Returns empty list on any network or parse failure.
   Future<List<Holiday>> fetchGovtHolidays(int year) async {
-    final url = '$_baseUrl/holidays_$year.json';
+    final url = '$_baseUrl/holidays/holidays_$year.json';
     try {
       debugPrint('🌐 Fetching holidays for $year from GitHub: $url');
 
