@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "description": "GOB Bangladesh moon-sighting corrections vs Umm al-Qura (Saudi Arabia). offset=-1 means BD starts each Hijri month 1 day LATER than Saudi. Update this file after each year's GOB gazette. Bump 'version' on every edit.",
+  "offsets": [
+    {
+      "note": "1447 AH months 8-12: BD moon sighting is 1 day later than Umm al-Qura. Starts 2026-01-20 (when UQ enters Shaban but BD is still in Rajab). Ends 2026-06-15 (end of 1447 Dhul Hijjah in UQ). 1448 AH correction not yet known — update when GOB publishes next year's gazette.",
+      "from": "2026-01-20",
+      "to": "2026-06-15",
+      "offset": -1
+    }
+  ]
+}
