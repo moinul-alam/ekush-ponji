@@ -111,35 +111,32 @@ class DataSyncService {
   // ── App startup ───────────────────────────────────────────────────────────
 
   /// Called by AppInitializer during the background phase.
-  /// Seeds bundled data on first launch, then:
-  ///   1. Always syncs Hijri offsets (tiny file, time-sensitive)
-  ///   2. Conditionally runs weekly auto-sync for heavy datasets
+  /// Seeds bundled data on first launch, then runs background sync.
   Future<void> initialize() async {
     await seedAll();
     await backgroundSyncOnStartup();
   }
 
+  /// Background sync on every app launch.
+  ///
+  /// Hijri offsets are fetched independently — tiny, time-sensitive, and
+  /// must not be blocked by main manifest availability or weekly interval.
+  ///
+  /// Main manifest (holidays/quotes/words) only syncs on weekly interval.
   Future<void> backgroundSyncOnStartup() async {
-    // ── Step 1: Always fetch manifest (needed for both Hijri + weekly sync) ──
-    // We need the manifest regardless because Hijri offsets URL lives there.
-    // This is a single tiny JSON fetch — acceptable on every launch.
-    final manifest = await _fetchManifest();
+    // ── Step 1: Hijri offsets — always, independent of manifest ──────────────
+    // Constructs URL from year directly (no manifest needed).
+    // Fetches current year + next year. 404 = file not yet created, silent.
+    await _hijriOffsetSyncService.syncAll();
 
-    // ── Step 2: Always sync Hijri offsets (time-sensitive, tiny file) ────────
-    if (manifest != null && manifest.hijriOffsetsUrl != null) {
-      await _hijriOffsetSyncService.syncFromUrl(manifest.hijriOffsetsUrl!);
-    } else {
-      debugPrint(
-          'ℹ️ DataSync: no hijriOffsetsUrl in manifest — skipping Hijri offset sync');
-    }
-
-    // ── Step 3: Weekly auto-sync for heavy datasets ───────────────────────
+    // ── Step 2: Main manifest — holidays / quotes / words ────────────────────
     if (!enableWeeklyAutoSync || !_isAutoSyncDue) {
       debugPrint(
           'ℹ️ DataSync: weekly auto-sync not due or disabled — skipping');
       return;
     }
 
+    final manifest = await _fetchManifest();
     if (manifest == null) {
       debugPrint('⚠️ DataSync: manifest unreachable — background sync skipped');
       return;
@@ -164,6 +161,9 @@ class DataSyncService {
   Future<DataSyncResult> forceSync() async {
     debugPrint('🔄 DataSync: force sync all — fetching manifest...');
 
+    // Always re-fetch Hijri offsets on force sync
+    await _hijriOffsetSyncService.syncAll();
+
     final manifest = await _fetchManifest();
 
     if (manifest == null) {
@@ -176,11 +176,6 @@ class DataSyncService {
         quotesUpdated: false,
         wordsUpdated: false,
       );
-    }
-
-    // Force sync Hijri offsets too
-    if (manifest.hijriOffsetsUrl != null) {
-      await _hijriOffsetSyncService.syncFromUrl(manifest.hijriOffsetsUrl!);
     }
 
     final results = await Future.wait([
@@ -196,8 +191,10 @@ class DataSyncService {
       wordsUpdated: results[2],
     );
 
-    debugPrint(
-        '✅ DataSync: force sync complete — holidays=${result.holidaysUpdated} quotes=${result.quotesUpdated} words=${result.wordsUpdated}');
+    debugPrint('✅ DataSync: force sync complete — '
+        'holidays=${result.holidaysUpdated} '
+        'quotes=${result.quotesUpdated} '
+        'words=${result.wordsUpdated}');
 
     return result;
   }

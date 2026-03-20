@@ -1,0 +1,123 @@
+{
+  "gregorian_year": 2027,
+  "version": 1,
+  "months": [
+    {
+      "hijri_month": "1448/08",
+      "hijri_month_name": "Shaban",
+      "uq_start": "2027-01-09",
+      "uq_end": "2027-02-07",
+      "gob_start": null,
+      "offset": 0,
+      "status": "placeholder — fill from GOB gazette"
+    },
+    {
+      "hijri_month": "1448/09",
+      "hijri_month_name": "Ramadan",
+      "uq_start": "2027-02-08",
+      "uq_end": "2027-03-08",
+      "gob_start": null,
+      "offset": 0,
+      "status": "placeholder — fill from GOB gazette"
+    },
+    {
+      "hijri_month": "1448/10",
+      "hijri_month_name": "Shawwal",
+      "uq_start": "2027-03-09",
+      "uq_end": "2027-04-07",
+      "gob_start": null,
+      "offset": 0,
+      "status": "placeholder — fill from GOB gazette"
+    },
+    {
+      "hijri_month": "1448/11",
+      "hijri_month_name": "Dhul Qadah",
+      "uq_start": "2027-04-08",
+      "uq_end": "2027-05-06",
+      "gob_start": null,
+      "offset": 0,
+      "status": "placeholder — fill from GOB gazette"
+    },
+    {
+      "hijri_month": "1448/12",
+      "hijri_month_name": "Dhul Hijjah",
+      "uq_start": "2027-05-07",
+      "uq_end": "2027-06-05",
+      "gob_start": null,
+      "offset": 0,
+      "status": "placeholder — fill from GOB gazette"
+    },
+    {
+      "hijri_month": "1449/01",
+      "hijri_month_name": "Muharram",
+      "uq_start": "2027-06-06",
+      "uq_end": "2027-07-04",
+      "gob_start": null,
+      "offset": 0,
+      "status": "placeholder — fill from GOB gazette"
+    },
+    {
+      "hijri_month": "1449/02",
+      "hijri_month_name": "Safar",
+      "uq_start": "2027-07-05",
+      "uq_end": "2027-08-02",
+      "gob_start": null,
+      "offset": 0,
+      "status": "placeholder — fill from GOB gazette"
+    },
+    {
+      "hijri_month": "1449/03",
+      "hijri_month_name": "Rabi al-Awwal",
+      "uq_start": "2027-08-03",
+      "uq_end": "2027-09-01",
+      "gob_start": null,
+      "offset": 0,
+      "status": "placeholder — fill from GOB gazette"
+    },
+    {
+      "hijri_month": "1449/04",
+      "hijri_month_name": "Rabi al-Thani",
+      "uq_start": "2027-09-02",
+      "uq_end": "2027-09-30",
+      "gob_start": null,
+      "offset": 0,
+      "status": "placeholder — fill from GOB gazette"
+    },
+    {
+      "hijri_month": "1449/05",
+      "hijri_month_name": "Jumada al-Ula",
+      "uq_start": "2027-10-01",
+      "uq_end": "2027-10-30",
+      "gob_start": null,
+      "offset": 0,
+      "status": "placeholder — fill from GOB gazette"
+    },
+    {
+      "hijri_month": "1449/06",
+      "hijri_month_name": "Jumada al-Akhir",
+      "uq_start": "2027-10-31",
+      "uq_end": "2027-11-28",
+      "gob_start": null,
+      "offset": 0,
+      "status": "placeholder — fill from GOB gazette"
+    },
+    {
+      "hijri_month": "1449/07",
+      "hijri_month_name": "Rajab",
+      "uq_start": "2027-11-29",
+      "uq_end": "2027-12-28",
+      "gob_start": null,
+      "offset": 0,
+      "status": "placeholder — fill from GOB gazette"
+    },
+    {
+      "hijri_month": "1449/08",
+      "hijri_month_name": "Shaban",
+      "uq_start": "2027-12-29",
+      "uq_end": "2028-01-27",
+      "gob_start": null,
+      "offset": 0,
+      "status": "placeholder — fill from GOB gazette"
+    }
+  ]
+}

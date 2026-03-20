@@ -1,27 +1,22 @@
 // lib/features/calendar/services/hijri_offset_sync_service.dart
 //
-// Fetches and caches Hijri date correction offsets from GitHub.
+// Fetches and caches per-year Hijri date correction offsets from GitHub.
 //
-// WHY THIS EXISTS:
-//   The Hijri lookup table uses Umm al-Qura (Saudi Arabia) dates.
-//   Bangladesh determines Hijri dates by actual moon sighting, which can
-//   differ by ±1 day. This service fetches a tiny override file from GitHub
-//   so corrections can be pushed without an app update.
+// FILES:
+//   One JSON per Gregorian year at:
+//   {baseUrl}/assets/data/hijri/{year}.json
+//   e.g. https://raw.githubusercontent.com/.../assets/data/hijri/2026.json
 //
-// SYNC STRATEGY:
-//   Always fetches on every app launch (no interval gate) because:
-//   - The file is tiny (~200 bytes)
-//   - Hijri corrections are time-sensitive (same-day or next-day urgency)
-//   - Fetch is non-blocking (background phase after first frame)
+// FETCH STRATEGY:
+//   On every app launch, fetches current year + next year files.
+//   Non-blocking background phase. Silently no-ops if offline.
+//   Only overwrites local cache when remote version > local version.
 //
 // OFFSET RULES:
-//   Each rule has a date range [from, to] and an integer offset (±days).
-//   Example: offset=-1 means "subtract 1 day from the computed Hijri date"
-//   for all Gregorian dates in [from, to].
-//
-// HIVE STORAGE:
-//   Stored in the 'settings' box under key 'hijri_offsets_json'.
-//   HijriCalendarService reads from this key on every getHijriDate() call.
+//   Each entry covers one Hijri month (uq_start → uq_end, inclusive).
+//   offset=-1: BD starts month 1 day later than Umm al-Qura (Saudi).
+//   offset=-2: BD starts month 2 days later (rare cumulative slip).
+//   offset=0 / no match: UQ date used as-is.
 
 import 'dart:convert';
 
@@ -31,11 +26,13 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 class HijriOffsetSyncService {
   static const String _settingsBoxName = 'settings';
-  static const String _offsetsKey = 'hijri_offsets_json';
-  static const String _versionKey = 'hijri_offsets_version';
+  static const String _baseUrl =
+      'https://raw.githubusercontent.com/moinul-alam/ekush-ponji-data/main';
 
-  /// Public key — read by HijriCalendarService to apply offsets.
-  static const String offsetsStorageKey = _offsetsKey;
+  // ── Hive key helpers ───────────────────────────────────
+
+  static String _jsonKey(int year) => 'hijri_offsets_json_$year';
+  static String _versionKey(int year) => 'hijri_offsets_version_$year';
 
   final Dio _dio;
 
@@ -43,18 +40,27 @@ class HijriOffsetSyncService {
 
   Box get _box => Hive.box(_settingsBoxName);
 
-  int get _localVersion => _box.get(_versionKey, defaultValue: 0) as int;
+  int _localVersion(int year) =>
+      _box.get(_versionKey(year), defaultValue: 0) as int;
 
   // ── Public API ─────────────────────────────────────────
 
-  /// Fetch the latest Hijri offsets from [url] and store them in Hive.
-  ///
-  /// Always called on app launch regardless of any interval.
-  /// Silently no-ops if offline or server returns an error.
-  /// Only overwrites local data if remote version > local version.
-  Future<void> syncFromUrl(String url) async {
+  /// Fetch offsets for current year and next year.
+  /// Called once during the background init phase on every app launch.
+  Future<void> syncAll() async {
+    final currentYear = DateTime.now().year;
+    await Future.wait([
+      _syncYear(currentYear),
+      _syncYear(currentYear + 1),
+    ]);
+  }
+
+  // ── Internal ───────────────────────────────────────────
+
+  Future<void> _syncYear(int year) async {
+    final url = '$_baseUrl/assets/data/hijri/$year.json';
     try {
-      debugPrint('🌙 HijriOffsetSync: fetching from $url');
+      debugPrint('🌙 HijriOffsetSync: fetching $year from $url');
 
       final response = await _dio.get<dynamic>(
         url,
@@ -67,70 +73,120 @@ class HijriOffsetSyncService {
 
       if (response.statusCode != 200 || response.data == null) {
         debugPrint(
-            '⚠️ HijriOffsetSync: unexpected status \${response.statusCode}');
+            '⚠️ HijriOffsetSync: unexpected status for $year: ${response.statusCode}');
         return;
       }
 
       final rawString = response.data.toString();
       if (rawString.trim().isEmpty) {
-        debugPrint('⚠️ HijriOffsetSync: empty response body');
+        debugPrint('⚠️ HijriOffsetSync: empty response for $year');
         return;
       }
 
-      // Validate JSON before storing
+      // Validate JSON and check version before storing
       final parsed = jsonDecode(rawString) as Map<String, dynamic>;
       final remoteVersion = parsed['version'] as int? ?? 0;
+      final localVer = _localVersion(year);
 
-      if (remoteVersion <= _localVersion) {
+      if (remoteVersion <= localVer) {
         debugPrint(
-          'ℹ️ HijriOffsetSync: already at v$remoteVersion (local v$_localVersion) — skipping',
-        );
+            'ℹ️ HijriOffsetSync: $year already at v$remoteVersion — skipping');
         return;
       }
 
-      await _box.put(_offsetsKey, rawString);
-      await _box.put(_versionKey, remoteVersion);
-      debugPrint('✅ HijriOffsetSync: updated to v$remoteVersion');
+      await _box.put(_jsonKey(year), rawString);
+      await _box.put(_versionKey(year), remoteVersion);
+      debugPrint('✅ HijriOffsetSync: $year updated to v$remoteVersion');
     } on DioException catch (e) {
-      debugPrint('⚠️ HijriOffsetSync: network error — ${e.message}');
+      // 404 = file not yet created for that year — silent, not an error
+      if (e.response?.statusCode == 404) {
+        debugPrint('ℹ️ HijriOffsetSync: no file for $year yet (404)');
+      } else {
+        debugPrint(
+            '⚠️ HijriOffsetSync: network error for $year — ${e.message}');
+      }
     } catch (e) {
-      debugPrint('⚠️ HijriOffsetSync: error — $e');
+      debugPrint('⚠️ HijriOffsetSync: error for $year — $e');
     }
   }
 
   // ── Static helper used by HijriCalendarService ─────────
 
-  /// Returns the offset (in days) to apply to a computed Hijri date
+  /// Returns the offset (in days) to add to a UQ-computed Hijri date
   /// for the given Gregorian [date]. Returns 0 if no rule matches.
   ///
-  /// Reads directly from Hive — synchronous, safe to call on every
-  /// getHijriDate() call because Hive reads are in-memory after open.
+  /// Reads directly from Hive — synchronous and fast (in-memory after open).
+  /// Checks current year file first, then next year file (handles Dec→Jan).
   static int getOffsetForDate(DateTime date) {
+    final year = date.year;
+    // Check current year and adjacent years to handle month boundaries
+    for (final y in [year, year + 1, year - 1]) {
+      final offset = _getOffsetFromYear(date, y);
+      if (offset != 0) return offset;
+    }
+    // Also check explicitly for zero-offset matches (returns 0 if rule found with offset=0)
+    for (final y in [year, year + 1, year - 1]) {
+      if (_hasMatchingRule(date, y)) return 0;
+    }
+    return 0;
+  }
+
+  static int _getOffsetFromYear(DateTime date, int year) {
     try {
       final box = Hive.box('settings');
-      final raw = box.get(offsetsStorageKey) as String?;
+      final raw = box.get(_jsonKey(year)) as String?;
       if (raw == null) return 0;
 
       final parsed = jsonDecode(raw) as Map<String, dynamic>;
-      final offsets = parsed['offsets'] as List<dynamic>? ?? [];
+      final months = parsed['months'] as List<dynamic>? ?? [];
 
       final target = DateTime(date.year, date.month, date.day);
 
-      for (final rule in offsets) {
-        final from = DateTime.parse(rule['from'] as String);
-        final to = DateTime.parse(rule['to'] as String);
-        final offset = rule['offset'] as int? ?? 0;
+      for (final entry in months) {
+        // Skip placeholder entries that are missing required fields
+        final fromStr = entry['uq_start'] as String?;
+        final toStr = entry['uq_end'] as String?;
+        final offset = entry['offset'] as int?;
+        if (fromStr == null || toStr == null || offset == null) continue;
+
+        final from = DateTime.parse(fromStr);
+        final to = DateTime.parse(toStr);
 
         if (!target.isBefore(from) && !target.isAfter(to)) {
-          debugPrint(
-            '🌙 HijriOffset: applying $offset for ${target.toIso8601String()}',
-          );
+          if (offset != 0) {
+            debugPrint(
+                '🌙 HijriOffset: applying $offset for ${target.toIso8601String()} '
+                '(${entry['hijri_month']} ${entry['hijri_month_name']})');
+          }
           return offset;
         }
       }
     } catch (e) {
-      debugPrint('⚠️ HijriOffsetSync.getOffsetForDate error: $e');
+      debugPrint('⚠️ HijriOffsetSync.getOffsetForDate error (year=$year): $e');
     }
     return 0;
+  }
+
+  static bool _hasMatchingRule(DateTime date, int year) {
+    try {
+      final box = Hive.box('settings');
+      final raw = box.get(_jsonKey(year)) as String?;
+      if (raw == null) return false;
+
+      final parsed = jsonDecode(raw) as Map<String, dynamic>;
+      final months = parsed['months'] as List<dynamic>? ?? [];
+
+      final target = DateTime(date.year, date.month, date.day);
+
+      for (final entry in months) {
+        final fromStr = entry['uq_start'] as String?;
+        final toStr = entry['uq_end'] as String?;
+        if (fromStr == null || toStr == null) continue;
+        final from = DateTime.parse(fromStr);
+        final to = DateTime.parse(toStr);
+        if (!target.isBefore(from) && !target.isAfter(to)) return true;
+      }
+    } catch (_) {}
+    return false;
   }
 }

@@ -1,0 +1,114 @@
+{
+  "gregorian_year": 2026,
+  "version": 1,
+  "months": [
+    {
+      "hijri_month": "1447/08",
+      "hijri_month_name": "Shaban",
+      "uq_start": "2026-01-20",
+      "uq_end": "2026-02-17",
+      "gob_start": "2026-01-21",
+      "offset": -1,
+      "status": "confirmed — GOB gazette 2026"
+    },
+    {
+      "hijri_month": "1447/09",
+      "hijri_month_name": "Ramadan",
+      "uq_start": "2026-02-18",
+      "uq_end": "2026-03-19",
+      "gob_start": "2026-02-19",
+      "offset": -1,
+      "status": "confirmed — GOB gazette 2026"
+    },
+    {
+      "hijri_month": "1447/10",
+      "hijri_month_name": "Shawwal",
+      "uq_start": "2026-03-20",
+      "uq_end": "2026-04-17",
+      "gob_start": "2026-03-21",
+      "offset": -1,
+      "status": "confirmed — GOB gazette 2026"
+    },
+    {
+      "hijri_month": "1447/11",
+      "hijri_month_name": "Dhul Qadah",
+      "uq_start": "2026-04-18",
+      "uq_end": "2026-05-17",
+      "gob_start": "2026-04-19",
+      "offset": -1,
+      "status": "confirmed — GOB gazette 2026"
+    },
+    {
+      "hijri_month": "1447/12",
+      "hijri_month_name": "Dhul Hijjah",
+      "uq_start": "2026-05-18",
+      "uq_end": "2026-06-15",
+      "gob_start": "2026-05-19",
+      "offset": -1,
+      "status": "confirmed — GOB gazette 2026"
+    },
+    {
+      "hijri_month": "1448/01",
+      "hijri_month_name": "Muharram",
+      "uq_start": "2026-06-16",
+      "uq_end": "2026-07-14",
+      "gob_start": "2026-06-17",
+      "offset": -1,
+      "status": "confirmed — GOB gazette 2026"
+    },
+    {
+      "hijri_month": "1448/02",
+      "hijri_month_name": "Safar",
+      "uq_start": "2026-07-15",
+      "uq_end": "2026-08-13",
+      "gob_start": "2026-07-16",
+      "offset": -1,
+      "status": "confirmed — GOB gazette 2026"
+    },
+    {
+      "hijri_month": "1448/03",
+      "hijri_month_name": "Rabi al-Awwal",
+      "uq_start": "2026-08-14",
+      "uq_end": "2026-09-11",
+      "gob_start": "2026-08-15",
+      "offset": -1,
+      "status": "confirmed — GOB gazette 2026"
+    },
+    {
+      "hijri_month": "1448/04",
+      "hijri_month_name": "Rabi al-Thani",
+      "uq_start": "2026-09-12",
+      "uq_end": "2026-10-11",
+      "gob_start": "2026-09-14",
+      "offset": -2,
+      "status": "confirmed — GOB gazette 2026"
+    },
+    {
+      "hijri_month": "1448/05",
+      "hijri_month_name": "Jumada al-Ula",
+      "uq_start": "2026-10-12",
+      "uq_end": "2026-11-10",
+      "gob_start": "2026-10-13",
+      "offset": -1,
+      "status": "confirmed — GOB gazette 2026"
+    },
+    {
+      "hijri_month": "1448/06",
+      "hijri_month_name": "Jumada al-Akhir",
+      "uq_start": "2026-11-11",
+      "uq_end": "2026-12-09",
+      "gob_start": "2026-11-12",
+      "offset": -1,
+      "status": "confirmed — GOB gazette 2026"
+    },
+    {
+      "hijri_month": "1448/07",
+      "hijri_month_name": "Rajab",
+      "uq_start": "2026-12-10",
+      "uq_end": "2027-01-08",
+      "gob_start": "2026-12-11",
+      "offset": -1,
+      "status": "confirmed — GOB gazette 2026"
+    }
+  ]
+}

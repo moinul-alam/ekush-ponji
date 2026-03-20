@@ -2,6 +2,10 @@
 
 /// Represents the unified manifest.json hosted on GitHub.
 /// Parsed once by DataSyncService and passed to each feature sync service.
+///
+/// Note: Hijri offset files are no longer referenced from the manifest.
+/// They are fetched directly by HijriOffsetSyncService using a predictable
+/// URL pattern: {baseUrl}/assets/data/hijri/{year}.json
 class AppManifest {
   final int manifestVersion;
   final String lastUpdated;
@@ -10,10 +14,6 @@ class AppManifest {
   final SingleFileManifestData quotes;
   final SingleFileManifestData words;
 
-  /// Full URL to the Hijri offsets JSON file.
-  /// Null if the field is missing (older manifest versions).
-  final String? hijriOffsetsUrl;
-
   const AppManifest({
     required this.manifestVersion,
     required this.lastUpdated,
@@ -21,21 +21,11 @@ class AppManifest {
     required this.holidays,
     required this.quotes,
     required this.words,
-    this.hijriOffsetsUrl,
   });
 
   factory AppManifest.fromJson(Map<String, dynamic> json) {
     final baseUrl = json['baseUrl'] as String;
     final datasets = json['datasets'] as Map<String, dynamic>;
-
-    // Hijri offsets — optional field, gracefully absent on older manifests
-    String? hijriOffsetsUrl;
-    final hijriRaw = json['hijriOffsetsUrl'] as String?;
-    if (hijriRaw != null && hijriRaw.isNotEmpty) {
-      // Support both absolute URLs and relative paths
-      hijriOffsetsUrl =
-          hijriRaw.startsWith('http') ? hijriRaw : '$baseUrl/$hijriRaw';
-    }
 
     return AppManifest(
       manifestVersion: json['manifestVersion'] as int,
@@ -53,7 +43,6 @@ class AppManifest {
         datasets['words'] as Map<String, dynamic>,
         baseUrl,
       ),
-      hijriOffsetsUrl: hijriOffsetsUrl,
     );
   }
 }
