@@ -14,7 +14,7 @@ plugins {
 }
 
 android {
-    namespace = "com.ekushlabs.ekush_ponji"
+    namespace = "com.ekushlabs.ponji"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "29.0.14206865"
 
@@ -29,7 +29,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.ekushlabs.ekush_ponji"
+        applicationId = "com.ekushlabs.ponji"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

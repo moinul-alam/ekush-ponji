@@ -1,6 +1,6 @@
-// android/app/src/main/kotlin/com/ekushlabs/ekush_ponji/MainActivity.kt
+// android/app/src/main/kotlin/com/ekushlabs/ponji/MainActivity.kt
 
-package com.ekushlabs.ekush_ponji
+package com.ekushlabs.ponji
 
 import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.nativead.NativeAdView
