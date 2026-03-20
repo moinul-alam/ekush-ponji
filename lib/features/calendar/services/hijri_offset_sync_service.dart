@@ -56,22 +56,29 @@ class HijriOffsetSyncService {
     try {
       debugPrint('🌙 HijriOffsetSync: fetching from $url');
 
-      final response = await _dio.get<String>(
+      final response = await _dio.get<dynamic>(
         url,
         options: Options(
           receiveTimeout: const Duration(seconds: 8),
           sendTimeout: const Duration(seconds: 8),
+          responseType: ResponseType.plain,
         ),
       );
 
       if (response.statusCode != 200 || response.data == null) {
         debugPrint(
-            '⚠️ HijriOffsetSync: unexpected status ${response.statusCode}');
+            '⚠️ HijriOffsetSync: unexpected status \${response.statusCode}');
+        return;
+      }
+
+      final rawString = response.data.toString();
+      if (rawString.trim().isEmpty) {
+        debugPrint('⚠️ HijriOffsetSync: empty response body');
         return;
       }
 
       // Validate JSON before storing
-      final parsed = jsonDecode(response.data!) as Map<String, dynamic>;
+      final parsed = jsonDecode(rawString) as Map<String, dynamic>;
       final remoteVersion = parsed['version'] as int? ?? 0;
 
       if (remoteVersion <= _localVersion) {
@@ -81,7 +88,7 @@ class HijriOffsetSyncService {
         return;
       }
 
-      await _box.put(_offsetsKey, response.data);
+      await _box.put(_offsetsKey, rawString);
       await _box.put(_versionKey, remoteVersion);
       debugPrint('✅ HijriOffsetSync: updated to v$remoteVersion');
     } on DioException catch (e) {
