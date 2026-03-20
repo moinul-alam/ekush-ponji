@@ -1,11 +1,11 @@
 {
-  "version": 2,
+  "version": 3,
   "description": "Bangladesh Hijri date corrections based on local moon sighting.",
   "offsets": [
     {
       "from": "2026-03-20",
       "to": "2026-04-18",
-      "offset": 1,
+      "offset": -1,
       "note": "Bangladesh did not sight Shawwal moon on 19 March. 30 Ramadan 1447 = 20 March 2026 in Bangladesh."
     }
   ]
