@@ -160,8 +160,8 @@ class _OnboardingPageTwoState extends ConsumerState<OnboardingPageTwo> {
             title: isBn ? 'নোটিফিকেশন' : 'Notifications',
             body: Text(
               isBn
-                  ? 'ছুটির আগাম নোটিফিকেশন, প্রতিদিন নতুন উক্তি ও নতুন শব্দ পেতে নোটিফিকেশন চালু রাখুন — যাতে কোনো কিছু মিস না হয়ে যায়।'
-                  : 'Enable notifications for holiday alerts, daily quotes, and new words — so you never miss a moment.',
+                  ? 'ছুটির আপডেট, প্রতিদিনের অনুপ্রেরণা আর নতুন শব্দ শিখতে নোটিফিকেশন চালু রাখুন, যেনো কিছু মিস না হয়ে যায়।'
+                  : 'Stay ahead of holidays and start every day with a fresh quote and a new word, so you never miss a moment.',
             ),
             action: _notifEnabled
                 ? _EnabledBadge(isBn: isBn)
@@ -184,14 +184,14 @@ class _OnboardingPageTwoState extends ConsumerState<OnboardingPageTwo> {
                 children: [
                   TextSpan(
                     text: isBn
-                        ? 'একুশ পঞ্জি অ্যাপ সম্পূর্ণ ফ্রি। অ্যাপটি সচল রাখতে আমরা খুব সামান্য এবং বিরক্তিহীন বিজ্ঞাপন ব্যবহার করি। আপনার যেকোনো মূল্যবান মতামত জানাতে ইমেইল করুন: '
-                        : 'Ekush Ponji is free for everyone. To keep the app running, we show minimal, non-intrusive ads. We value your experience — feedback welcome at ',
+                        ? 'একুশ পঞ্জি সবার জন্য সম্পূর্ণ ফ্রি। অ্যাপটি সচল রাখতে আমরা সীমিত ও মার্জিত বিজ্ঞাপন ব্যবহার করি। আপনার মতামত জানাতে ইমেইল করুন: '
+                        : 'Ekush Ponji is free for everyone. We use minimal ads to keep the app running. Share your feedback at:',
                   ),
                   TextSpan(
                     text: 'ekushponji@gmail.com',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: colorScheme.primary, // Primary color for email
+                      color: colorScheme.primary,
                     ),
                   ),
                 ],

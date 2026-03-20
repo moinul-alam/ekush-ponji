@@ -1,13 +1,7 @@
 // lib/features/events/services/event_notification_service.dart
 //
-// Schedules and cancels notifications for user-created events.
-//
 // Notification ID range: 200_000_000 – 299_999_999
-// Payload: 'event:{id}' → tap navigates to Calendar screen.
-//
-// Permission: calls NotificationPermissionService.ensurePermission() because
-// scheduling is always triggered by an explicit user action (saving an event
-// with notify enabled). Never called from background or AppInitializer.
+// Payload: 'event:{YYYY-MM-DD}' → tap navigates to that day's calendar details.
 
 import 'package:flutter/material.dart' show Color;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -23,14 +17,6 @@ class EventNotificationService {
   static const String _channelName = 'Events';
   static const int _accentColorValue = 0xFF006B54;
 
-  // ── Public API ─────────────────────────────────────────────────────────────
-
-  /// Schedule a notification for [event] at its start time.
-  ///
-  /// Silently cancels and returns if:
-  ///   - notifyAtStartTime is false
-  ///   - start time is in the past
-  ///   - OS permission is not granted
   static Future<void> schedule(Event event) async {
     if (!event.notifyAtStartTime) {
       await cancel(event);
@@ -46,17 +32,30 @@ class EventNotificationService {
     final ok = await NotificationPermissionService.ensurePermission();
     if (!ok) return;
 
-    // Ensure at least 10 seconds in the future so the plugin doesn't drop it.
     final scheduledTime = event.startTime.difference(now).inSeconds < 10
         ? now.add(const Duration(seconds: 10))
         : event.startTime;
+
+    // Body: description → location → fallback
+    final String body;
+    if (event.description != null && event.description!.trim().isNotEmpty) {
+      body = event.description!.trim();
+    } else if (event.location != null && event.location!.trim().isNotEmpty) {
+      body = '📍 ${event.location!.trim()}';
+    } else {
+      body = 'Ekush Ponji • Event';
+    }
+
+    // Payload embeds the event date so tapping opens that exact day
+    final dateStr =
+        '${event.startTime.year}-${event.startTime.month.toString().padLeft(2, '0')}-${event.startTime.day.toString().padLeft(2, '0')}';
 
     await LocalNotificationService.scheduleZoned(
       id: NotificationId.forEvent(event.id),
       scheduledTime: scheduledTime,
       title: event.title,
-      body: 'Ekush Ponji • Event',
-      payload: 'event:${event.id}',
+      body: body,
+      payload: 'event:$dateStr',
       details: NotificationDetails(
         android: AndroidNotificationDetails(
           _channelId,
@@ -67,7 +66,12 @@ class EventNotificationService {
           icon: '@mipmap/ic_launcher',
           color: const Color(_accentColorValue),
           category: AndroidNotificationCategory.event,
-          styleInformation: BigTextStyleInformation(event.title),
+          styleInformation: BigTextStyleInformation(
+            body,
+            htmlFormatBigText: false,
+            contentTitle: event.title,
+            htmlFormatContentTitle: false,
+          ),
         ),
         iOS: const DarwinNotificationDetails(
           presentAlert: true,
@@ -78,7 +82,6 @@ class EventNotificationService {
     );
   }
 
-  /// Cancel the notification for [event].
   static Future<void> cancel(Event event) async {
     await LocalNotificationService.cancel(NotificationId.forEvent(event.id));
   }

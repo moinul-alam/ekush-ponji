@@ -24,36 +24,45 @@ class CalendarDayCell extends StatelessWidget {
 
   // ─── Font Sizes ────────────────────────────────────────
   static const double gregorianFontSize = 18;
-  static const double gregorianTodayFontSize = 20;
+  static const double gregorianTodayFontSize = 19;
   static const double gregorianSelectedFontSize = 18;
-  static const double subDateFontSize = 14;
+  static const double subDateFontSize = 11;
 
-  // ─── Special Day Colors ─────────────────────────────────
-// Change these two to try different holiday/weekend color schemes.
-  static const Color _specialBgLight = Color(0xFFB83232); // warm crimson
-  static const Color _specialBgDark = Color(0xFF8B2020); // deep crimson
-  static const Color _specialTextColor = Colors.white;
-  static const double _specialTextOpacity = 0.90;
+  // ─── Holiday colors (solid fill, white text) ───────────
+  // Holidays always win over weekends visually
+  static const Color _holidayBgLight = Color(0xFFB83232);
+  static const Color _holidayBgDark = Color(0xFF8B2020);
+  static const Color _holidayTextColor = Colors.white;
 
-  // ─── Color Slots ───────────────────────────────────────
+  // ─── Weekend-only colors (soft tint, red text) ─────────
+  // Only applied when Fri/Sat has no mandatory holiday
+  static const Color _weekendBgLight = Color(0xFFFFDDDD);
+  static const Color _weekendBgDark = Color(0xFF2A1515);
+  static const Color _weekendTextLight = Color(0xFFB83232);
+  static const Color _weekendTextDark = Color(0xFFE57373);
+
+  // Sub-date opacities
+  static const double _subDateNormalOpacity = 0.80;
+  static const double _subDateHolidayOpacity = 0.75;
+  static const double _subDateWeekendOpacity = 0.65;
+
   static const _BengaliColorSlot bengaliColorSlot = _BengaliColorSlot.primary;
-  static const _HijriColorSlot hijriColorSlot =
-      _HijriColorSlot.onSurfaceVariant;
 
-  // // Holiday background: fixed clean colors — no opacity mixing with surface
-  // static const Color _holidayBgLight = Color(0xFFFFF5F5); // barely-there blush
-  // static const Color _holidayBgDark = Color(0xFF251A1A); // very dark warm
-
-  static const Color gregorianSpecialColor = Color(0xFFCC0000);
   static const double cellBorderRadius = 4;
   static const double todayGlowOpacity1 = 0.55;
   static const double todayGlowOpacity2 = 0.30;
 
+  // ─── Day type helpers ───────────────────────────────────
   bool get _isWeekend =>
       day.gregorianDate.weekday == DateTime.friday ||
       day.gregorianDate.weekday == DateTime.saturday;
 
-  bool get _isSpecial => day.isCurrentMonth && (_isWeekend || day.hasHoliday);
+  bool get _isHoliday => day.isCurrentMonth && day.hasHoliday;
+
+  bool get _isWeekendOnly =>
+      day.isCurrentMonth && _isWeekend && !day.hasHoliday;
+
+  bool get _isSpecial => _isHoliday || _isWeekendOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -75,12 +84,7 @@ class CalendarDayCell extends StatelessWidget {
           curve: Curves.easeInOut,
           margin: const EdgeInsets.all(2),
           decoration: _buildDecoration(theme),
-          child: Stack(
-            children: [
-              // ── Main content ────────────────────────────
-              _buildContent(theme, gregorianText, bengaliText, hijriText),
-            ],
-          ),
+          child: _buildContent(theme, gregorianText, bengaliText, hijriText),
         ),
       ),
     );
@@ -96,7 +100,7 @@ class CalendarDayCell extends StatelessWidget {
 
     if (showBengaliDate && showHijriDate) {
       subDatesWidget = Padding(
-        padding: const EdgeInsets.fromLTRB(3, 0, 3, 3),
+        padding: const EdgeInsets.fromLTRB(2, 0, 2, 2),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -105,7 +109,7 @@ class CalendarDayCell extends StatelessWidget {
               style: theme.textTheme.labelSmall?.copyWith(
                 fontSize: subDateFontSize,
                 color: _bengaliTextColor(theme),
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 height: 1,
               ),
             ),
@@ -114,7 +118,7 @@ class CalendarDayCell extends StatelessWidget {
               style: theme.textTheme.labelSmall?.copyWith(
                 fontSize: subDateFontSize,
                 color: _hijriTextColor(theme),
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 height: 1,
               ),
             ),
@@ -123,14 +127,14 @@ class CalendarDayCell extends StatelessWidget {
       );
     } else if (showBengaliDate) {
       subDatesWidget = Padding(
-        padding: const EdgeInsets.fromLTRB(3, 0, 3, 3),
+        padding: const EdgeInsets.fromLTRB(2, 0, 2, 2),
         child: Center(
           child: Text(
             bengaliText,
             style: theme.textTheme.labelSmall?.copyWith(
               fontSize: subDateFontSize,
               color: _bengaliTextColor(theme),
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               height: 1,
             ),
           ),
@@ -138,14 +142,14 @@ class CalendarDayCell extends StatelessWidget {
       );
     } else if (showHijriDate) {
       subDatesWidget = Padding(
-        padding: const EdgeInsets.fromLTRB(3, 0, 3, 3),
+        padding: const EdgeInsets.fromLTRB(2, 0, 2, 2),
         child: Center(
           child: Text(
             hijriText,
             style: theme.textTheme.labelSmall?.copyWith(
               fontSize: subDateFontSize,
               color: _hijriTextColor(theme),
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               height: 1,
             ),
           ),
@@ -163,19 +167,17 @@ class CalendarDayCell extends StatelessWidget {
           ),
         ),
         if (subDatesWidget != null) subDatesWidget,
-        // Holiday dot removed — accent bar + background is sufficient.
-        // Only event and reminder dots remain.
         _buildIndicators(theme),
       ],
     );
   }
 
-  // ------------------- Gregorian Date -------------------
+  // ─── Gregorian Date ────────────────────────────────────
   Widget _buildGregorianDate(ThemeData theme, String text) {
     if (day.isToday) {
       return SizedBox(
-        width: 32,
-        height: 32,
+        width: 30,
+        height: 30,
         child: Center(
           child: Text(
             text,
@@ -191,11 +193,18 @@ class CalendarDayCell extends StatelessWidget {
     }
 
     if (day.isSelected) {
-      final selectionColor =
-          _isSpecial ? const Color(0xFFFFD600) : theme.colorScheme.primary;
+      final Color selectionColor;
+      if (_isHoliday) {
+        selectionColor = const Color(0xFFFFD600); // yellow ring on red
+      } else if (_isWeekendOnly) {
+        selectionColor = _weekendTextLight; // red ring on tint
+      } else {
+        selectionColor = theme.colorScheme.primary;
+      }
+
       return Container(
-        width: 28,
-        height: 28,
+        width: 26,
+        height: 26,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(color: selectionColor, width: 2),
@@ -215,8 +224,8 @@ class CalendarDayCell extends StatelessWidget {
     }
 
     return SizedBox(
-      width: 28,
-      height: 28,
+      width: 26,
+      height: 26,
       child: Center(
         child: Text(
           text,
@@ -230,18 +239,16 @@ class CalendarDayCell extends StatelessWidget {
     );
   }
 
-  // ------------------- Indicators -------------------
-  // Holiday dot removed — accent bar + tinted background signals holidays.
-  // Only event (blue) and reminder (orange) dots remain.
+  // ─── Indicators ────────────────────────────────────────
   Widget _buildIndicators(ThemeData theme) {
-    if (!day.hasEvent && !day.hasReminder) return const SizedBox(height: 5);
+    if (!day.hasEvent && !day.hasReminder) return const SizedBox(height: 4);
 
     final dots = <Widget>[];
     if (day.hasEvent) dots.add(_dot(Colors.blue.shade400));
     if (day.hasReminder) dots.add(_dot(Colors.orange.shade400));
 
     return SizedBox(
-      height: 5,
+      height: 4,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: dots
@@ -256,8 +263,8 @@ class CalendarDayCell extends StatelessWidget {
 
   Widget _dot(Color color) {
     return Container(
-      width: 5,
-      height: 5,
+      width: 4,
+      height: 4,
       decoration: BoxDecoration(
         color: color,
         shape: BoxShape.circle,
@@ -268,7 +275,7 @@ class CalendarDayCell extends StatelessWidget {
     );
   }
 
-  // ------------------- Decoration -------------------
+  // ─── Decoration ────────────────────────────────────────
   BoxDecoration _buildDecoration(ThemeData theme) {
     final isDark = theme.brightness == Brightness.dark;
 
@@ -289,6 +296,7 @@ class CalendarDayCell extends StatelessWidget {
       ),
     ];
 
+    // Today — primary green, always highest priority
     if (day.isToday) {
       return BoxDecoration(
         color: theme.colorScheme.primary,
@@ -309,9 +317,10 @@ class CalendarDayCell extends StatelessWidget {
       );
     }
 
-    if (_isSpecial) {
+    // Holiday — solid red fill
+    if (_isHoliday) {
       return BoxDecoration(
-        color: isDark ? _specialBgDark : _specialBgLight,
+        color: isDark ? _holidayBgDark : _holidayBgLight,
         borderRadius: BorderRadius.circular(cellBorderRadius),
         border: Border.all(
           color: theme.colorScheme.outlineVariant.withOpacity(0.25),
@@ -321,6 +330,22 @@ class CalendarDayCell extends StatelessWidget {
       );
     }
 
+    // Weekend-only — barely-there blush tint
+    if (_isWeekendOnly) {
+      return BoxDecoration(
+        color: isDark ? _weekendBgDark : _weekendBgLight,
+        borderRadius: BorderRadius.circular(cellBorderRadius),
+        border: Border.all(
+          color: isDark
+              ? _weekendTextDark.withOpacity(0.15)
+              : _weekendTextLight.withOpacity(0.20),
+          width: 0.5,
+        ),
+        boxShadow: tileShadows,
+      );
+    }
+
+    // Normal day
     return BoxDecoration(
       color: theme.colorScheme.surface,
       borderRadius: BorderRadius.circular(cellBorderRadius),
@@ -332,40 +357,54 @@ class CalendarDayCell extends StatelessWidget {
     );
   }
 
-  // ------------------- Colors -------------------
+  // ─── Text Colors ───────────────────────────────────────
   Color _gregorianTextColor(ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+
     if (!day.isCurrentMonth) {
-      return _isSpecial
-          ? const Color.fromARGB(255, 138, 3, 3).withOpacity(0.4)
-          : theme.colorScheme.onSurface.withOpacity(0.3);
+      if (_isWeekend) {
+        return (isDark ? _weekendTextDark : _weekendTextLight)
+            .withOpacity(0.35);
+      }
+      return theme.colorScheme.onSurface.withOpacity(0.3);
     }
 
-    if (_isSpecial) return _specialTextColor;
+    if (_isHoliday) return _holidayTextColor;
+    if (_isWeekendOnly) return isDark ? _weekendTextDark : _weekendTextLight;
     return theme.colorScheme.onSurface;
   }
 
   Color _bengaliTextColor(ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
     final base = _resolveBengaliColor(theme);
     if (!day.isCurrentMonth) return base.withOpacity(0.3);
-    if (_isSpecial) return _specialTextColor.withOpacity(_specialTextOpacity);
+    if (day.isToday) return theme.colorScheme.onPrimary.withOpacity(0.80);
+    if (_isHoliday)
+      return _holidayTextColor.withOpacity(_subDateHolidayOpacity);
+    if (_isWeekendOnly) {
+      return (isDark ? _weekendTextDark : _weekendTextLight)
+          .withOpacity(_subDateWeekendOpacity);
+    }
     if (day.isSelected) return base.withOpacity(0.9);
-    if (_isSpecial) return base.withOpacity(0.7);
-    return base;
+    return base.withOpacity(_subDateNormalOpacity);
   }
 
   Color _hijriTextColor(ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
     final ext = theme.extension<AppThemeExtension>();
-    if (!day.isCurrentMonth)
-      return (ext?.hijriColor ?? theme.colorScheme.onSurfaceVariant)
-          .withOpacity(0.3);
+    final base = ext?.hijriColor ?? theme.colorScheme.onSurfaceVariant;
+    if (!day.isCurrentMonth) return base.withOpacity(0.3);
     if (day.isToday) return theme.colorScheme.onPrimary.withOpacity(0.75);
-    if (_isSpecial)
+    if (_isHoliday) {
       return ext?.hijriColorOnSpecial ??
-          _specialTextColor.withOpacity(_specialTextOpacity);
-    if (day.isSelected)
-      return (ext?.hijriColor ?? theme.colorScheme.onSurfaceVariant)
-          .withOpacity(0.9);
-    return ext?.hijriColor ?? theme.colorScheme.onSurfaceVariant;
+          _holidayTextColor.withOpacity(_subDateHolidayOpacity);
+    }
+    if (_isWeekendOnly) {
+      return (isDark ? _weekendTextDark : _weekendTextLight)
+          .withOpacity(_subDateWeekendOpacity);
+    }
+    if (day.isSelected) return base.withOpacity(0.9);
+    return base.withOpacity(_subDateNormalOpacity);
   }
 
   Color _resolveBengaliColor(ThemeData theme) {
@@ -384,5 +423,3 @@ class CalendarDayCell extends StatelessWidget {
 
 // ─── Color Slot Enums ─────────────────────────────────────────
 enum _BengaliColorSlot { primary, secondary, tertiary, onSurface }
-
-enum _HijriColorSlot { onSurfaceVariant }

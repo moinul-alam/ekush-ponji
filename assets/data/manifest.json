@@ -1,7 +1,8 @@
 {
   "manifestVersion": 1,
-  "lastUpdated": "2026-03-12",
+  "lastUpdated": "2026-03-20",
   "baseUrl": "https://raw.githubusercontent.com/moinul-alam/ekush_ponji/refs/heads/main/assets/data",
+  "hijriOffsetsUrl": "https://raw.githubusercontent.com/moinul-alam/ekush_ponji/refs/heads/main/assets/data/hijri_offsets.json",
   "datasets": {
     "holidays": {
       "version": 1,

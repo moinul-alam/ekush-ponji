@@ -10,6 +10,7 @@ import 'package:ekush_ponji/core/models/app_manifest.dart';
 import 'package:ekush_ponji/features/holidays/services/holiday_sync_service.dart';
 import 'package:ekush_ponji/features/quotes/services/quotes_sync_service.dart';
 import 'package:ekush_ponji/features/words/services/words_sync_service.dart';
+import 'package:ekush_ponji/features/calendar/services/hijri_offset_sync_service.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 
 // ── Configuration ─────────────────────────────────────────────────────────────
@@ -35,20 +36,23 @@ class DataSyncService {
   final HolidaySyncService _holidaySyncService;
   final QuotesSyncService _quotesSyncService;
   final WordsSyncService _wordsSyncService;
+  final HijriOffsetSyncService _hijriOffsetSyncService;
 
   DataSyncService({
     Dio? dio,
     HolidaySyncService? holidaySyncService,
     QuotesSyncService? quotesSyncService,
     WordsSyncService? wordsSyncService,
+    HijriOffsetSyncService? hijriOffsetSyncService,
   })  : _dio = dio ?? Dio(),
         _holidaySyncService = holidaySyncService ?? HolidaySyncService(),
         _quotesSyncService = quotesSyncService ?? QuotesSyncService(),
-        _wordsSyncService = wordsSyncService ?? WordsSyncService();
+        _wordsSyncService = wordsSyncService ?? WordsSyncService(),
+        _hijriOffsetSyncService =
+            hijriOffsetSyncService ?? HijriOffsetSyncService();
 
-  // ── Coordinator-level interval ───────────────────────────────────────────
+  // ── Coordinator-level interval ────────────────────────────────────────────
 
-  /// Whether the global weekly auto-sync interval has elapsed.
   bool get _isAutoSyncDue {
     if (!enableWeeklyAutoSync) return false;
     try {
@@ -96,8 +100,6 @@ class DataSyncService {
 
   // ── Seeding (first launch only) ───────────────────────────────────────────
 
-  /// Seeds all datasets from bundled assets into Hive.
-  /// Each worker is idempotent — safe to call on every startup.
   Future<void> seedAll() async {
     await Future.wait([
       _holidaySyncService.seed(),
@@ -109,43 +111,43 @@ class DataSyncService {
   // ── App startup ───────────────────────────────────────────────────────────
 
   /// Called by AppInitializer during the background phase.
-  /// Seeds bundled data on first launch, then runs background sync.
+  /// Seeds bundled data on first launch, then:
+  ///   1. Always syncs Hijri offsets (tiny file, time-sensitive)
+  ///   2. Conditionally runs weekly auto-sync for heavy datasets
   Future<void> initialize() async {
     await seedAll();
     await backgroundSyncOnStartup();
   }
 
-  /// Non-blocking background sync on app startup.
-  ///
-  /// Respects [enableWeeklyAutoSync] and the 7-day interval.
-  /// Even if auto-sync is disabled or interval not due, version-triggered
-  /// syncs still run (remote version > local always triggers download).
-  ///
-  /// This method fetches the manifest once and:
-  ///   a) If [enableWeeklyAutoSync] is true and interval is due →
-  ///      passes force=false to all workers (they check their own intervals too)
-  ///   b) Always checks version and downloads if a newer version exists,
-  ///      even outside the weekly window
   Future<void> backgroundSyncOnStartup() async {
-    final shouldRunAutoSync = enableWeeklyAutoSync && _isAutoSyncDue;
+    // ── Step 1: Always fetch manifest (needed for both Hijri + weekly sync) ──
+    // We need the manifest regardless because Hijri offsets URL lives there.
+    // This is a single tiny JSON fetch — acceptable on every launch.
+    final manifest = await _fetchManifest();
 
-    if (!shouldRunAutoSync) {
+    // ── Step 2: Always sync Hijri offsets (time-sensitive, tiny file) ────────
+    if (manifest != null && manifest.hijriOffsetsUrl != null) {
+      await _hijriOffsetSyncService.syncFromUrl(manifest.hijriOffsetsUrl!);
+    } else {
       debugPrint(
-          'ℹ️ DataSync: weekly auto-sync not due or disabled — skipping background sync');
+          'ℹ️ DataSync: no hijriOffsetsUrl in manifest — skipping Hijri offset sync');
+    }
+
+    // ── Step 3: Weekly auto-sync for heavy datasets ───────────────────────
+    if (!enableWeeklyAutoSync || !_isAutoSyncDue) {
+      debugPrint(
+          'ℹ️ DataSync: weekly auto-sync not due or disabled — skipping');
       return;
     }
 
-    debugPrint('🔄 DataSync: weekly auto-sync due — fetching manifest...');
-
-    final manifest = await _fetchManifest();
     if (manifest == null) {
       debugPrint('⚠️ DataSync: manifest unreachable — background sync skipped');
       return;
     }
 
+    debugPrint('🔄 DataSync: weekly auto-sync due — syncing datasets...');
     await _recordAutoSync();
 
-    // Run all workers concurrently. Each will skip if their version is current.
     final results = await Future.wait([
       _holidaySyncService.syncWithManifest(manifest, force: false),
       _quotesSyncService.syncWithManifest(manifest, force: false),
@@ -159,16 +161,12 @@ class DataSyncService {
 
   // ── Force sync — all datasets (Settings button) ───────────────────────────
 
-  /// Bypasses the weekly interval but still respects version check.
-  /// Only downloads datasets where remote version > local version.
-  /// Returns [DataSyncResult] for the UI to display what changed.
   Future<DataSyncResult> forceSync() async {
     debugPrint('🔄 DataSync: force sync all — fetching manifest...');
 
     final manifest = await _fetchManifest();
 
     if (manifest == null) {
-      // No network — re-seed from bundled assets as a fallback
       debugPrint('⚠️ DataSync: manifest unreachable — re-seeding from assets');
       await seedAll();
       return const DataSyncResult(
@@ -178,6 +176,11 @@ class DataSyncService {
         quotesUpdated: false,
         wordsUpdated: false,
       );
+    }
+
+    // Force sync Hijri offsets too
+    if (manifest.hijriOffsetsUrl != null) {
+      await _hijriOffsetSyncService.syncFromUrl(manifest.hijriOffsetsUrl!);
     }
 
     final results = await Future.wait([
@@ -201,12 +204,6 @@ class DataSyncService {
 
   // ── Holidays-only sync (holidays screen) ─────────────────────────────────
 
-  /// Syncs holidays only, skipping the interval but respecting version.
-  /// Returns true if holidays were actually updated.
-  ///
-  /// Used by:
-  ///   • HolidaysViewModel.syncHolidays() — manual sync button (awaited, shows spinner)
-  ///   • HolidaysViewModel._backgroundSyncIfNeeded() — non-blocking background check
   Future<bool> syncHolidaysOnly() async {
     debugPrint('🔄 DataSync: holidays-only sync — fetching manifest...');
 
@@ -230,10 +227,7 @@ class DataSyncService {
 
 class DataSyncResult {
   final bool success;
-
-  /// True when manifest was unreachable and we fell back to bundled assets.
   final bool localOnly;
-
   final bool holidaysUpdated;
   final bool quotesUpdated;
   final bool wordsUpdated;
@@ -248,7 +242,6 @@ class DataSyncResult {
 
   bool get anyUpdated => holidaysUpdated || quotesUpdated || wordsUpdated;
 
-  /// Human-readable summary, bilingual.
   String summary(AppLocalizations l10n) {
     if (!success) return l10n.syncFailed;
     if (localOnly) return l10n.syncOffline;

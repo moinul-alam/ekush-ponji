@@ -7,6 +7,7 @@ import 'package:ekush_ponji/core/base/base_screen.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/core/services/ad_service.dart';
+import 'package:ekush_ponji/core/widgets/ads/native_ad_widget.dart';
 import 'package:ekush_ponji/core/widgets/pickers/app_date_picker.dart';
 import 'package:ekush_ponji/features/calculator/calculator_viewmodel.dart';
 import 'package:ekush_ponji/features/calculator/widgets/date_input_field.dart';
@@ -39,14 +40,6 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
   bool get autoHandleError => false;
 
   @override
-  void onScreenDispose() {
-    if (_hadResult) {
-      ref.read(adServiceProvider).showInterstitialIfAvailable();
-    }
-    super.onScreenDispose();
-  }
-
-  @override
   PreferredSizeWidget? buildAppBar(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     return AppBar(
@@ -54,7 +47,18 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
       centerTitle: true,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
-        onPressed: () => context.go(RouteNames.home),
+        onPressed: () {
+          // Show interstitial only if user actually got a result
+          if (_hadResult) {
+            ref.read(adServiceProvider).showInterstitialIfAvailable(
+              onClosed: () {
+                if (mounted) context.go(RouteNames.home);
+              },
+            );
+          } else {
+            context.go(RouteNames.home);
+          }
+        },
         tooltip: l10n.back,
       ),
     );
@@ -162,11 +166,9 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
         : (viewModel.toDate ?? DateTime.now());
 
     final selected = await AppDatePicker.show(
-      // ← was AppDateTimePicker.show
       context: context,
       initial: initial,
       l10n: l10n,
-      // no showTimeTab parameter — date-only by design
     );
 
     if (selected != null && context.mounted) {
@@ -258,6 +260,8 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
           ],
         ),
         const SizedBox(height: 16),
+
+        // ── Result card 1 ─────────────────────────────────
         ResultCard(
           title: l10n.yearsMonthsDays,
           value: _formatYearsMonthsDays(l10n, result),
@@ -265,6 +269,14 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
           onCopy: () => _copyToClipboard(
               context, l10n, _formatYearsMonthsDays(l10n, result)),
         ),
+
+        // ── Native ad after 1st result ────────────────────
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 4),
+          child: NativeAdWidget(style: NativeAdStyle.card),
+        ),
+
+        // ── Result card 2 ─────────────────────────────────
         ResultCard(
           title: l10n.totalDays,
           value: _formatTotalDays(l10n, result),
@@ -272,6 +284,8 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
           onCopy: () =>
               _copyToClipboard(context, l10n, _formatTotalDays(l10n, result)),
         ),
+
+        // ── Result card 3 ─────────────────────────────────
         ResultCard(
           title: l10n.weeksAndDays,
           value: _formatWeeksAndDays(l10n, result),
@@ -279,6 +293,7 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
           onCopy: () => _copyToClipboard(
               context, l10n, _formatWeeksAndDays(l10n, result)),
         ),
+
         const SizedBox(height: 16),
         SizedBox(
           width: double.infinity,

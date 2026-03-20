@@ -139,8 +139,8 @@ class _AppBottomNavInnerState extends State<_AppBottomNavInner> {
             label: l10n.navCalendar,
           ),
           NavigationDestination(
-            icon: const Icon(Icons.auto_awesome),
-            selectedIcon: const Icon(Icons.celebration_rounded),
+            icon: const Icon(Icons.flag_outlined),
+            selectedIcon: const Icon(Icons.flag),
             label: l10n.navHolidays,
           ),
           NavigationDestination(

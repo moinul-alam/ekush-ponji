@@ -3,6 +3,7 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:ekush_ponji/core/base/base_viewmodel.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
+import 'package:ekush_ponji/core/services/app_review_service.dart';
 import 'package:ekush_ponji/app/providers/app_providers.dart';
 import 'package:ekush_ponji/features/quotes/data/datasources/local/quotes_local_datasource.dart';
 import 'package:ekush_ponji/features/quotes/models/quote.dart';
@@ -56,6 +57,11 @@ class QuotesViewModel extends BaseViewModel {
           _dailyQuote = _dailyQuote!.copyWith(isSaved: isSaved);
         }
         _savedQuotes = _repository.getSavedQuotes();
+
+        // Record meaningful action when user saves a quote for the first time
+        if (isSaved) {
+          AppReviewService.recordMeaningfulAction();
+        }
       },
       showLoading: false,
       errorMessage: 'Failed to update saved quotes',

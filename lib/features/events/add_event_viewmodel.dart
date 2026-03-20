@@ -1,11 +1,10 @@
 // lib/features/events/add_event_viewmodel.dart
-//
-// CHANGED: import updated from calendar_notification_service to
-// event_notification_service (calendar_notification_service.dart was deleted)
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ekush_ponji/core/base/base_viewmodel.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
+import 'package:ekush_ponji/core/localization/app_localizations.dart';
+import 'package:ekush_ponji/core/services/app_review_service.dart';
 import 'package:ekush_ponji/features/events/models/event.dart';
 import 'package:ekush_ponji/features/events/data/event_repository.dart';
 import 'package:ekush_ponji/features/calendar/calendar_viewmodel.dart';
@@ -113,17 +112,17 @@ class AddEventViewModel extends BaseViewModel {
     state = ViewStateSuccess();
   }
 
-  String? validate() {
-    if (title.trim().isEmpty) return 'Title is required';
-    if (startTime == null) return 'Start date is required';
+  String? validate(AppLocalizations l10n) {
+    if (title.trim().isEmpty) return l10n.eventTitle;
+    if (startTime == null) return l10n.selectFromDate;
     if (!isAllDay && endTime != null && endTime!.isBefore(startTime!)) {
-      return 'End time must be after start time';
+      return l10n.invalidDateRange;
     }
     return null;
   }
 
-  Future<bool> saveEvent() async {
-    final error = validate();
+  Future<bool> saveEvent(AppLocalizations l10n) async {
+    final error = validate(l10n);
     if (error != null) {
       validationError = error;
       state = ViewStateError(error, isRetryable: false);
@@ -151,6 +150,7 @@ class AddEventViewModel extends BaseViewModel {
           await _repository.updateEvent(event);
         } else {
           await _repository.saveEvent(event);
+          AppReviewService.recordMeaningfulAction();
         }
 
         ref
@@ -162,16 +162,13 @@ class AddEventViewModel extends BaseViewModel {
           await EventNotificationService.schedule(event);
         }
       },
-      loadingMessage: isEditMode ? 'Updating event...' : 'Saving event...',
-      successMessage: isEditMode
-          ? 'Event updated successfully'
-          : 'Event saved successfully',
-      errorMessage:
-          isEditMode ? 'Failed to update event' : 'Failed to save event',
+      loadingMessage: l10n.loading,
+      successMessage: isEditMode ? l10n.editEvent : l10n.addEvent,
+      errorMessage: '${l10n.error}: ${l10n.editEvent}',
     );
   }
 
-  Future<bool> deleteEvent() async {
+  Future<bool> deleteEvent(AppLocalizations l10n) async {
     if (_editingEventId == null) return false;
 
     final dateToInvalidate = startTime;
@@ -193,9 +190,9 @@ class AddEventViewModel extends BaseViewModel {
               .invalidateCacheForDate(dateToInvalidate);
         }
       },
-      loadingMessage: 'Deleting event...',
-      successMessage: 'Event deleted successfully',
-      errorMessage: 'Failed to delete event',
+      loadingMessage: l10n.loading,
+      successMessage: l10n.deleteEvent,
+      errorMessage: '${l10n.error}: ${l10n.deleteEvent}',
     );
   }
 }

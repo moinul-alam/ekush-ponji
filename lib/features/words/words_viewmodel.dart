@@ -3,6 +3,7 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:ekush_ponji/core/base/base_viewmodel.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
+import 'package:ekush_ponji/core/services/app_review_service.dart';
 import 'package:ekush_ponji/app/providers/app_providers.dart';
 import 'package:ekush_ponji/features/words/data/datasources/local/words_local_datasource.dart';
 import 'package:ekush_ponji/features/words/models/word.dart';
@@ -56,6 +57,11 @@ class WordsViewModel extends BaseViewModel {
           _dailyWord = _dailyWord!.copyWith(isSaved: isSaved);
         }
         _savedWords = _repository.getSavedWords();
+
+        // Record meaningful action when user saves a word for the first time
+        if (isSaved) {
+          AppReviewService.recordMeaningfulAction();
+        }
       },
       showLoading: false,
       errorMessage: 'Failed to update saved words',

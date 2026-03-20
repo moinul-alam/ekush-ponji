@@ -679,7 +679,7 @@ class AppLocalizationsEn extends AppLocalizations {
   // ═══════════════════════════════════════════════════════════
 
   @override
-  String get calculatorTitle => 'Date Calculator';
+  String get calculatorTitle => 'Age Calculator';
 
   @override
   String get fromDate => 'From Date';

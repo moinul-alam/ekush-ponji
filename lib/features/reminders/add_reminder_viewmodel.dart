@@ -1,11 +1,10 @@
 // lib/features/reminders/add_reminder_viewmodel.dart
-//
-// CHANGED: import updated from calendar_notification_service to
-// reminder_notification_service (calendar_notification_service.dart was deleted)
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ekush_ponji/core/base/base_viewmodel.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
+import 'package:ekush_ponji/core/localization/app_localizations.dart';
+import 'package:ekush_ponji/core/services/app_review_service.dart';
 import 'package:ekush_ponji/features/reminders/models/reminder.dart';
 import 'package:ekush_ponji/features/reminders/data/reminder_repository.dart';
 import 'package:ekush_ponji/features/calendar/calendar_viewmodel.dart';
@@ -76,14 +75,14 @@ class AddReminderViewModel extends BaseViewModel {
     state = ViewStateSuccess();
   }
 
-  String? validate() {
-    if (title.trim().isEmpty) return 'Title is required';
-    if (dateTime == null) return 'Date and time is required';
+  String? validate(AppLocalizations l10n) {
+    if (title.trim().isEmpty) return l10n.reminderTitle;
+    if (dateTime == null) return l10n.selectDate;
     return null;
   }
 
-  Future<bool> saveReminder() async {
-    final error = validate();
+  Future<bool> saveReminder(AppLocalizations l10n) async {
+    final error = validate(l10n);
     if (error != null) {
       validationError = error;
       state = ViewStateError(error, isRetryable: false);
@@ -107,6 +106,7 @@ class AddReminderViewModel extends BaseViewModel {
           await _repository.updateReminder(reminder);
         } else {
           await _repository.saveReminder(reminder);
+          AppReviewService.recordMeaningfulAction();
         }
 
         ref
@@ -118,17 +118,13 @@ class AddReminderViewModel extends BaseViewModel {
           await ReminderNotificationService.schedule(reminder);
         }
       },
-      loadingMessage:
-          isEditMode ? 'Updating reminder...' : 'Saving reminder...',
-      successMessage: isEditMode
-          ? 'Reminder updated successfully'
-          : 'Reminder saved successfully',
-      errorMessage:
-          isEditMode ? 'Failed to update reminder' : 'Failed to save reminder',
+      loadingMessage: l10n.loading,
+      successMessage: isEditMode ? l10n.editReminder : l10n.addReminder,
+      errorMessage: '${l10n.error}: ${l10n.editReminder}',
     );
   }
 
-  Future<bool> deleteReminder() async {
+  Future<bool> deleteReminder(AppLocalizations l10n) async {
     if (_editingReminderId == null) return false;
 
     final dateToInvalidate = dateTime;
@@ -150,9 +146,9 @@ class AddReminderViewModel extends BaseViewModel {
               .invalidateCacheForDate(dateToInvalidate);
         }
       },
-      loadingMessage: 'Deleting reminder...',
-      successMessage: 'Reminder deleted successfully',
-      errorMessage: 'Failed to delete reminder',
+      loadingMessage: l10n.loading,
+      successMessage: l10n.deleteReminder,
+      errorMessage: '${l10n.error}: ${l10n.deleteReminder}',
     );
   }
 }

@@ -31,7 +31,6 @@ class HolidayNotificationService {
       return;
     }
 
-    // Silent check — never prompts the user
     final granted = await NotificationPermissionService.isGranted();
     if (!granted) {
       debugPrint('ℹ️ Holiday notifications skipped — permission not granted');
@@ -40,27 +39,25 @@ class HolidayNotificationService {
 
     await _cancelAll(holidays);
 
-    // Always use Asia/Dhaka — holiday dates are BD-specific
     final bdZone = tz.getLocation('Asia/Dhaka');
     final now = tz.TZDateTime.now(bdZone);
     final cutoff = now.add(const Duration(days: _lookaheadDays));
     int scheduled = 0;
 
     for (final holiday in holidays) {
-      // Fire at 9 PM BD time the EVENING BEFORE the holiday
       final fireTime = tz.TZDateTime(
         bdZone,
         holiday.startDate.year,
         holiday.startDate.month,
-        holiday.startDate.day - 1, // day before
-        prefs.notifyHour, // 21
-        prefs.notifyMinute, // 0
+        holiday.startDate.day - 1, // evening before
+        prefs.notifyHour,
+        prefs.notifyMinute,
       );
 
       if (fireTime.isAfter(now) && fireTime.isBefore(cutoff)) {
         await _scheduleOne(
           holiday: holiday,
-          fireTime: fireTime.toLocal(), // convert back for scheduleZoned
+          fireTime: fireTime.toLocal(),
           languageCode: languageCode,
         );
         scheduled++;
@@ -91,11 +88,22 @@ class HolidayNotificationService {
     final isBn = languageCode == 'bn';
     final name = isBn ? holiday.namebn : holiday.name;
 
-    // Notification copy — "Tomorrow is X"
+    // ── Title: "আগামীকাল ঈদ-উল-ফিতর 🇧🇩"
     final title = isBn ? 'আগামীকাল $name 🇧🇩' : 'Tomorrow is $name 🇧🇩';
-    final body = isBn
-        ? 'একুশ পঞ্জি • ${holiday.category.displayNameBn}'
-        : 'Ekush Ponji • ${holiday.category.displayName}';
+
+    // ── Body: description if available, otherwise a clean fallback
+    final String body;
+    if (isBn) {
+      final desc = holiday.descriptionbn ?? holiday.description;
+      body = (desc != null && desc.isNotEmpty)
+          ? desc
+          : '${holiday.category.displayNameBn} • একুশ পঞ্জি';
+    } else {
+      final desc = holiday.description;
+      body = (desc != null && desc.isNotEmpty)
+          ? desc
+          : '${holiday.category.displayName} • Ekush Ponji';
+    }
 
     await LocalNotificationService.scheduleZoned(
       id: NotificationId.forHoliday(holiday.id),
@@ -113,7 +121,14 @@ class HolidayNotificationService {
           icon: '@mipmap/ic_launcher',
           color: const Color(_accentColorValue),
           category: AndroidNotificationCategory.event,
-          styleInformation: BigTextStyleInformation('$title\n$body'),
+          // BigTextStyleInformation expands the body on long-press —
+          // title is NOT repeated here, only the body text is shown expanded
+          styleInformation: BigTextStyleInformation(
+            body,
+            htmlFormatBigText: false,
+            contentTitle: title,
+            htmlFormatContentTitle: false,
+          ),
         ),
         iOS: const DarwinNotificationDetails(
           presentAlert: true,

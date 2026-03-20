@@ -93,7 +93,7 @@ class AppDrawer extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.beach_access_rounded),
+            leading: const Icon(Icons.flag_rounded),
             title: Text(l10n.allHolidays),
             onTap: () {
               Navigator.pop(context);

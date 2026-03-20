@@ -12,15 +12,38 @@ import 'package:ekush_ponji/features/reminders/models/reminder.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
 
-class DayDetailsScreen extends ConsumerWidget {
-  const DayDetailsScreen({super.key});
+class DayDetailsScreen extends ConsumerStatefulWidget {
+  /// When opened from a notification tap, this date is passed so we
+  /// can jump to and select the correct day automatically.
+  final DateTime? initialDate;
+
+  const DayDetailsScreen({super.key, this.initialDate});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DayDetailsScreen> createState() => _DayDetailsScreenState();
+}
+
+class _DayDetailsScreenState extends ConsumerState<DayDetailsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // If a date was passed (notification tap), jump to that month and select
+    if (widget.initialDate != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final vm = ref.read(calendarViewModelProvider.notifier);
+        final date = widget.initialDate!;
+        vm.jumpToMonth(date.year, date.month).then((_) {
+          vm.selectDate(date);
+        });
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
 
-    // ── ref.watch so screen rebuilds when calendar state changes ──
     ref.watch(calendarViewModelProvider);
     final viewModel = ref.read(calendarViewModelProvider.notifier);
     final selectedDay = viewModel.selectedDay;
@@ -41,25 +64,20 @@ class DayDetailsScreen extends ConsumerWidget {
         ),
         centerTitle: true,
       ),
-      // ── RefreshIndicator for pull-to-refresh ──
       body: RefreshIndicator(
         onRefresh: () => viewModel.refreshSelectedDay(),
         child: SingleChildScrollView(
-          // physics required so RefreshIndicator works even when content is short
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ─── Date Header Card ─────────────────────────────
               _DateHeaderCard(selectedDay: selectedDay, l10n: l10n),
               const SizedBox(height: 20),
-
-              // ─── Holidays ────────────────────────────────────
               if (selectedDay.hasHoliday) ...[
                 _SectionHeader(
                   title: l10n.sectionHolidays,
-                  icon: Icons.celebration,
+                  icon: Icons.flag_rounded,
                 ),
                 const SizedBox(height: 8),
                 ...selectedDay.holidays.map(
@@ -67,8 +85,6 @@ class DayDetailsScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 20),
               ],
-
-              // ─── Events ──────────────────────────────────────
               if (selectedDay.hasEvent) ...[
                 _SectionHeader(
                   title: l10n.sectionEvents,
@@ -80,8 +96,6 @@ class DayDetailsScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 20),
               ],
-
-              // ─── Reminders ───────────────────────────────────
               if (selectedDay.hasReminder) ...[
                 _SectionHeader(
                   title: l10n.sectionReminders,
@@ -93,8 +107,6 @@ class DayDetailsScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 20),
               ],
-
-              // ─── No data ─────────────────────────────────────
               if (!selectedDay.hasAnyItem)
                 Center(
                   child: Padding(
@@ -118,8 +130,6 @@ class DayDetailsScreen extends ConsumerWidget {
                     ),
                   ),
                 ),
-
-              // ─── Action Buttons ───────────────────────────────
               const SizedBox(height: 8),
               Row(
                 children: [
@@ -166,10 +176,7 @@ class _DateHeaderCard extends StatelessWidget {
   final CalendarDay selectedDay;
   final AppLocalizations l10n;
 
-  const _DateHeaderCard({
-    required this.selectedDay,
-    required this.l10n,
-  });
+  const _DateHeaderCard({required this.selectedDay, required this.l10n});
 
   @override
   Widget build(BuildContext context) {
@@ -348,10 +355,7 @@ class _EventCard extends StatelessWidget {
             : event.getTimeRange());
 
     return InkWell(
-      onTap: () => context.push(
-        RouteNames.calendarEditEvent,
-        extra: event,
-      ),
+      onTap: () => context.push(RouteNames.calendarEditEvent, extra: event),
       borderRadius: BorderRadius.circular(12),
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
@@ -386,11 +390,8 @@ class _EventCard extends StatelessWidget {
                               ?.copyWith(fontWeight: FontWeight.w600),
                         ),
                       ),
-                      Icon(
-                        Icons.chevron_right,
-                        size: 16,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
+                      Icon(Icons.chevron_right,
+                          size: 16, color: theme.colorScheme.onSurfaceVariant),
                     ],
                   ),
                   const SizedBox(height: 4),
@@ -479,10 +480,8 @@ class _ReminderCard extends StatelessWidget {
         : reminder.getFormattedTime();
 
     return InkWell(
-      onTap: () => context.push(
-        RouteNames.calendarEditReminder,
-        extra: reminder,
-      ),
+      onTap: () =>
+          context.push(RouteNames.calendarEditReminder, extra: reminder),
       borderRadius: BorderRadius.circular(12),
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
@@ -517,11 +516,8 @@ class _ReminderCard extends StatelessWidget {
                               ?.copyWith(fontWeight: FontWeight.w600),
                         ),
                       ),
-                      Icon(
-                        Icons.chevron_right,
-                        size: 16,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
+                      Icon(Icons.chevron_right,
+                          size: 16, color: theme.colorScheme.onSurfaceVariant),
                     ],
                   ),
                   const SizedBox(height: 4),

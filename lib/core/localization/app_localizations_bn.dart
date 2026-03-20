@@ -676,7 +676,7 @@ class AppLocalizationsBn extends AppLocalizations {
   // ═══════════════════════════════════════════════════════════
 
   @override
-  String get calculatorTitle => 'ডেট ক্যালকুলেটর';
+  String get calculatorTitle => 'বয়স ক্যালকুলেটর';
 
   @override
   String get fromDate => 'শুরুর তারিখ';

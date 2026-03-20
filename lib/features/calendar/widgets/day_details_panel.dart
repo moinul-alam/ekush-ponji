@@ -31,6 +31,8 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
 
     if (widget.selectedDay == null) return const SizedBox.shrink();
 
+    final isToday = widget.selectedDay!.isToday;
+
     return Container(
       margin: EdgeInsets.zero,
       decoration: BoxDecoration(
@@ -64,15 +66,40 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          localizations
-                              .formatDate(widget.selectedDay!.gregorianDate),
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.primary,
-                          ),
+                        // ── Today badge + date ─────────────
+                        Row(
+                          children: [
+                            if (isToday) ...[
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.primary,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  localizations.today,
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: theme.colorScheme.onPrimary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                            ],
+                            Flexible(
+                              child: Text(
+                                localizations.formatDate(
+                                    widget.selectedDay!.gregorianDate),
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: theme.colorScheme.primary,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                       ],
                     ),
                   ),
@@ -95,8 +122,8 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
                 children: [
                   // ─── Holidays ──────────────────────────────
                   if (widget.selectedDay!.hasHoliday) ...[
-                    _buildSectionTitle(context, localizations.sectionHolidays,
-                        Icons.celebration),
+                    _buildSectionTitle(
+                        context, localizations.sectionHolidays, Icons.flag),
                     const SizedBox(height: 8),
                     ...widget.selectedDay!.holidays.map(
                       (holiday) =>
@@ -144,52 +171,53 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
 
                   // ─── Action Buttons ────────────────────────
                   const SizedBox(height: 8),
-
-                  // Add Event + Add Reminder — side by side
                   Row(
                     children: [
+                      // Add Event
                       Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () => context.push(
+                        child: _ActionButton(
+                          icon: Icons.add_circle_outline_rounded,
+                          label: localizations.addEvent,
+                          backgroundColor: theme.colorScheme.primaryContainer
+                              .withOpacity(0.7),
+                          foregroundColor: theme.colorScheme.onPrimaryContainer,
+                          onTap: () => context.push(
                             RouteNames.calendarAddEvent,
                             extra: widget.selectedDay!.gregorianDate,
-                          ),
-                          icon: const Icon(Icons.add, size: 18),
-                          label: Text(localizations.addEvent),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
                           ),
                         ),
                       ),
                       const SizedBox(width: 8),
+                      // Add Reminder
                       Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () => context.push(
+                        child: _ActionButton(
+                          icon: Icons.alarm_add_rounded,
+                          label: localizations.addReminder,
+                          backgroundColor: theme.colorScheme.secondaryContainer
+                              .withOpacity(0.7),
+                          foregroundColor:
+                              theme.colorScheme.onSecondaryContainer,
+                          onTap: () => context.push(
                             RouteNames.calendarAddReminder,
                             extra: widget.selectedDay!.gregorianDate,
                           ),
-                          icon: const Icon(Icons.alarm_add, size: 18),
-                          label: Text(localizations.addReminder),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // Show Details
+                      Expanded(
+                        child: _ActionButton(
+                          icon: Icons.info_outline_rounded,
+                          label: localizations.showDetails,
+                          backgroundColor: theme.colorScheme.tertiaryContainer
+                              .withOpacity(0.7),
+                          foregroundColor:
+                              theme.colorScheme.onTertiaryContainer,
+                          onTap: () =>
+                              context.push(RouteNames.calendarDayDetails),
                         ),
                       ),
                     ],
-                  ),
-
-                  // Show Details — full width
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: () =>
-                          context.push(RouteNames.calendarDayDetails),
-                      icon: const Icon(Icons.info_outline, size: 18),
-                      label: Text(localizations.showDetails),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    ),
                   ),
                   const SizedBox(height: 8),
                 ],
@@ -437,5 +465,57 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
       default:
         return l10n.priorityMedium;
     }
+  }
+}
+
+// ─── Reusable action button ───────────────────────────────────
+
+class _ActionButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color backgroundColor;
+  final Color foregroundColor;
+  final VoidCallback onTap;
+
+  const _ActionButton({
+    required this.icon,
+    required this.label,
+    required this.backgroundColor,
+    required this.foregroundColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Material(
+      color: backgroundColor,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 20, color: foregroundColor),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: foregroundColor,
+                  fontWeight: FontWeight.w700,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

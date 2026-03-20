@@ -58,10 +58,11 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
   }
 
   void _onSave() {
+    final l10n = AppLocalizations.of(context);
     final viewModel = ref.read(addReminderViewModelProvider.notifier);
     viewModel.setTitle(_titleController.text);
     viewModel.setDescription(_descriptionController.text);
-    viewModel.saveReminder();
+    viewModel.saveReminder(l10n);
   }
 
   Future<void> _onDelete() async {
@@ -88,7 +89,7 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
     );
     if (confirmed != true) return;
     final viewModel = ref.read(addReminderViewModelProvider.notifier);
-    await viewModel.deleteReminder();
+    await viewModel.deleteReminder(l10n);
   }
 
   void _showSnackbar(String message, {bool isError = false}) {

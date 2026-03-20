@@ -69,12 +69,13 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
   }
 
   void _onSave() {
+    final l10n = AppLocalizations.of(context);
     final viewModel = ref.read(addEventViewModelProvider.notifier);
     viewModel.setTitle(_titleController.text);
     viewModel.setDescription(_descriptionController.text);
     viewModel.setLocation(_locationController.text);
     viewModel.setNotes(_notesController.text);
-    viewModel.saveEvent();
+    viewModel.saveEvent(l10n);
   }
 
   Future<void> _onDelete() async {
@@ -101,7 +102,7 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
     );
     if (confirmed != true) return;
     final viewModel = ref.read(addEventViewModelProvider.notifier);
-    await viewModel.deleteEvent();
+    await viewModel.deleteEvent(l10n);
   }
 
   void _showSnackbar(String message, {bool isError = false}) {
@@ -283,7 +284,7 @@ class _NotificationToggle extends ConsumerWidget {
               children: [
                 Text(l10n.notifications, style: theme.textTheme.bodyMedium),
                 Text(
-                  l10n.notifications,
+                  l10n.notificationSubtitle,
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),

@@ -113,7 +113,6 @@ class _WordContent extends StatelessWidget {
 
     if (word == null) return const SizedBox.shrink();
 
-    // WRAPPER: Making the whole card clickable
     return InkWell(
       onTap: onOpen,
       borderRadius: BorderRadius.circular(16),
@@ -135,10 +134,10 @@ class _WordContent extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ── Word + part of speech + save ──────────────
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // TEXT: No longer needs its own InkWell as parent handles it
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Text(
@@ -181,15 +180,21 @@ class _WordContent extends StatelessWidget {
                   ),
               ],
             ),
+
             const SizedBox(height: 4),
+
+            // ── Pronunciation ─────────────────────────────
             Text(
               word!.pronunciation,
-              style: theme.textTheme.bodyMedium?.copyWith(
+              style: theme.textTheme.bodyLarge?.copyWith(
                 color: cs.onSurfaceVariant,
                 fontStyle: FontStyle.italic,
               ),
             ),
+
             const SizedBox(height: 12),
+
+            // ── Bengali meaning (big) ─────────────────────
             Text(
               word!.meaningBn,
               style: theme.textTheme.titleLarge?.copyWith(
@@ -198,19 +203,26 @@ class _WordContent extends StatelessWidget {
                 height: 1.4,
               ),
             ),
+
             const SizedBox(height: 16),
             Divider(color: cs.outline.withValues(alpha: 0.3), height: 1),
             const SizedBox(height: 16),
+
+            // ── English meaning ───────────────────────────
             _buildSection(context,
                 icon: Icons.lightbulb_outline_rounded,
                 title: l10n.meaningEnglish,
                 content: word!.meaningEn),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
+
+            // ── Synonym ───────────────────────────────────
             _buildSection(context,
                 icon: Icons.sync_alt_rounded,
                 title: l10n.synonym,
                 content: word!.synonym),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
+
+            // ── Example ───────────────────────────────────
             _buildSection(context,
                 icon: Icons.chat_bubble_outline_rounded,
                 title: l10n.example,
@@ -251,7 +263,7 @@ class _WordContent extends StatelessWidget {
         const SizedBox(height: 6),
         Text(
           content,
-          style: theme.textTheme.bodyMedium?.copyWith(
+          style: theme.textTheme.bodyLarge?.copyWith(
             color: cs.onSurface,
             fontStyle: isItalic ? FontStyle.italic : FontStyle.normal,
             height: 1.5,

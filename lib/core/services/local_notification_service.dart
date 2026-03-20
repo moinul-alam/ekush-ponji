@@ -55,8 +55,6 @@ class LocalNotificationService {
 
   // ── Permission ────────────────────────────────────────────────────────────
 
-  /// Requests all required notification permissions.
-  /// Returns true only if ALL permissions are granted.
   static Future<bool> ensurePermission() async {
     await initialize();
 
@@ -97,15 +95,6 @@ class LocalNotificationService {
 
   // ── Schedule ──────────────────────────────────────────────────────────────
 
-  /// Schedule a notification at [scheduledTime] in the device's local timezone.
-  ///
-  /// Payload format — determines navigation on tap:
-  ///   'prayer'        → Prayer Times screen
-  ///   'holiday'       → Holidays screen
-  ///   'quote:INDEX'   → Quotes screen at the given list index
-  ///   'word:INDEX'    → Words screen at the given list index
-  ///   'event:id'      → Calendar screen
-  ///   'reminder:id'   → Reminders screen
   static Future<void> scheduleZoned({
     required int id,
     required DateTime scheduledTime,
@@ -142,15 +131,12 @@ class LocalNotificationService {
 
   // ── Tap Handler ───────────────────────────────────────────────────────────
 
-  /// Called when the user taps a notification.
-  /// Navigates using AppRouter.router — no BuildContext needed.
-  ///
   /// Payload formats:
-  ///   'holiday'       → Holidays screen
-  ///   'quote:INDEX'   → Quotes screen at INDEX (int)
-  ///   'word:INDEX'    → Words screen at INDEX (int)
-  ///   'event:ID'      → Calendar screen
-  ///   'reminder:ID'   → Reminders screen
+  ///   'holiday'              → Holidays screen
+  ///   'quote:INDEX'          → Quotes screen at today's quote position
+  ///   'word:INDEX'           → Words screen at today's word position
+  ///   'event:YYYY-MM-DD'     → Calendar → day details for that date
+  ///   'reminder:YYYY-MM-DD'  → Calendar → day details for that date
   static void _onNotificationTapped(NotificationResponse response) {
     final payload = response.payload;
     debugPrint('🔔 Notification tapped: id=${response.id}, payload=$payload');
@@ -161,39 +147,60 @@ class LocalNotificationService {
     }
 
     if (payload == 'holiday') {
-      AppRouter.router.go(RouteNames.holidays);
+      AppRouter.router.push(RouteNames.holidays);
       return;
     }
 
-    // 'quote:INDEX' — open quotes screen at the scheduled quote's position
+    // 'quote:INDEX' — push quotes screen at today's quote position
     if (payload.startsWith('quote:')) {
-      final indexStr = payload.substring('quote:'.length);
-      final index = int.tryParse(indexStr) ?? 0;
-      AppRouter.router.go(RouteNames.quotes, extra: index);
+      final index = int.tryParse(payload.substring('quote:'.length)) ?? 0;
+      AppRouter.router.push(RouteNames.quotes, extra: index);
       return;
     }
 
-    // 'word:INDEX' — open words screen at the scheduled word's position
+    // 'word:INDEX' — push words screen at today's word position
     if (payload.startsWith('word:')) {
-      final indexStr = payload.substring('word:'.length);
-      final index = int.tryParse(indexStr) ?? 0;
-      AppRouter.router.go(RouteNames.words, extra: index);
+      final index = int.tryParse(payload.substring('word:'.length)) ?? 0;
+      AppRouter.router.push(RouteNames.words, extra: index);
       return;
     }
 
-    // 'event:ID' — open calendar (ID not currently used for navigation)
+    // 'event:YYYY-MM-DD' — navigate to that day's calendar details
     if (payload.startsWith('event:')) {
-      AppRouter.router.go(RouteNames.calendar);
+      _navigateToCalendarDay(payload.substring('event:'.length));
       return;
     }
 
-    // 'reminder:ID' — open reminders list (ID not currently used for navigation)
+    // 'reminder:YYYY-MM-DD' — navigate to that day's calendar details
     if (payload.startsWith('reminder:')) {
-      AppRouter.router.go(RouteNames.reminders);
+      _navigateToCalendarDay(payload.substring('reminder:'.length));
       return;
     }
 
     AppRouter.router.go(RouteNames.home);
+  }
+
+  /// Navigates to the calendar tab then pushes the day-details screen
+  /// with [dateStr] (YYYY-MM-DD) as extra so [DayDetailsScreen] can
+  /// jump to and select the correct day.
+  static void _navigateToCalendarDay(String dateStr) {
+    try {
+      final date = DateTime.parse(dateStr);
+
+      // Go to the calendar shell branch first
+      AppRouter.router.go(RouteNames.calendar);
+
+      // Wait one frame for the shell to settle, then push day details
+      Future.delayed(const Duration(milliseconds: 300), () {
+        AppRouter.router.push(
+          RouteNames.calendarDayDetails,
+          extra: date,
+        );
+      });
+    } catch (e) {
+      debugPrint('⚠️ _navigateToCalendarDay error: $e');
+      AppRouter.router.go(RouteNames.calendar);
+    }
   }
 
   // ── Timezone Resolution ───────────────────────────────────────────────────

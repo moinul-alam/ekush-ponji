@@ -346,6 +346,7 @@ class _HolidayItem extends StatelessWidget {
                           style: theme.textTheme.bodyLarge?.copyWith(
                             fontWeight: FontWeight.w600,
                             color: theme.colorScheme.onSurface,
+                            fontSize: 16,
                           ),
                         ),
                       ),

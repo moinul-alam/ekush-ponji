@@ -6,12 +6,14 @@ import 'package:ekush_ponji/core/base/base_screen.dart';
 import 'package:ekush_ponji/core/base/view_state.dart';
 import 'package:ekush_ponji/core/widgets/navigation/app_header.dart';
 import 'package:ekush_ponji/core/widgets/navigation/app_drawer.dart';
+import 'package:ekush_ponji/core/services/app_review_service.dart';
 import 'package:ekush_ponji/features/home/home_viewmodel.dart';
 import 'package:ekush_ponji/features/home/widgets/home_date_greeter_widget.dart';
 import 'package:ekush_ponji/features/home/widgets/home_holidays_widget.dart';
 import 'package:ekush_ponji/features/home/widgets/home_events_widget.dart';
 import 'package:ekush_ponji/features/home/widgets/daily_quote_widget.dart';
 import 'package:ekush_ponji/features/home/widgets/daily_word_widget.dart';
+import 'package:ekush_ponji/features/home/widgets/app_review_banner.dart';
 
 class HomeScreen extends BaseScreen {
   const HomeScreen({super.key});
@@ -21,6 +23,8 @@ class HomeScreen extends BaseScreen {
 }
 
 class _HomeScreenState extends BaseScreenState<HomeScreen> {
+  bool _showReviewBanner = false;
+
   @override
   NotifierProvider<HomeViewModel, ViewState> get viewModelProvider =>
       homeViewModelProvider;
@@ -36,6 +40,23 @@ class _HomeScreenState extends BaseScreenState<HomeScreen> {
 
   @override
   bool get showLoadingOverlay => false;
+
+  @override
+  void onScreenInit() {
+    // Trigger review check on every home screen load
+    _checkAppReview();
+  }
+
+  Future<void> _checkAppReview() async {
+    // Record the launch and potentially trigger native review
+    await AppReviewService.onAppLaunch();
+
+    // Check if fallback banner should be shown
+    final showBanner = await AppReviewService.shouldShowFallbackBanner();
+    if (mounted) {
+      setState(() => _showReviewBanner = showBanner);
+    }
+  }
 
   @override
   Future<void> onRefresh() async {
@@ -77,7 +98,6 @@ class _HomeScreenState extends BaseScreenState<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // const AppGreeter(),
           const SizedBox(height: 8),
           const HomeDateGreeterWidget(),
           const SizedBox(height: 8),
@@ -88,6 +108,16 @@ class _HomeScreenState extends BaseScreenState<HomeScreen> {
           const DailyQuoteWidget(),
           const SizedBox(height: 8),
           const DailyWordWidget(),
+
+          // ── Fallback review banner ─────────────────────
+          if (_showReviewBanner) ...[
+            const SizedBox(height: 8),
+            AppReviewBanner(
+              onDismiss: () {
+                setState(() => _showReviewBanner = false);
+              },
+            ),
+          ],
         ],
       ),
     );

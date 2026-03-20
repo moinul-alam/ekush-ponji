@@ -1,3 +1,5 @@
+// lib/features/calendar/widgets/week_days_row.dart
+
 import 'package:flutter/material.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 
@@ -11,7 +13,7 @@ class WeekDaysRow extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 8),
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(
@@ -42,11 +44,11 @@ class WeekDaysRow extends StatelessWidget {
           label,
           style: theme.textTheme.labelSmall?.copyWith(
             fontWeight: FontWeight.w700,
-            fontSize: 18,
+            fontSize: 15, // ← reduced from 18
             color: isWeekend
-                ? Color(0xFFB83232)
+                ? const Color(0xFFB83232)
                 : theme.colorScheme.onSurfaceVariant.withOpacity(0.8),
-            letterSpacing: 0.5,
+            letterSpacing: 0.3,
           ),
         ),
       ),
