@@ -1,11 +1,5 @@
 // lib/core/models/app_manifest.dart
 
-/// Represents the unified manifest.json hosted on GitHub.
-/// Parsed once by DataSyncService and passed to each feature sync service.
-///
-/// Note: Hijri offset files are no longer referenced from the manifest.
-/// They are fetched directly by HijriOffsetSyncService using a predictable
-/// URL pattern: {baseUrl}/assets/data/hijri/{year}.json
 class AppManifest {
   final int manifestVersion;
   final String lastUpdated;

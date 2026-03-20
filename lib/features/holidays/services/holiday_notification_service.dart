@@ -45,11 +45,19 @@ class HolidayNotificationService {
     int scheduled = 0;
 
     for (final holiday in holidays) {
-      final fireTime = tz.TZDateTime(
-        bdZone,
+      // Compute the evening before — handles 1st of month correctly
+      final holidayDate = DateTime(
         holiday.startDate.year,
         holiday.startDate.month,
-        holiday.startDate.day - 1, // evening before
+        holiday.startDate.day,
+      );
+      final dayBefore = holidayDate.subtract(const Duration(days: 1));
+
+      final fireTime = tz.TZDateTime(
+        bdZone,
+        dayBefore.year,
+        dayBefore.month,
+        dayBefore.day,
         prefs.notifyHour,
         prefs.notifyMinute,
       );
