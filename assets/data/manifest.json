@@ -1,5 +1,5 @@
 {
-  "manifestVersion": 1,
+  "manifestVersion": 2,
   "lastUpdated": "2026-03-20",
   "baseUrl": "https://raw.githubusercontent.com/moinul-alam/ekush_ponji/refs/heads/main/assets/data",
   "hijriOffsetsUrl": "https://raw.githubusercontent.com/moinul-alam/ekush_ponji/refs/heads/main/assets/data/hijri_offsets.json",
