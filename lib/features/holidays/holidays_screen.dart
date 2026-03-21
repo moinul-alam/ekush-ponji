@@ -79,7 +79,7 @@ class _HolidaysScreenState extends BaseScreenState<HolidaysScreen>
 
     return AppBar(
       title: AppHeader.title(context, l10n.allHolidays),
-      centerTitle: false,
+      centerTitle: true,
       leading: canPop
           ? null
           : IconButton(

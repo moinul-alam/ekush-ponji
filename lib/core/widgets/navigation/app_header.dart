@@ -103,8 +103,8 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
           Padding(
             padding: const EdgeInsets.only(top: 5.0),
             child: SizedBox(
-              width: 32,
-              height: 32,
+              width: 40,
+              height: 40,
               child: Center(
                 child: Image.asset(
                   'assets/images/header_logo.png',
@@ -125,7 +125,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
           // Home: title image asset | Other screens: page title text
           if (pageTitle == null)
             SizedBox(
-              height: 32,
+              height: 40,
               child: Center(
                 child: Image.asset(
                   'assets/images/app_title.png',
