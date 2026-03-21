@@ -97,8 +97,6 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
 
   // ── Notification prefs ─────────────────────────────────────
 
-  // ── Notification prefs ─────────────────────────────────────
-
   Future<void> _loadNotifPrefs() async {
     final prefs = await QuoteNotificationPrefs.load();
     final osGranted = await NotificationPermissionService.isGranted();
@@ -236,17 +234,17 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
       centerTitle: true,
       actions: [
         // ── Font size: decrease ──────────────────────────
-        IconButton(
-          icon: const Icon(Icons.text_decrease_rounded),
-          tooltip: 'Decrease font size',
-          onPressed: _quoteFontScale <= 0.8 ? null : _decreaseFontSize,
-        ),
-        // ── Font size: increase ──────────────────────────
-        IconButton(
-          icon: const Icon(Icons.text_increase_rounded),
-          tooltip: 'Increase font size',
-          onPressed: _quoteFontScale >= 1.6 ? null : _increaseFontSize,
-        ),
+        // IconButton(
+        //   icon: const Icon(Icons.text_decrease_rounded),
+        //   tooltip: 'Decrease font size',
+        //   onPressed: _quoteFontScale <= 0.8 ? null : _decreaseFontSize,
+        // ),
+        // // ── Font size: increase ──────────────────────────
+        // IconButton(
+        //   icon: const Icon(Icons.text_increase_rounded),
+        //   tooltip: 'Increase font size',
+        //   onPressed: _quoteFontScale >= 1.6 ? null : _increaseFontSize,
+        // ),
         // ── Notification toggle ──────────────────────────
         IconButton(
           icon: Icon(

@@ -183,13 +183,23 @@ class _WordContent extends StatelessWidget {
 
             const SizedBox(height: 4),
 
-            // ── Pronunciation ─────────────────────────────
-            Text(
-              word!.pronunciation,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: cs.onSurfaceVariant,
-                fontStyle: FontStyle.italic,
-              ),
+            // ── Pronunciation (with speaker icon) ─────────
+            Row(
+              children: [
+                Icon(
+                  Icons.volume_up_rounded,
+                  size: 16,
+                  color: cs.onSurfaceVariant,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  word!.pronunciation,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: cs.onSurfaceVariant,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
             ),
 
             const SizedBox(height: 12),
