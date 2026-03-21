@@ -18,6 +18,24 @@ void showMoreBottomSheet(BuildContext context) {
 class _MoreBottomSheet extends StatelessWidget {
   const _MoreBottomSheet();
 
+  void _navigate(BuildContext context, String route, {Object? extra}) {
+    // 1. Close the sheet — must use rootNavigator:true since the sheet
+    //    was opened with useRootNavigator:true.
+    Navigator.of(context, rootNavigator: true).pop();
+
+    // 2. Wait for the sheet dismissal animation to finish, then navigate.
+    //    Pop any screens sitting above the shell (e.g. Settings) so we
+    //    always push onto a clean base rather than stacking on top of
+    //    a screen that was already open.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final router = GoRouter.of(context);
+      while (router.canPop()) {
+        router.pop();
+      }
+      router.push(route, extra: extra);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -59,56 +77,52 @@ class _MoreBottomSheet extends StatelessWidget {
                   _MoreItem(
                     icon: Icons.event_outlined,
                     label: l10n.navAddEvent,
-                    onTap: () {
-                      Navigator.pop(context);
-                      context.push(
-                        RouteNames.calendarAddEvent,
-                        extra: DateTime.now(),
-                      );
-                    },
+                    onTap: () => _navigate(
+                      context,
+                      RouteNames.calendarAddEvent,
+                      extra: DateTime.now(),
+                    ),
                   ),
                   _MoreItem(
                     icon: Icons.alarm_outlined,
                     label: l10n.navAddReminder,
-                    onTap: () {
-                      Navigator.pop(context);
-                      context.push(
-                        RouteNames.calendarAddReminder,
-                        extra: DateTime.now(),
-                      );
-                    },
+                    onTap: () => _navigate(
+                      context,
+                      RouteNames.calendarAddReminder,
+                      extra: DateTime.now(),
+                    ),
                   ),
                   _MoreItem(
                     icon: Icons.calculate_outlined,
                     label: l10n.navCalculatorFull,
-                    onTap: () {
-                      Navigator.pop(context);
-                      context.push(RouteNames.calculator);
-                    },
+                    onTap: () => _navigate(
+                      context,
+                      RouteNames.calculator,
+                    ),
                   ),
                   _MoreItem(
                     icon: Icons.format_quote_outlined,
                     label: l10n.navSavedQuotes,
-                    onTap: () {
-                      Navigator.pop(context);
-                      context.push(RouteNames.savedQuotes);
-                    },
+                    onTap: () => _navigate(
+                      context,
+                      RouteNames.savedQuotes,
+                    ),
                   ),
                   _MoreItem(
                     icon: Icons.bookmark_outline,
                     label: l10n.navSavedWords,
-                    onTap: () {
-                      Navigator.pop(context);
-                      context.push(RouteNames.savedWords);
-                    },
+                    onTap: () => _navigate(
+                      context,
+                      RouteNames.savedWords,
+                    ),
                   ),
                   _MoreItem(
                     icon: Icons.settings_outlined,
                     label: l10n.navSettings,
-                    onTap: () {
-                      Navigator.pop(context);
-                      context.push(RouteNames.settings);
-                    },
+                    onTap: () => _navigate(
+                      context,
+                      RouteNames.settings,
+                    ),
                   ),
                 ],
               ),
@@ -136,15 +150,14 @@ class _MoreItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context); // Cache theme for cleaner code
+    final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.symmetric(
-            horizontal: 4), // Added padding for longer text
+        padding: const EdgeInsets.symmetric(horizontal: 4),
         decoration: BoxDecoration(
           color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(12),
@@ -157,19 +170,17 @@ class _MoreItem extends StatelessWidget {
               size: 26,
               color: colorScheme.primary,
             ),
-            const SizedBox(height: 8), // Increased spacing slightly
+            const SizedBox(height: 8),
             Text(
               label,
               textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.labelMedium?.copyWith(
-                // Switched to labelMedium
                 color: colorScheme.onSurface,
-                fontWeight:
-                    FontWeight.w600, // Bolded slightly for better readability
-                fontSize: 13, // <--- MANUALLY INCREASE THIS NUMBER
-                height: 1.2, // Tighter line height for grid items
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+                height: 1.2,
               ),
             ),
           ],

@@ -57,8 +57,8 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
           padding: const EdgeInsets.only(top: 5),
           child: Image.asset(
             'assets/images/header_logo.png',
-            width: 28,
-            height: 28,
+            width: 40,
+            height: 40,
             fit: BoxFit.contain,
             filterQuality: FilterQuality.medium,
             errorBuilder: (_, __, ___) => Icon(
@@ -86,15 +86,41 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
+    // Show a back button whenever the navigator has something to pop back to.
+    // This covers: screens pushed from the More sheet, pushed via go_router
+    // context.push(), or any modal/page on the stack.
+    // The home screen (pageTitle == null) always shows the drawer instead.
+    final canPop = context.canPop();
+    final isPageScreen = pageTitle != null;
+
     return AppBar(
       backgroundColor: colorScheme.surface,
       elevation: 0,
       centerTitle: true,
-      leading: IconButton(
-        icon: Icon(Icons.menu_rounded, color: colorScheme.onSurface),
-        onPressed: onDrawerTap ?? () => Scaffold.of(context).openDrawer(),
-        tooltip: 'Menu',
-      ),
+      // ← FIXED: for named screens, show back when possible; else show drawer.
+      // For home (pageTitle == null), always show drawer.
+      leading: isPageScreen && canPop
+          ? IconButton(
+              icon: Icon(Icons.arrow_back_ios_new_rounded,
+                  color: colorScheme.onSurface),
+              onPressed: () => context.pop(),
+              tooltip: 'Back',
+            )
+          : isPageScreen
+              // Named screen but nothing to pop — show back-to-home fallback
+              ? IconButton(
+                  icon: Icon(Icons.arrow_back_ios_new_rounded,
+                      color: colorScheme.onSurface),
+                  onPressed: () => context.go(RouteNames.home),
+                  tooltip: 'Back',
+                )
+              // Home screen — show drawer button
+              : IconButton(
+                  icon: Icon(Icons.menu_rounded, color: colorScheme.onSurface),
+                  onPressed: onDrawerTap ??
+                      () => Scaffold.maybeOf(context)?.openDrawer(),
+                  tooltip: 'Menu',
+                ),
       title: Row(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -151,13 +177,18 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
             ),
         ],
       ),
-      actions: [
-        IconButton(
-          icon: Icon(Icons.settings_outlined, color: colorScheme.onSurface),
-          onPressed: onSettingsTap ?? () => context.push(RouteNames.settings),
-          tooltip: 'Settings',
-        ),
-      ],
+      // Settings icon only on home screen (no pageTitle)
+      actions: pageTitle == null
+          ? [
+              IconButton(
+                icon:
+                    Icon(Icons.settings_outlined, color: colorScheme.onSurface),
+                onPressed:
+                    onSettingsTap ?? () => context.push(RouteNames.settings),
+                tooltip: 'Settings',
+              ),
+            ]
+          : null,
     );
   }
 
