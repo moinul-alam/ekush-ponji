@@ -16,6 +16,7 @@ import 'package:ekush_ponji/features/holidays/widgets/holiday_gazette_section_wi
 import 'package:ekush_ponji/features/holidays/widgets/holiday_month_section_widget.dart';
 import 'package:ekush_ponji/features/holidays/widgets/holiday_type_legend_widget.dart';
 import 'package:ekush_ponji/features/holidays/providers/holiday_notification_provider.dart';
+import 'package:ekush_ponji/core/widgets/navigation/app_header.dart';
 
 class HolidaysScreen extends BaseScreen {
   const HolidaysScreen({super.key});
@@ -77,8 +78,8 @@ class _HolidaysScreenState extends BaseScreenState<HolidaysScreen>
     final canPop = Navigator.of(context).canPop();
 
     return AppBar(
-      title: Text(l10n.allHolidays, style: theme.textTheme.titleLarge),
-      centerTitle: false,
+      title: AppHeader.title(context, l10n.allHolidays),
+      centerTitle: true,
       leading: canPop
           ? null
           : IconButton(

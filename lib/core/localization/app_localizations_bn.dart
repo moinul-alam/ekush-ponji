@@ -241,6 +241,9 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get todayIsDayName => 'আজ';
 
+  @override
+  String get dayDetails => 'দিনের বিবরণ';
+
   // ═══════════════════════════════════════════════════════════
   // DRAWER
   // ═══════════════════════════════════════════════════════════
@@ -607,6 +610,12 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get deleteReminderConfirmMessage =>
       'আপনি কি নিশ্চিত যে আপনি এই রিমাইন্ডারটি মুছে ফেলতে চান?';
+
+  @override
+  String get allEvents => 'সকল ইভেন্ট';
+
+  @override
+  String get allReminders => 'সকল রিমাইন্ডার';
 
   // ═══════════════════════════════════════════════════════════
   // EVENT CATEGORIES

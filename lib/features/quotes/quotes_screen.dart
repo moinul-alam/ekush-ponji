@@ -19,6 +19,7 @@ import 'package:ekush_ponji/core/notifications/notification_permission_service.d
 import 'package:ekush_ponji/core/notifications/notification_permission_prefs.dart';
 import 'package:ekush_ponji/core/notifications/notification_permission_provider.dart';
 import 'package:ekush_ponji/features/quotes/services/quote_notification_prefs.dart';
+import 'package:ekush_ponji/core/widgets/navigation/app_header.dart';
 
 class QuotesScreen extends BaseScreen {
   final int initialIndex;
@@ -231,7 +232,8 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
         icon: const Icon(Icons.arrow_back_ios_new_rounded),
         onPressed: () => context.pop(),
       ),
-      title: Text(l10n.quoteOfTheDay),
+      title: AppHeader.title(context, l10n.quoteOfTheDay),
+      centerTitle: true,
       actions: [
         // ── Font size: decrease ──────────────────────────
         IconButton(
@@ -264,7 +266,7 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
         ),
         // ── Saved quotes ─────────────────────────────────
         IconButton(
-          icon: const Icon(Icons.favorite_outline_rounded),
+          icon: const Icon(Icons.favorite_rounded),
           tooltip: l10n.savedQuotes,
           onPressed: () => context.push(RouteNames.savedQuotes),
         ),

@@ -17,6 +17,7 @@ import 'package:ekush_ponji/features/holidays/providers/holiday_notification_pro
 import 'package:ekush_ponji/features/holidays/holidays_viewmodel.dart';
 import 'package:ekush_ponji/features/quotes/providers/quote_notification_prefs_provider.dart';
 import 'package:ekush_ponji/features/words/providers/word_notification_prefs_provider.dart';
+import 'package:ekush_ponji/core/widgets/navigation/app_header.dart';
 
 // ── Settings font sizes ───────────────────────────────────────
 
@@ -80,13 +81,7 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen>
   @override
   PreferredSizeWidget? buildAppBar(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final colorScheme = Theme.of(context).colorScheme;
-    return AppBar(
-      title: Text(l10n.settingsTitle),
-      centerTitle: false,
-      backgroundColor: colorScheme.surface,
-      elevation: 0,
-    );
+    return AppHeader(pageTitle: l10n.settingsTitle);
   }
 
   @override

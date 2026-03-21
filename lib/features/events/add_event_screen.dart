@@ -10,6 +10,7 @@ import 'package:go_router/go_router.dart';
 import 'package:ekush_ponji/core/services/local_notification_service.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:ekush_ponji/core/widgets/pickers/app_date_time_picker.dart';
+import 'package:ekush_ponji/core/widgets/navigation/app_header.dart';
 
 class AddEventScreen extends ConsumerStatefulWidget {
   final DateTime? prefilledDate;
@@ -139,7 +140,8 @@ class _AddEventScreenState extends ConsumerState<AddEventScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEditMode ? l10n.editEvent : l10n.addEvent),
+        title: AppHeader.title(
+            context, isEditMode ? l10n.editEvent : l10n.addEvent),
         centerTitle: true,
         actions: [
           if (isEditMode)

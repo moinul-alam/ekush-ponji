@@ -241,6 +241,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get todayIsDayName => 'Today is';
 
+  @override
+  String get dayDetails => 'Day Details';
+
   // ═══════════════════════════════════════════════════════════
   // DRAWER
   // ═══════════════════════════════════════════════════════════
@@ -610,6 +613,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get deleteReminderConfirmMessage =>
       'Are you sure you want to delete this reminder?';
+
+  @override
+  String get allEvents => 'All Events';
+
+  @override
+  String get allReminders => 'All Reminders';
 
   // ═══════════════════════════════════════════════════════════
   // EVENT CATEGORIES

@@ -10,6 +10,7 @@ import 'package:ekush_ponji/features/quotes/models/quote.dart';
 import 'package:ekush_ponji/features/quotes/quotes_viewmodel.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
+import 'package:ekush_ponji/core/widgets/navigation/app_header.dart';
 
 class SavedQuotesScreen extends BaseScreen {
   const SavedQuotesScreen({super.key});
@@ -29,7 +30,7 @@ class _SavedQuotesScreenState extends BaseScreenState<SavedQuotesScreen> {
   @override
   PreferredSizeWidget? buildAppBar(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    return AppBar(title: Text(l10n.savedQuotes));
+    return AppHeader(pageTitle: l10n.savedQuotes);
   }
 
   @override

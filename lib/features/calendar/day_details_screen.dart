@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/core/utils/number_converter.dart';
+import 'package:ekush_ponji/core/widgets/ads/native_ad_widget.dart';
 import 'package:ekush_ponji/features/calendar/calendar_viewmodel.dart';
 import 'package:ekush_ponji/features/calendar/models/calendar_day.dart';
 import 'package:ekush_ponji/features/holidays/models/holiday.dart';
@@ -11,10 +12,9 @@ import 'package:ekush_ponji/features/events/models/event.dart';
 import 'package:ekush_ponji/features/reminders/models/reminder.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
+import 'package:ekush_ponji/core/widgets/navigation/app_header.dart';
 
 class DayDetailsScreen extends ConsumerStatefulWidget {
-  /// When opened from a notification tap, this date is passed so we
-  /// can jump to and select the correct day automatically.
   final DateTime? initialDate;
 
   const DayDetailsScreen({super.key, this.initialDate});
@@ -27,7 +27,6 @@ class _DayDetailsScreenState extends ConsumerState<DayDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    // If a date was passed (notification tap), jump to that month and select
     if (widget.initialDate != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final vm = ref.read(calendarViewModelProvider.notifier);
@@ -57,10 +56,9 @@ class _DayDetailsScreenState extends ConsumerState<DayDetailsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          l10n.languageCode == 'bn'
-              ? selectedDay.bengaliDate.formatBn()
-              : l10n.formatDate(selectedDay.gregorianDate),
+        title: AppHeader.title(
+          context,
+          l10n.dayDetails,
         ),
         centerTitle: true,
       ),
@@ -74,6 +72,8 @@ class _DayDetailsScreenState extends ConsumerState<DayDetailsScreen> {
             children: [
               _DateHeaderCard(selectedDay: selectedDay, l10n: l10n),
               const SizedBox(height: 20),
+
+              // ── Holidays ─────────────────────────────────────────────────
               if (selectedDay.hasHoliday) ...[
                 _SectionHeader(
                   title: l10n.sectionHolidays,
@@ -83,8 +83,14 @@ class _DayDetailsScreenState extends ConsumerState<DayDetailsScreen> {
                 ...selectedDay.holidays.map(
                   (h) => _HolidayCard(holiday: h, l10n: l10n),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 12),
               ],
+
+              // ── Native ad — after holidays, before events/reminders ──────
+              const NativeAdWidget(style: NativeAdStyle.card),
+              const SizedBox(height: 12),
+
+              // ── Events ───────────────────────────────────────────────────
               if (selectedDay.hasEvent) ...[
                 _SectionHeader(
                   title: l10n.sectionEvents,
@@ -96,6 +102,8 @@ class _DayDetailsScreenState extends ConsumerState<DayDetailsScreen> {
                 ),
                 const SizedBox(height: 20),
               ],
+
+              // ── Reminders ────────────────────────────────────────────────
               if (selectedDay.hasReminder) ...[
                 _SectionHeader(
                   title: l10n.sectionReminders,
@@ -107,6 +115,8 @@ class _DayDetailsScreenState extends ConsumerState<DayDetailsScreen> {
                 ),
                 const SizedBox(height: 20),
               ],
+
+              // ── Empty state ──────────────────────────────────────────────
               if (!selectedDay.hasAnyItem)
                 Center(
                   child: Padding(
@@ -130,33 +140,35 @@ class _DayDetailsScreenState extends ConsumerState<DayDetailsScreen> {
                     ),
                   ),
                 ),
+
+              // ── Action buttons — filled, matching day_details_panel ───────
               const SizedBox(height: 8),
               Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () => context.push(
+                    child: _FilledActionButton(
+                      icon: Icons.add_circle_outline_rounded,
+                      label: l10n.addEvent,
+                      backgroundColor:
+                          theme.colorScheme.primaryContainer.withOpacity(0.7),
+                      foregroundColor: theme.colorScheme.onPrimaryContainer,
+                      onTap: () => context.push(
                         RouteNames.calendarAddEvent,
                         extra: selectedDay.gregorianDate,
-                      ),
-                      icon: const Icon(Icons.add, size: 18),
-                      label: Text(l10n.addEvent),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () => context.push(
+                    child: _FilledActionButton(
+                      icon: Icons.alarm_add_rounded,
+                      label: l10n.addReminder,
+                      backgroundColor:
+                          theme.colorScheme.secondaryContainer.withOpacity(0.7),
+                      foregroundColor: theme.colorScheme.onSecondaryContainer,
+                      onTap: () => context.push(
                         RouteNames.calendarAddReminder,
                         extra: selectedDay.gregorianDate,
-                      ),
-                      icon: const Icon(Icons.alarm_add, size: 18),
-                      label: Text(l10n.addReminder),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                     ),
                   ),
@@ -171,7 +183,7 @@ class _DayDetailsScreenState extends ConsumerState<DayDetailsScreen> {
   }
 }
 
-// ─── Date Header Card ──────────────────────────────────────────
+// ─── Date Header Card ──────────────────────────────────────────────────────────
 class _DateHeaderCard extends StatelessWidget {
   final CalendarDay selectedDay;
   final AppLocalizations l10n;
@@ -183,56 +195,78 @@ class _DateHeaderCard extends StatelessWidget {
     final theme = Theme.of(context);
     final isBn = l10n.languageCode == 'bn';
 
+    final gregorianDate = l10n.formatDate(selectedDay.gregorianDate);
+    final bengaliDate = isBn
+        ? selectedDay.bengaliDate.formatBn()
+        : selectedDay.bengaliDate.format();
+    final dayName = l10n.getDayName(selectedDay.gregorianDate.weekday);
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       decoration: BoxDecoration(
         color: theme.colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
+          // ── Left: Gregorian + Bengali dates ─────────────────────────────
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  gregorianDate,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: theme.colorScheme.onPrimaryContainer,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  bengaliDate,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color:
+                        theme.colorScheme.onPrimaryContainer.withOpacity(0.75),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // ── Subtle gradient vertical divider ─────────────────────────────
+          Container(
+            width: 1,
+            height: 40,
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  theme.colorScheme.onPrimaryContainer.withOpacity(0.0),
+                  theme.colorScheme.onPrimaryContainer.withOpacity(0.3),
+                  theme.colorScheme.onPrimaryContainer.withOpacity(0.0),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
+          ),
+
+          // ── Right: day name ──────────────────────────────────────────────
           Text(
-            l10n.formatDate(selectedDay.gregorianDate),
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
+            dayName,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
               color: theme.colorScheme.onPrimaryContainer,
             ),
           ),
-          const SizedBox(height: 6),
-          Text(
-            isBn
-                ? selectedDay.bengaliDate.formatBn()
-                : selectedDay.bengaliDate.format(),
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: theme.colorScheme.onPrimaryContainer.withOpacity(0.8),
-            ),
-          ),
-          if (selectedDay.isToday) ...[
-            const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primary,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                l10n.today,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onPrimary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
         ],
       ),
     );
   }
 }
 
-// ─── Section Header ────────────────────────────────────────────
+// ─── Section Header ────────────────────────────────────────────────────────────
 class _SectionHeader extends StatelessWidget {
   final String title;
   final IconData icon;
@@ -244,7 +278,7 @@ class _SectionHeader extends StatelessWidget {
     final theme = Theme.of(context);
     return Row(
       children: [
-        Icon(icon, size: 20, color: theme.colorScheme.primary),
+        Icon(icon, size: 18, color: theme.colorScheme.primary),
         const SizedBox(width: 8),
         Text(
           title,
@@ -257,7 +291,7 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-// ─── Holiday Card ──────────────────────────────────────────────
+// ─── Holiday Card ──────────────────────────────────────────────────────────────
 class _HolidayCard extends StatelessWidget {
   final Holiday holiday;
   final AppLocalizations l10n;
@@ -337,7 +371,7 @@ class _HolidayCard extends StatelessWidget {
   }
 }
 
-// ─── Event Card ────────────────────────────────────────────────
+// ─── Event Card ────────────────────────────────────────────────────────────────
 class _EventCard extends StatelessWidget {
   final Event event;
   final AppLocalizations l10n;
@@ -347,6 +381,7 @@ class _EventCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final cs = theme.colorScheme;
     final isBn = l10n.languageCode == 'bn';
     final timeText = event.isAllDay
         ? l10n.allDay
@@ -361,9 +396,9 @@ class _EventCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.blue.withOpacity(0.05),
+          color: cs.primaryContainer.withOpacity(0.35),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.blue.withOpacity(0.2)),
+          border: Border.all(color: cs.primary.withOpacity(0.2)),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -372,7 +407,7 @@ class _EventCard extends StatelessWidget {
               width: 4,
               height: 44,
               decoration: BoxDecoration(
-                color: Colors.blue,
+                color: cs.primary,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -386,25 +421,26 @@ class _EventCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           event.title,
-                          style: theme.textTheme.bodyMedium
-                              ?.copyWith(fontWeight: FontWeight.w600),
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: cs.onSurface,
+                          ),
                         ),
                       ),
                       Icon(Icons.chevron_right,
-                          size: 16, color: theme.colorScheme.onSurfaceVariant),
+                          size: 16, color: cs.onSurfaceVariant),
                     ],
                   ),
                   const SizedBox(height: 4),
                   Row(
                     children: [
                       Icon(Icons.access_time,
-                          size: 12, color: theme.colorScheme.onSurfaceVariant),
+                          size: 12, color: cs.onSurfaceVariant),
                       const SizedBox(width: 4),
                       Text(
                         timeText,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
+                        style: theme.textTheme.bodySmall
+                            ?.copyWith(color: cs.onSurfaceVariant),
                       ),
                     ],
                   ),
@@ -413,15 +449,13 @@ class _EventCard extends StatelessWidget {
                     Row(
                       children: [
                         Icon(Icons.location_on,
-                            size: 12,
-                            color: theme.colorScheme.onSurfaceVariant),
+                            size: 12, color: cs.onSurfaceVariant),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
                             event.location!,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
+                            style: theme.textTheme.bodySmall
+                                ?.copyWith(color: cs.onSurfaceVariant),
                           ),
                         ),
                       ],
@@ -431,9 +465,8 @@ class _EventCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       event.description!,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
+                      style: theme.textTheme.bodySmall
+                          ?.copyWith(color: cs.onSurfaceVariant),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -443,13 +476,13 @@ class _EventCard extends StatelessWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.1),
+                      color: cs.primary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
                       event.category.displayName,
                       style: theme.textTheme.labelSmall?.copyWith(
-                        color: Colors.blue,
+                        color: cs.primary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -464,7 +497,7 @@ class _EventCard extends StatelessWidget {
   }
 }
 
-// ─── Reminder Card ─────────────────────────────────────────────
+// ─── Reminder Card ─────────────────────────────────────────────────────────────
 class _ReminderCard extends StatelessWidget {
   final Reminder reminder;
   final AppLocalizations l10n;
@@ -474,6 +507,7 @@ class _ReminderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final cs = theme.colorScheme;
     final isBn = l10n.languageCode == 'bn';
     final timeText = isBn
         ? NumberConverter.toBengali(reminder.getFormattedTime())
@@ -487,9 +521,9 @@ class _ReminderCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.orange.withOpacity(0.05),
+          color: cs.secondaryContainer.withOpacity(0.35),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.orange.withOpacity(0.2)),
+          border: Border.all(color: cs.secondary.withOpacity(0.2)),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -498,7 +532,7 @@ class _ReminderCard extends StatelessWidget {
               width: 4,
               height: 44,
               decoration: BoxDecoration(
-                color: Colors.orange,
+                color: cs.secondary,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -512,25 +546,25 @@ class _ReminderCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           reminder.title,
-                          style: theme.textTheme.bodyMedium
-                              ?.copyWith(fontWeight: FontWeight.w600),
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: cs.onSurface,
+                          ),
                         ),
                       ),
                       Icon(Icons.chevron_right,
-                          size: 16, color: theme.colorScheme.onSurfaceVariant),
+                          size: 16, color: cs.onSurfaceVariant),
                     ],
                   ),
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Icon(Icons.alarm,
-                          size: 12, color: theme.colorScheme.onSurfaceVariant),
+                      Icon(Icons.alarm, size: 12, color: cs.onSurfaceVariant),
                       const SizedBox(width: 4),
                       Text(
                         timeText,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
+                        style: theme.textTheme.bodySmall
+                            ?.copyWith(color: cs.onSurfaceVariant),
                       ),
                     ],
                   ),
@@ -538,9 +572,8 @@ class _ReminderCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       reminder.description!,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
+                      style: theme.textTheme.bodySmall
+                          ?.copyWith(color: cs.onSurfaceVariant),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -550,13 +583,13 @@ class _ReminderCard extends StatelessWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: _priorityColor(reminder.priority).withOpacity(0.1),
+                      color: cs.secondary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
                       _priorityLabel(reminder.priority, l10n),
                       style: theme.textTheme.labelSmall?.copyWith(
-                        color: _priorityColor(reminder.priority),
+                        color: cs.secondary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -570,19 +603,6 @@ class _ReminderCard extends StatelessWidget {
     );
   }
 
-  Color _priorityColor(ReminderPriority priority) {
-    switch (priority) {
-      case ReminderPriority.urgent:
-        return Colors.red;
-      case ReminderPriority.high:
-        return Colors.orange;
-      case ReminderPriority.medium:
-        return Colors.blue;
-      case ReminderPriority.low:
-        return Colors.grey;
-    }
-  }
-
   String _priorityLabel(ReminderPriority priority, AppLocalizations l10n) {
     switch (priority) {
       case ReminderPriority.urgent:
@@ -594,5 +614,56 @@ class _ReminderCard extends StatelessWidget {
       case ReminderPriority.low:
         return l10n.priorityLow;
     }
+  }
+}
+
+// ─── Filled Action Button — matches day_details_panel.dart _ActionButton ───────
+class _FilledActionButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color backgroundColor;
+  final Color foregroundColor;
+  final VoidCallback onTap;
+
+  const _FilledActionButton({
+    required this.icon,
+    required this.label,
+    required this.backgroundColor,
+    required this.foregroundColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Material(
+      color: backgroundColor,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 20, color: foregroundColor),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: foregroundColor,
+                  fontWeight: FontWeight.w700,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

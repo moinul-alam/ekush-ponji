@@ -19,6 +19,7 @@ import 'package:ekush_ponji/core/notifications/notification_permission_service.d
 import 'package:ekush_ponji/core/notifications/notification_permission_prefs.dart';
 import 'package:ekush_ponji/core/notifications/notification_permission_provider.dart';
 import 'package:ekush_ponji/features/words/services/word_notification_prefs.dart';
+import 'package:ekush_ponji/core/widgets/navigation/app_header.dart';
 
 class WordsScreen extends BaseScreen {
   final int initialIndex;
@@ -229,7 +230,8 @@ class _WordsScreenState extends BaseScreenState<WordsScreen>
         icon: const Icon(Icons.arrow_back_ios_new_rounded),
         onPressed: () => context.pop(),
       ),
-      title: Text(l10n.wordOfTheDay),
+      title: AppHeader.title(context, l10n.wordOfTheDay),
+      centerTitle: true,
       actions: [
         // ── Font size: decrease ──────────────────────────
         IconButton(
@@ -262,7 +264,7 @@ class _WordsScreenState extends BaseScreenState<WordsScreen>
         ),
         // ── Saved words ──────────────────────────────────
         IconButton(
-          icon: const Icon(Icons.favorite_border_rounded),
+          icon: const Icon(Icons.favorite_rounded),
           tooltip: l10n.savedWords,
           onPressed: () => context.push(RouteNames.savedWords),
         ),

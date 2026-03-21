@@ -10,6 +10,7 @@ import 'package:go_router/go_router.dart';
 import 'package:ekush_ponji/core/services/local_notification_service.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:ekush_ponji/core/widgets/pickers/app_date_time_picker.dart';
+import 'package:ekush_ponji/core/widgets/navigation/app_header.dart';
 
 class AddReminderScreen extends ConsumerStatefulWidget {
   final DateTime? prefilledDate;
@@ -126,7 +127,8 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEditMode ? l10n.editReminder : l10n.addReminder),
+        title: AppHeader.title(
+            context, isEditMode ? l10n.editReminder : l10n.addReminder),
         centerTitle: true,
         actions: [
           if (isEditMode)

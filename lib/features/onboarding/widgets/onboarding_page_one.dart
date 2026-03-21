@@ -33,7 +33,7 @@ class OnboardingPageOne extends ConsumerWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(24),
             child: Image.asset(
-              'assets/images/splash_logo.png',
+              'assets/images/app_logo.png',
               width: 120,
               height: 120,
               fit: BoxFit.cover,
@@ -85,8 +85,8 @@ class OnboardingPageOne extends ConsumerWidget {
           // ── Subtitle ───────────────────────────
           Text(
             isBn
-                ? 'বাংলা, ইংরেজি ও আরবি - তিন ক্যালেন্ডার এক সাথে। সরকারি ছুটি, গুরত্বপূর্ণ ইভেন্ট, জরুরি রিমাইন্ডার আর প্রতিদিনের অনুপ্রেরণামূলক উক্তি—সবই থাকছে আপনার হাতের মুঠোয়।'
-                : 'Seamlessly track Bangla, English & Arabic dates. Stay ahead with holiday alerts, important events, custom reminders, and a daily dose of inspiration — all in one place.',
+                ? 'বাংলা, গ্রেগরীয় (ইংরেজি) ও হিজরি (আরবী) - তিন ক্যালেন্ডার এক অ্যাপে। সরকারি ছুটি, গুরত্বপূর্ণ ইভেন্ট, জরুরি রিমাইন্ডার আর প্রতিদিনের অনুপ্রেরণামূলক উক্তি—সবই থাকছে আপনার হাতের মুঠোয়।'
+                : 'Seamlessly track Bangla, Gregorian (English) & Hijri (Arabic) dates. Stay ahead with holiday alerts, important events, custom reminders, and a daily dose of inspiration — all in one place.',
             style: theme.textTheme.bodyLarge?.copyWith(
               color: colorScheme.onSurfaceVariant,
               height: 1.7,
@@ -98,7 +98,7 @@ class OnboardingPageOne extends ConsumerWidget {
 
           // ── Language label ─────────────────────
           Text(
-            isBn ? 'আপনার ভাষা বেছে নিন' : 'Choose your language',
+            isBn ? 'আপনার ভাষা নির্বাচন করুন' : 'Choose your language',
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w600,
               color: colorScheme.onSurface,

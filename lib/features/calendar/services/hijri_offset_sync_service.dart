@@ -2,15 +2,10 @@
 //
 // Fetches and caches per-year Hijri date correction offsets from GitHub.
 //
-// FILES:
-//   One JSON per Gregorian year at:
-//   {baseUrl}/assets/data/hijri/{year}.json
-//   e.g. https://raw.githubusercontent.com/.../assets/data/hijri/2026.json
-//
-// FETCH STRATEGY:
-//   On every app launch, fetches current year + next year files.
-//   Non-blocking background phase. Silently no-ops if offline.
-//   Only overwrites local cache when remote version > local version.
+// SYNC INTERVAL:
+//   Fetches at most once every 7 days (same interval as main manifest sync).
+//   Always runs on force sync from Settings.
+//   Checks current year + next year files each time.
 //
 // OFFSET RULES:
 //   Each entry covers one Hijri month (uq_start → uq_end, inclusive).
@@ -29,7 +24,11 @@ class HijriOffsetSyncService {
   static const String _baseUrl =
       'https://raw.githubusercontent.com/moinul-alam/ekush_ponji/main/assets/data';
 
-  // ── Hive key helpers ───────────────────────────────────
+  // ── Interval (matches main manifest sync) ─────────────────────────────────
+  static const int _checkIntervalDays = 7;
+  static const String _lastCheckKey = 'hijri_offsets_last_check';
+
+  // ── Hive key helpers ───────────────────────────────────────────────────────
 
   static String _jsonKey(int year) => 'hijri_offsets_json_$year';
   static String _versionKey(int year) => 'hijri_offsets_version_$year';
@@ -43,11 +42,34 @@ class HijriOffsetSyncService {
   int _localVersion(int year) =>
       _box.get(_versionKey(year), defaultValue: 0) as int;
 
-  // ── Public API ─────────────────────────────────────────
+  // ── Interval check ─────────────────────────────────────────────────────────
+
+  bool get isSyncDue {
+    final lastCheckStr = _box.get(_lastCheckKey, defaultValue: null) as String?;
+    if (lastCheckStr == null) return true;
+    final lastCheck = DateTime.tryParse(lastCheckStr);
+    if (lastCheck == null) return true;
+    return DateTime.now().difference(lastCheck).inDays >= _checkIntervalDays;
+  }
+
+  Future<void> _recordCheck() async {
+    await _box.put(_lastCheckKey, DateTime.now().toIso8601String());
+  }
+
+  // ── Public API ─────────────────────────────────────────────────────────────
 
   /// Fetch offsets for current year and next year.
-  /// Called once during the background init phase on every app launch.
-  Future<void> syncAll() async {
+  /// Called during background init on every app launch, but only hits
+  /// the network if the 7-day interval has passed.
+  /// Pass [force] = true to skip the interval check (Settings force sync).
+  Future<void> syncAll({bool force = false}) async {
+    if (!force && !isSyncDue) {
+      debugPrint('ℹ️ HijriOffsetSync: interval not due — skipping');
+      return;
+    }
+
+    await _recordCheck();
+
     final currentYear = DateTime.now().year;
     await Future.wait([
       _syncYear(currentYear),
@@ -55,7 +77,7 @@ class HijriOffsetSyncService {
     ]);
   }
 
-  // ── Internal ───────────────────────────────────────────
+  // ── Internal ───────────────────────────────────────────────────────────────
 
   Future<void> _syncYear(int year) async {
     final url = '$_baseUrl/hijri/$year.json';
@@ -110,21 +132,18 @@ class HijriOffsetSyncService {
     }
   }
 
-  // ── Static helper used by HijriCalendarService ─────────
+  // ── Static helper used by HijriCalendarService ─────────────────────────────
 
   /// Returns the offset (in days) to add to a UQ-computed Hijri date
   /// for the given Gregorian [date]. Returns 0 if no rule matches.
   ///
   /// Reads directly from Hive — synchronous and fast (in-memory after open).
-  /// Checks current year file first, then next year file (handles Dec→Jan).
   static int getOffsetForDate(DateTime date) {
     final year = date.year;
-    // Check current year and adjacent years to handle month boundaries
     for (final y in [year, year + 1, year - 1]) {
       final offset = _getOffsetFromYear(date, y);
       if (offset != 0) return offset;
     }
-    // Also check explicitly for zero-offset matches (returns 0 if rule found with offset=0)
     for (final y in [year, year + 1, year - 1]) {
       if (_hasMatchingRule(date, y)) return 0;
     }
@@ -143,7 +162,6 @@ class HijriOffsetSyncService {
       final target = DateTime(date.year, date.month, date.day);
 
       for (final entry in months) {
-        // Skip placeholder entries that are missing required fields
         final fromStr = entry['uq_start'] as String?;
         final toStr = entry['uq_end'] as String?;
         final offset = entry['offset'] as int?;

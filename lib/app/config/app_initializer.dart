@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
@@ -12,8 +13,6 @@ import 'package:ekush_ponji/core/themes/app_theme.dart';
 import 'package:ekush_ponji/features/holidays/models/holiday.dart';
 import 'package:ekush_ponji/features/quotes/models/quote.dart';
 import 'package:ekush_ponji/features/words/models/word.dart';
-import 'package:ekush_ponji/features/quotes/quotes_viewmodel.dart';
-import 'package:ekush_ponji/features/words/words_viewmodel.dart';
 import 'package:ekush_ponji/core/services/local_notification_service.dart';
 import 'package:ekush_ponji/core/services/background_task_dispatcher.dart';
 import 'package:ekush_ponji/features/calendar/data/calendar_repository.dart';
@@ -24,13 +23,10 @@ import 'package:ekush_ponji/features/quotes/services/quote_notification_prefs.da
 import 'package:ekush_ponji/features/words/services/word_notification_service.dart';
 import 'package:ekush_ponji/features/words/services/word_notification_prefs.dart';
 
-// Box name constants — defined in their respective datasource files
 import 'package:ekush_ponji/features/quotes/data/datasources/local/quotes_local_datasource.dart'
     show savedQuotesBoxName;
 import 'package:ekush_ponji/features/words/data/datasources/local/words_local_datasource.dart'
     show savedWordsBoxName;
-
-// Repository providers — must be defined in their respective viewmodel/provider files
 import 'package:ekush_ponji/features/quotes/quotes_viewmodel.dart'
     show quotesRepositoryProvider;
 import 'package:ekush_ponji/features/words/words_viewmodel.dart'
@@ -43,14 +39,14 @@ class AppInitializer {
   static void _log(String msg) => debugPrint('[AppInit] $msg');
 
   // ── Phase 1: Critical (Blocking) ──────────────────────────────────────────
+  // Only what ThemeModeNotifier / LocaleNotifier need during their
+  // synchronous build() call. Everything else moves to Phase 2.
 
   static Future<void> initializeCore() async {
     try {
-      await Future.wait([
-        _setDeviceOrientation(),
-        _initializeHive(),
-      ]);
-      await _openSecondaryHiveBoxes();
+      await Hive.initFlutter();
+      _registerAdapters();
+      await Hive.openBox(settingsBoxName);
       _log('✅ Core initialization completed');
     } catch (e, st) {
       _log('❌ Core init failed: $e');
@@ -63,11 +59,25 @@ class AppInitializer {
 
   static Future<void> initializeBackground(ProviderContainer container) async {
     try {
+      // 1. Device orientation — safe to do after runApp
+      await _setDeviceOrientation();
+
+      // 2. Open secondary Hive boxes — seed & notifications need them
+      await _openSecondaryHiveBoxes();
+
+      // 3. SharedPreferences
       await _initializeSharedPreferences();
-      await _initializeWorkManager();
+
+      // 4. Notifications plugin init (no permission request)
       await _initializeNotifications();
+
+      // 5. WorkManager
+      await _initializeWorkManager();
+
+      // 6. Data sync (seed bundled assets if first launch, then network sync)
       await _performDataSync(container);
 
+      // 7. Schedule notifications (parallel)
       await Future.wait([
         _scheduleHolidayNotifications(container),
         _scheduleQuoteNotifications(container),
@@ -81,20 +91,38 @@ class AppInitializer {
     }
   }
 
+  // ── Cold-start notification payload ───────────────────────────────────────
+
+  /// Returns the notification payload if the app was launched by tapping
+  /// a notification (cold start). Returns null if launched normally.
+  /// Must be called before runApp so the result is available synchronously
+  /// to SplashScreen on its first build.
+  static Future<String?> getColdStartPayload() async {
+    try {
+      final plugin = FlutterLocalNotificationsPlugin();
+      // Initialize minimally just to read the launch details
+      const androidSettings =
+          AndroidInitializationSettings('@mipmap/ic_launcher');
+      const iosSettings = DarwinInitializationSettings();
+      await plugin.initialize(
+        const InitializationSettings(
+          android: androidSettings,
+          iOS: iosSettings,
+        ),
+      );
+      final details = await plugin.getNotificationAppLaunchDetails();
+      if (details?.didNotificationLaunchApp == true) {
+        final payload = details?.notificationResponse?.payload;
+        _log('📱 Cold-start notification payload: $payload');
+        return payload;
+      }
+    } catch (e) {
+      _log('⚠️ Could not read cold-start payload: $e');
+    }
+    return null;
+  }
+
   // ── Phase 1 Steps ──────────────────────────────────────────────────────────
-
-  static Future<void> _setDeviceOrientation() async {
-    await SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
-  }
-
-  static Future<void> _initializeHive() async {
-    await Hive.initFlutter();
-    _registerAdapters();
-    await Hive.openBox('settings');
-  }
 
   static void _registerAdapters() {
     if (_adaptersRegistered) return;
@@ -106,6 +134,15 @@ class AppInitializer {
     _adaptersRegistered = true;
   }
 
+  // ── Phase 2 Steps ──────────────────────────────────────────────────────────
+
+  static Future<void> _setDeviceOrientation() async {
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+  }
+
   static Future<void> _openSecondaryHiveBoxes() async {
     try {
       await Future.wait([
@@ -113,12 +150,11 @@ class AppInitializer {
         Hive.openBox<QuoteModel>(savedQuotesBoxName),
         Hive.openBox<WordModel>(savedWordsBoxName),
       ]);
+      _log('✅ Secondary Hive boxes opened');
     } catch (e) {
       _log('⚠️ Secondary boxes warning: $e');
     }
   }
-
-  // ── Phase 2 Steps ──────────────────────────────────────────────────────────
 
   static Future<void> _initializeSharedPreferences() async {
     _prefs = await SharedPreferences.getInstance();
@@ -156,12 +192,14 @@ class AppInitializer {
   static Future<void> _performDataSync(ProviderContainer container) async {
     try {
       final syncService = container.read(dataSyncServiceProvider);
+      // initialize() seeds bundled data on first launch, then runs
+      // background sync (Hijri offsets + manifest) on 7-day interval.
+      // ViewModels load their own data lazily when screens open —
+      // no eager loadQuotes()/loadWords() calls needed here.
       await syncService.initialize().timeout(
             const Duration(seconds: 8),
             onTimeout: () => _log('Data sync timeout → using cache'),
           );
-      container.read(quotesViewModelProvider.notifier).loadQuotes();
-      container.read(wordsViewModelProvider.notifier).loadWords();
     } catch (e) {
       _log('⚠️ Sync error: $e');
     }

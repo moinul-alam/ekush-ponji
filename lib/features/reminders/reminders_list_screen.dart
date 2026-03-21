@@ -8,6 +8,7 @@ import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/core/widgets/ads/native_ad_widget.dart';
 import 'package:ekush_ponji/features/reminders/models/reminder.dart';
 import 'package:ekush_ponji/features/reminders/data/reminder_repository.dart';
+import 'package:ekush_ponji/core/widgets/navigation/app_header.dart';
 
 final _allRemindersProvider = FutureProvider<List<Reminder>>((ref) async {
   final repo = ref.read(reminderRepositoryProvider);
@@ -26,10 +27,7 @@ class RemindersListScreen extends ConsumerWidget {
     final remindersAsync = ref.watch(_allRemindersProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(isBn ? 'সব রিমাইন্ডার' : 'All Reminders'),
-        centerTitle: false,
-      ),
+      appBar: AppHeader(pageTitle: l10n.allReminders),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           await context.push(RouteNames.addReminder, extra: DateTime.now());
