@@ -10,6 +10,7 @@ import 'package:ekush_ponji/features/words/models/word.dart';
 import 'package:ekush_ponji/features/words/words_viewmodel.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
+import 'package:ekush_ponji/core/widgets/navigation/app_header.dart';
 
 class SavedWordsScreen extends BaseScreen {
   const SavedWordsScreen({super.key});
@@ -29,7 +30,7 @@ class _SavedWordsScreenState extends BaseScreenState<SavedWordsScreen> {
   @override
   PreferredSizeWidget? buildAppBar(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    return AppBar(title: Text(l10n.savedWords));
+    return AppHeader(pageTitle: l10n.savedWords);
   }
 
   @override

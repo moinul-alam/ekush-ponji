@@ -209,6 +209,7 @@ abstract class AppLocalizations {
   String get synonym;
   String get example;
   String get todayIsDayName;
+  String get dayDetails;
 
   // ═══════════════════════════════════════════════════════════
   // DRAWER
@@ -352,6 +353,8 @@ abstract class AppLocalizations {
   String get deleteEventConfirmMessage;
   String get deleteReminder;
   String get deleteReminderConfirmMessage;
+  String get allEvents;
+  String get allReminders;
 
   // ═══════════════════════════════════════════════════════════
   // EVENT CATEGORIES

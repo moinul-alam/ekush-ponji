@@ -8,6 +8,7 @@ import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/core/widgets/ads/native_ad_widget.dart';
 import 'package:ekush_ponji/features/events/models/event.dart';
 import 'package:ekush_ponji/features/events/data/event_repository.dart';
+import 'package:ekush_ponji/core/widgets/navigation/app_header.dart';
 
 final _allEventsProvider = FutureProvider<List<Event>>((ref) async {
   final repo = ref.read(eventRepositoryProvider);
@@ -26,10 +27,7 @@ class EventsListScreen extends ConsumerWidget {
     final eventsAsync = ref.watch(_allEventsProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(isBn ? 'সব ইভেন্ট' : 'All Events'),
-        centerTitle: false,
-      ),
+      appBar: AppHeader(pageTitle: l10n.allEvents),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           await context.push(RouteNames.addEvent, extra: DateTime.now());

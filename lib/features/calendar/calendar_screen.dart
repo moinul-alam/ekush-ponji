@@ -16,6 +16,7 @@ import 'package:ekush_ponji/features/calendar/widgets/calendar_holidays_widget.d
 import 'package:ekush_ponji/core/widgets/pickers/custom_month_year_picker.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ekush_ponji/core/widgets/navigation/app_header.dart';
 
 class CalendarScreen extends BaseScreen {
   const CalendarScreen({super.key});
@@ -46,7 +47,7 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
   PreferredSizeWidget? buildAppBar(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     return AppBar(
-      title: Text(l10n.navCalendar),
+      title: AppHeader.title(context, l10n.navCalendar),
       centerTitle: true,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),

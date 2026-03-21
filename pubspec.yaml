@@ -1,5 +1,5 @@
 name: ekush_ponji
-description: A Bengali, English and Arabic calendar app with holidays, prayer times, events, reminders, and more.
+description: Simple dates, Meaniningful days.
 publish_to: 'none'
 version: 1.0.0+1
 environment:
@@ -9,7 +9,7 @@ flutter_launcher_icons:
   ios: true
   image_path: "assets/images/app_icon.png"
   adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: "assets/images/logo.png"
+  adaptive_icon_foreground: "assets/images/app_logo.png"
   min_sdk_android: 21
   web:
     generate: false
@@ -79,12 +79,12 @@ flutter:
     - assets/data/words/
 flutter_native_splash:
   color: "#FFFFFF"
-  image: assets/images/logo.png
+  image: assets/images/app_logo.png
   color_dark: "#FFFFFF"
-  image_dark: assets/images/logo.png
+  image_dark: assets/images/app_logo.png
   android_12:
     color: "#FFFFFF"
-    image: assets/images/logo.png
+    image: assets/images/app_logo.png
     color_dark: "#FFFFFF"
-    image_dark: assets/images/logo.png
+    image_dark: assets/images/app_logo.png
   fullscreen: false

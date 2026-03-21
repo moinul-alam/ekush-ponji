@@ -127,7 +127,7 @@ class _LogoSplashWidgetState extends State<LogoSplashWidget>
               child: Transform.scale(
                 scale: logoScaleValue,
                 child: Image.asset(
-                  'assets/images/splash_logo.png',
+                  'assets/images/header_logo.png',
                   width: 120,
                   height: 120,
                   fit: BoxFit.contain,

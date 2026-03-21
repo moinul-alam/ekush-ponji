@@ -14,6 +14,7 @@ import 'package:ekush_ponji/features/calculator/widgets/date_input_field.dart';
 import 'package:ekush_ponji/features/calculator/widgets/result_card.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
+import 'package:ekush_ponji/core/widgets/navigation/app_header.dart';
 
 class CalculatorScreen extends BaseScreen {
   const CalculatorScreen({super.key});
@@ -43,7 +44,7 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
   PreferredSizeWidget? buildAppBar(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     return AppBar(
-      title: Text(l10n.calculatorTitle),
+      title: AppHeader.title(context, l10n.calculatorTitle),
       centerTitle: true,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),

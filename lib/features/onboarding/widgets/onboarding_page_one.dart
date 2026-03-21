@@ -33,7 +33,7 @@ class OnboardingPageOne extends ConsumerWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(24),
             child: Image.asset(
-              'assets/images/splash_logo.png',
+              'assets/images/app_logo.png',
               width: 120,
               height: 120,
               fit: BoxFit.cover,

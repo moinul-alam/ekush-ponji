@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/features/about/about_content.dart';
+import 'package:ekush_ponji/core/widgets/navigation/app_header.dart';
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
@@ -16,11 +17,7 @@ class AboutScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        title: Text(l10n.about),
-        backgroundColor: colorScheme.surface,
-        elevation: 0,
-      ),
+      appBar: AppHeader(pageTitle: l10n.about),
       body: ListView(
         children: [
           // ── Hero ────────────────────────────────────────────────
@@ -32,7 +29,7 @@ class AboutScreen extends StatelessWidget {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(20),
                   child: Image.asset(
-                    'assets/images/splash_logo.png',
+                    'assets/images/app_logo.png',
                     width: 88,
                     height: 88,
                     fit: BoxFit.cover,
