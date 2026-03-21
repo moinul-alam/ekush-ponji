@@ -266,7 +266,7 @@ class _QuotesScreenState extends BaseScreenState<QuotesScreen>
         ),
         // ── Saved quotes ─────────────────────────────────
         IconButton(
-          icon: const Icon(Icons.favorite_outline_rounded),
+          icon: const Icon(Icons.favorite_rounded),
           tooltip: l10n.savedQuotes,
           onPressed: () => context.push(RouteNames.savedQuotes),
         ),

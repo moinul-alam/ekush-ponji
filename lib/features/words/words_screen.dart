@@ -264,7 +264,7 @@ class _WordsScreenState extends BaseScreenState<WordsScreen>
         ),
         // ── Saved words ──────────────────────────────────
         IconButton(
-          icon: const Icon(Icons.favorite_border_rounded),
+          icon: const Icon(Icons.favorite_rounded),
           tooltip: l10n.savedWords,
           onPressed: () => context.push(RouteNames.savedWords),
         ),
