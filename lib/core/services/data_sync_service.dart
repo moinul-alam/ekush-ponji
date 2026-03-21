@@ -16,7 +16,6 @@ import 'package:ekush_ponji/core/localization/app_localizations.dart';
 // ── Configuration ─────────────────────────────────────────────────────────────
 
 const bool enableWeeklyAutoSync = true;
-
 const int autoSyncIntervalDays = 7;
 
 // ── Manifest URL ──────────────────────────────────────────────────────────────
@@ -24,7 +23,7 @@ const int autoSyncIntervalDays = 7;
 const String _manifestUrl =
     'https://raw.githubusercontent.com/moinul-alam/ekush_ponji/main/assets/data/manifest.json';
 
-// ── Hive keys (coordinator-level) ────────────────────────────────────────────
+// ── Hive keys ─────────────────────────────────────────────────────────────────
 
 const String _settingsBoxName = 'settings';
 const String _lastAutoSyncKey = 'data_sync_last_auto';
@@ -112,6 +111,7 @@ class DataSyncService {
 
   /// Called by AppInitializer during the background phase.
   /// Seeds bundled data on first launch, then runs background sync.
+  /// ViewModels load their own data lazily — no eager loads here.
   Future<void> initialize() async {
     await seedAll();
     await backgroundSyncOnStartup();
@@ -119,15 +119,14 @@ class DataSyncService {
 
   /// Background sync on every app launch.
   ///
-  /// Hijri offsets are fetched independently — tiny, time-sensitive, and
-  /// must not be blocked by main manifest availability or weekly interval.
-  ///
-  /// Main manifest (holidays/quotes/words) only syncs on weekly interval.
+  /// Hijri offsets: gated by 7-day interval (same as main manifest).
+  /// Main manifest (holidays/quotes/words): also gated by 7-day interval.
   Future<void> backgroundSyncOnStartup() async {
-    // ── Step 1: Hijri offsets — always, independent of manifest ──────────────
-    // Constructs URL from year directly (no manifest needed).
-    // Fetches current year + next year. 404 = file not yet created, silent.
-    await _hijriOffsetSyncService.syncAll();
+    // ── Step 1: Hijri offsets — gated by 7-day interval ──────────────────────
+    // Small, time-sensitive. Checks its own interval independently so it
+    // can be updated more frequently in the future without touching the
+    // manifest interval.
+    await _hijriOffsetSyncService.syncAll(force: false);
 
     // ── Step 2: Main manifest — holidays / quotes / words ────────────────────
     if (!enableWeeklyAutoSync || !_isAutoSyncDue) {
@@ -162,7 +161,7 @@ class DataSyncService {
     debugPrint('🔄 DataSync: force sync all — fetching manifest...');
 
     // Always re-fetch Hijri offsets on force sync
-    await _hijriOffsetSyncService.syncAll();
+    await _hijriOffsetSyncService.syncAll(force: true);
 
     final manifest = await _fetchManifest();
 

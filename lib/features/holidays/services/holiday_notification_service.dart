@@ -17,7 +17,7 @@ class HolidayNotificationService {
   static const int _accentColorValue = 0xFF006B54;
   static const int _lookaheadDays = 60;
 
-  // ── Public API ─────────────────────────────────────────────
+  // ── Public API ─────────────────────────────────────────────────────────────
 
   static Future<void> scheduleAll({
     required List<Holiday> holidays,
@@ -45,7 +45,7 @@ class HolidayNotificationService {
     int scheduled = 0;
 
     for (final holiday in holidays) {
-      // Compute the evening before — handles 1st of month correctly
+      // Compute the evening before the holiday start date
       final holidayDate = DateTime(
         holiday.startDate.year,
         holiday.startDate.month,
@@ -79,7 +79,7 @@ class HolidayNotificationService {
     await LocalNotificationService.cancel(NotificationId.forHoliday(holidayId));
   }
 
-  // ── Internal ───────────────────────────────────────────────
+  // ── Internal ───────────────────────────────────────────────────────────────
 
   static Future<void> _cancelAll(List<Holiday> holidays) async {
     for (final holiday in holidays) {
@@ -96,10 +96,10 @@ class HolidayNotificationService {
     final isBn = languageCode == 'bn';
     final name = isBn ? holiday.namebn : holiday.name;
 
-    // ── Title: "আগামীকাল ঈদ-উল-ফিতর 🇧🇩"
+    // Title: "আগামীকাল ঈদ-উল-ফিতর 🇧🇩"
     final title = isBn ? 'আগামীকাল $name 🇧🇩' : 'Tomorrow is $name 🇧🇩';
 
-    // ── Body: description if available, otherwise a clean fallback
+    // Body: description if available, otherwise category fallback
     final String body;
     if (isBn) {
       final desc = holiday.descriptionbn ?? holiday.description;
@@ -113,12 +113,20 @@ class HolidayNotificationService {
           : '${holiday.category.displayName} • Ekush Ponji';
     }
 
+    // Payload uses the holiday's actual start date in 'event:YYYY-MM-DD' format.
+    // This routes the tap to CalendarDayDetails for that specific day,
+    // showing holidays, events, and reminders — same as tapping a day on the calendar.
+    final startDate = holiday.startDate;
+    final dateStr =
+        '${startDate.year}-${startDate.month.toString().padLeft(2, '0')}-${startDate.day.toString().padLeft(2, '0')}';
+    final payload = 'event:$dateStr';
+
     await LocalNotificationService.scheduleZoned(
       id: NotificationId.forHoliday(holiday.id),
       scheduledTime: fireTime,
       title: title,
       body: body,
-      payload: 'holiday',
+      payload: payload,
       details: NotificationDetails(
         android: AndroidNotificationDetails(
           _channelId,
@@ -129,8 +137,6 @@ class HolidayNotificationService {
           icon: '@mipmap/ic_launcher',
           color: const Color(_accentColorValue),
           category: AndroidNotificationCategory.event,
-          // BigTextStyleInformation expands the body on long-press —
-          // title is NOT repeated here, only the body text is shown expanded
           styleInformation: BigTextStyleInformation(
             body,
             htmlFormatBigText: false,
