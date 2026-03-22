@@ -51,6 +51,9 @@ dependencies:
 
   #App Review
   in_app_review: ^2.0.11
+
+  #UR Launcher
+  url_launcher: ^6.3.2
   
 dev_dependencies:
   flutter_test:
