@@ -61,7 +61,14 @@ class _SavedWordsScreenState extends BaseScreenState<SavedWordsScreen> {
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
-              onPressed: () => context.push(RouteNames.words),
+              onPressed: () {
+                final now = DateTime.now();
+                final words = vm.allWords;
+                final index = words.indexWhere(
+                  (w) => w.month == now.month && w.day == now.day,
+                );
+                context.push(RouteNames.words, extra: index < 0 ? 0 : index);
+              },
               icon: const Icon(Icons.menu_book_rounded),
               label: Text(l10n.wordOfTheDay),
             ),

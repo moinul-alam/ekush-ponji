@@ -105,13 +105,9 @@ class _LogoSplashWidgetState extends State<LogoSplashWidget>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return AnimatedBuilder(
       animation: Listenable.merge([_entryController, _pulseController]),
       builder: (context, _) {
-        // During entry: logo driven by entry scale
-        // After entry: logo driven by idle pulse
         final logoScaleValue =
             _entryDone ? _pulseScale.value : _logoScale.value;
         final logoOpacity = _entryDone ? 1.0 : _logoFade.value;
@@ -121,7 +117,7 @@ class _LogoSplashWidgetState extends State<LogoSplashWidget>
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // ── Logo ───────────────────────────────────────────────────────
+            // ── Logo ──────────────────────────────────────────────────────────
             Opacity(
               opacity: logoOpacity,
               child: Transform.scale(
@@ -135,7 +131,8 @@ class _LogoSplashWidgetState extends State<LogoSplashWidget>
                   errorBuilder: (_, __, ___) => const Icon(
                     Icons.calendar_month_rounded,
                     size: 120,
-                    color: Color(0xFF3A8EF6),
+                    color:
+                        Color(0xFF006B54), // primary green — visible on white
                   ),
                 ),
               ),
@@ -143,7 +140,7 @@ class _LogoSplashWidgetState extends State<LogoSplashWidget>
 
             const SizedBox(height: 24),
 
-            // ── Title ───────────────────────────────────────────────────────
+            // ── Title ─────────────────────────────────────────────────────────
             Opacity(
               opacity: titleOpacity,
               child: Transform.translate(
@@ -153,12 +150,15 @@ class _LogoSplashWidgetState extends State<LogoSplashWidget>
                   height: 44,
                   fit: BoxFit.contain,
                   filterQuality: FilterQuality.medium,
-                  errorBuilder: (_, __, ___) => Text(
+                  errorBuilder: (_, __, ___) => const Text(
                     'একুশ পঞ্জি',
-                    style: theme.textTheme.headlineLarge?.copyWith(
-                      color: const Color(0xFFE8F1FF),
+                    style: TextStyle(
+                      fontFamily: 'Kalpurush',
+                      fontSize: 32,
                       fontWeight: FontWeight.bold,
-                      letterSpacing: 2.0,
+                      color:
+                          Color(0xFF006B54), // primary green — visible on white
+                      letterSpacing: 1.0,
                     ),
                   ),
                 ),

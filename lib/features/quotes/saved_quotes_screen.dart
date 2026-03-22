@@ -61,7 +61,14 @@ class _SavedQuotesScreenState extends BaseScreenState<SavedQuotesScreen> {
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
-              onPressed: () => context.push(RouteNames.quotes),
+              onPressed: () {
+                final now = DateTime.now();
+                final quotes = vm.allQuotes;
+                final index = quotes.indexWhere(
+                  (q) => q.month == now.month && q.day == now.day,
+                );
+                context.push(RouteNames.quotes, extra: index < 0 ? 0 : index);
+              },
               icon: const Icon(Icons.format_quote_rounded),
               label: Text(l10n.quoteOfTheDay),
             ),

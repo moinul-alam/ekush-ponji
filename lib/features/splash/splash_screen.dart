@@ -22,7 +22,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // Check if app is already ready (e.g. hot reload)
     _appReady = ref.read(appReadyProvider);
   }
 
@@ -36,19 +35,15 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     _maybeNavigate();
   }
 
-  /// Navigates only when BOTH the app is ready AND the animation has finished.
-  /// Whichever completes last triggers the navigation.
   void _maybeNavigate() {
     if (!_appReady || !_animationDone) return;
     if (!mounted) return;
 
     final destination = ref.read(initialDestinationProvider);
 
-    // Check for cold-start notification payload — route directly to the
-    // correct screen instead of home, consuming the payload immediately.
     final payload = pendingNotificationPayload;
     if (payload != null && payload.isNotEmpty) {
-      pendingNotificationPayload = null; // consume once
+      pendingNotificationPayload = null;
       _handlePayload(payload, fallback: destination);
       return;
     }
@@ -56,8 +51,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     context.go(destination);
   }
 
-  /// Routes to the correct screen based on notification payload.
-  /// Falls back to [fallback] (home or onboarding) if unrecognised.
   void _handlePayload(String payload, {required String fallback}) {
     if (!mounted) return;
 
@@ -100,7 +93,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Listen to appReady — fires _onAppReady when background init completes
     ref.listen<bool>(appReadyProvider, (_, isReady) {
       if (isReady) _onAppReady();
     });
@@ -108,7 +100,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     final size = MediaQuery.sizeOf(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF080D1A),
+      backgroundColor: Colors.white,
       body: SizedBox(
         width: size.width,
         height: size.height,
@@ -143,40 +135,43 @@ class _BackgroundPainter extends CustomPainter {
   final Size size;
 
   late final Paint _topRightPaint;
-  late final Paint _centerPaint;
   late final Paint _bottomLeftPaint;
+  late final Paint _centerPaint;
 
   _BackgroundPainter({required this.size}) {
+    // Soft green tint — top right
     _topRightPaint = Paint()
       ..shader = RadialGradient(
         colors: [
-          const Color(0xFF1A4A8A).withValues(alpha: 0.45),
-          const Color(0xFF1A4A8A).withValues(alpha: 0.0),
+          const Color(0xFF006B54).withValues(alpha: 0.07),
+          const Color(0xFF006B54).withValues(alpha: 0.0),
         ],
       ).createShader(Rect.fromCircle(
-        center: Offset(size.width * 0.85, size.height * 0.12),
-        radius: size.width * 0.65,
+        center: Offset(size.width * 0.85, size.height * 0.10),
+        radius: size.width * 0.70,
       ));
 
-    _centerPaint = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          const Color(0xFF0D2A5E).withValues(alpha: 0.6),
-          const Color(0xFF0D2A5E).withValues(alpha: 0.0),
-        ],
-      ).createShader(Rect.fromCircle(
-        center: Offset(size.width * 0.5, size.height * 0.42),
-        radius: size.width * 0.7,
-      ));
-
+    // Soft teal tint — bottom left
     _bottomLeftPaint = Paint()
       ..shader = RadialGradient(
         colors: [
-          const Color(0xFF0A3366).withValues(alpha: 0.4),
-          const Color(0xFF0A3366).withValues(alpha: 0.0),
+          const Color(0xFF3D6373).withValues(alpha: 0.06),
+          const Color(0xFF3D6373).withValues(alpha: 0.0),
         ],
       ).createShader(Rect.fromCircle(
-        center: Offset(size.width * 0.1, size.height * 0.88),
+        center: Offset(size.width * 0.10, size.height * 0.90),
+        radius: size.width * 0.60,
+      ));
+
+    // Very subtle warm center wash
+    _centerPaint = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          const Color(0xFF7FF9D4).withValues(alpha: 0.10),
+          const Color(0xFF7FF9D4).withValues(alpha: 0.0),
+        ],
+      ).createShader(Rect.fromCircle(
+        center: Offset(size.width * 0.50, size.height * 0.45),
         radius: size.width * 0.55,
       ));
   }
@@ -184,19 +179,19 @@ class _BackgroundPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     canvas.drawCircle(
-      Offset(size.width * 0.85, size.height * 0.12),
-      size.width * 0.65,
+      Offset(size.width * 0.85, size.height * 0.10),
+      size.width * 0.70,
       _topRightPaint,
     );
     canvas.drawCircle(
-      Offset(size.width * 0.5, size.height * 0.42),
-      size.width * 0.7,
-      _centerPaint,
+      Offset(size.width * 0.10, size.height * 0.90),
+      size.width * 0.60,
+      _bottomLeftPaint,
     );
     canvas.drawCircle(
-      Offset(size.width * 0.1, size.height * 0.88),
+      Offset(size.width * 0.50, size.height * 0.45),
       size.width * 0.55,
-      _bottomLeftPaint,
+      _centerPaint,
     );
   }
 
