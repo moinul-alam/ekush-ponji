@@ -1,12 +1,20 @@
 // lib/features/about/about_screen.dart
 
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/features/about/about_content.dart';
 import 'package:ekush_ponji/core/widgets/navigation/app_header.dart';
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
+
+  Future<void> _launch(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +33,7 @@ class AboutScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 40),
             child: Column(
               children: [
-                // App logo — falls back to icon if asset is missing
+                // App logo
                 ClipRRect(
                   borderRadius: BorderRadius.circular(20),
                   child: Image.asset(
@@ -60,6 +68,28 @@ class AboutScreen extends StatelessWidget {
                   style: theme.textTheme.bodySmall
                       ?.copyWith(color: colorScheme.onSurfaceVariant),
                 ),
+                const SizedBox(height: 12),
+                // Website link
+                GestureDetector(
+                  onTap: () => _launch(AboutContent.websiteUrl),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.language_rounded,
+                          size: 15, color: colorScheme.primary),
+                      const SizedBox(width: 6),
+                      Text(
+                        'ekushponji.ekushlabs.com',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                          decoration: TextDecoration.underline,
+                          decorationColor: colorScheme.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 20),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -93,7 +123,10 @@ class AboutScreen extends StatelessWidget {
               context: context,
               title: l10n.privacyPolicy,
               content: AboutContent.privacyPolicy(isBn),
+              fullPolicyUrl: AboutContent.privacyUrl,
               closeLabel: l10n.close,
+              isBn: isBn,
+              onLaunch: _launch,
             ),
           ),
           ListTile(
@@ -109,7 +142,10 @@ class AboutScreen extends StatelessWidget {
               context: context,
               title: l10n.termsOfService,
               content: AboutContent.termsOfService(isBn),
+              fullPolicyUrl: AboutContent.termsUrl,
               closeLabel: l10n.close,
+              isBn: isBn,
+              onLaunch: _launch,
             ),
           ),
 
@@ -125,10 +161,17 @@ class AboutScreen extends StatelessWidget {
     required BuildContext context,
     required String title,
     required String content,
+    required String fullPolicyUrl,
     required String closeLabel,
+    required bool isBn,
+    required Future<void> Function(String) onLaunch,
   }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+
+    // Strip the URL line from content — we render it as a tappable button
+    final displayContent =
+        content.replaceAll(RegExp(r'\nhttps?://\S+'), '').trim();
 
     showModalBottomSheet(
       context: context,
@@ -176,13 +219,37 @@ class AboutScreen extends StatelessWidget {
             Expanded(
               child: SingleChildScrollView(
                 controller: scrollController,
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
-                child: Text(
-                  content,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    height: 1.75,
-                    color: colorScheme.onSurface,
-                  ),
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      displayContent,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        height: 1.75,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    // Full policy button
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () => onLaunch(fullPolicyUrl),
+                        icon: const Icon(Icons.open_in_new_rounded, size: 18),
+                        label: Text(
+                          isBn ? 'সম্পূর্ণ নীতি পড়ুন' : 'Read Full Policy',
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
                 ),
               ),
             ),

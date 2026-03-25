@@ -27,7 +27,6 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
   final GlobalKey<DateInputFieldState> _toDateKey =
       GlobalKey<DateInputFieldState>();
 
-  // Track whether user got a result — used to decide if interstitial fires
   bool _hadResult = false;
 
   @override
@@ -49,7 +48,6 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
         onPressed: () {
-          // Show interstitial only if user actually got a result
           if (_hadResult) {
             ref.read(adServiceProvider).showInterstitialIfAvailable(
               onClosed: () {
@@ -104,8 +102,6 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
         children: [
           _buildInstructionsCard(l10n, colorScheme, theme),
           const SizedBox(height: 24),
-
-          // ── From date ──────────────────────────────────────
           DateInputField(
             label: l10n.fromDate,
             subtitle:
@@ -119,10 +115,7 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
             },
             nextDateFieldKey: _toDateKey,
           ),
-
           const SizedBox(height: 20),
-
-          // ── To date ────────────────────────────────────────
           DateInputField(
             key: _toDateKey,
             label: l10n.toDate,
@@ -138,11 +131,9 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
               if (date != null) viewModel.setToDate(date);
             },
           ),
-
           const SizedBox(height: 12),
           _buildTodayChip(l10n, viewModel, colorScheme, theme),
           const SizedBox(height: 32),
-
           if (viewModel.calculationResult != null && viewModel.hasValidDates)
             _buildResultsSection(context, l10n, viewModel, colorScheme, theme)
           else if (viewModel.validationError == null)
@@ -151,8 +142,6 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
       ),
     );
   }
-
-  // ── Date picker ───────────────────────────────────────────
 
   Future<void> _showDatePicker(
     BuildContext context,
@@ -180,8 +169,6 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
       }
     }
   }
-
-  // ── Builders ──────────────────────────────────────────────
 
   Widget _buildInstructionsCard(
     AppLocalizations l10n,
@@ -262,7 +249,7 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
         ),
         const SizedBox(height: 16),
 
-        // ── Result card 1 ─────────────────────────────────
+        // ── Card 1: Years Months Days ─────────────────────
         ResultCard(
           title: l10n.yearsMonthsDays,
           value: _formatYearsMonthsDays(l10n, result),
@@ -271,28 +258,27 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
               context, l10n, _formatYearsMonthsDays(l10n, result)),
         ),
 
-        // ── Native ad after 1st result ────────────────────
         const Padding(
           padding: EdgeInsets.symmetric(vertical: 4),
           child: NativeAdWidget(style: NativeAdStyle.card),
         ),
 
-        // ── Result card 2 ─────────────────────────────────
-        ResultCard(
-          title: l10n.totalDays,
-          value: _formatTotalDays(l10n, result),
-          icon: Icons.event_rounded,
-          onCopy: () =>
-              _copyToClipboard(context, l10n, _formatTotalDays(l10n, result)),
-        ),
-
-        // ── Result card 3 ─────────────────────────────────
+        // ── Card 2: ___ Weeks ___ Days ────────────────────
         ResultCard(
           title: l10n.weeksAndDays,
           value: _formatWeeksAndDays(l10n, result),
           icon: Icons.date_range_rounded,
           onCopy: () => _copyToClipboard(
               context, l10n, _formatWeeksAndDays(l10n, result)),
+        ),
+
+        // ── Card 3: Total ___ Days ────────────────────────
+        ResultCard(
+          title: l10n.totalDays,
+          value: _formatTotalDays(l10n, result),
+          icon: Icons.event_rounded,
+          onCopy: () =>
+              _copyToClipboard(context, l10n, _formatTotalDays(l10n, result)),
         ),
 
         const SizedBox(height: 16),
@@ -349,10 +335,7 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
     );
   }
 
-  String _formatTotalDays(AppLocalizations l10n, dynamic result) {
-    return l10n.localizeNumber(result.totalDays ?? 0);
-  }
-
+  /// "___ weeks ___ days" — no comma, both parts always shown
   String _formatWeeksAndDays(AppLocalizations l10n, dynamic result) {
     final weeks = result.weeks ?? 0;
     final remainingDays = result.remainingDays ?? 0;
@@ -360,7 +343,15 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
     final daysStr = l10n.localizeNumber(remainingDays);
     final weeksLabel = weeks == 1 ? l10n.week : l10n.weeks;
     final daysLabel = remainingDays == 1 ? l10n.day : l10n.days;
-    return '$weeksStr $weeksLabel, $daysStr $daysLabel';
+    return '$weeksStr $weeksLabel $daysStr $daysLabel';
+  }
+
+  /// "___ days" — total day count with the days label
+  String _formatTotalDays(AppLocalizations l10n, dynamic result) {
+    final total = result.totalDays ?? 0;
+    final totalStr = l10n.localizeNumber(total);
+    final daysLabel = total == 1 ? l10n.day : l10n.days;
+    return '$totalStr $daysLabel';
   }
 
   Future<void> _copyToClipboard(

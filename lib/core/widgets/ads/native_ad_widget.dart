@@ -1,17 +1,10 @@
 // lib/core/widgets/ads/native_ad_widget.dart
-//
-// Self-contained native ad widget.
-// Drop <NativeAdWidget /> anywhere in a list — it handles
-// loading, rendering, and disposal internally.
-// Returns SizedBox.shrink() when enableNativeAds is false.
 
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:ekush_ponji/app/config/ad_config.dart';
 
 class NativeAdWidget extends StatefulWidget {
-  /// Visual style variant — use [NativeAdStyle.card] for list screens,
-  /// [NativeAdStyle.section] for gazette-type section separators.
   final NativeAdStyle style;
 
   const NativeAdWidget({
@@ -23,13 +16,7 @@ class NativeAdWidget extends StatefulWidget {
   State<NativeAdWidget> createState() => _NativeAdWidgetState();
 }
 
-enum NativeAdStyle {
-  /// Standard card — used in flat lists (events, reminders, saved quotes/words)
-  card,
-
-  /// Section separator style — used in gazette-type holiday sections
-  section,
-}
+enum NativeAdStyle { card, section }
 
 class _NativeAdWidgetState extends State<NativeAdWidget> {
   NativeAd? _nativeAd;
@@ -47,6 +34,15 @@ class _NativeAdWidgetState extends State<NativeAdWidget> {
     _nativeAd = NativeAd(
       adUnitId: AdConfig.native,
       factoryId: 'ekushNativeAd',
+      nativeAdOptions: NativeAdOptions(
+        videoOptions: VideoOptions(
+          startMuted: true,
+          clickToExpandRequested: false,
+          customControlsRequested: false,
+        ),
+        adChoicesPlacement: AdChoicesPlacement.topRightCorner,
+        shouldReturnUrlsForImageAssets: false,
+      ),
       listener: NativeAdListener(
         onAdLoaded: (ad) {
           if (!mounted) {
@@ -74,10 +70,7 @@ class _NativeAdWidgetState extends State<NativeAdWidget> {
 
   @override
   Widget build(BuildContext context) {
-    // Kill switch — render nothing if native ads are disabled
     if (!AdConfig.enableNativeAds) return const SizedBox.shrink();
-
-    // Not loaded yet — render nothing (no placeholder jump)
     if (!_isLoaded || _nativeAd == null) return const SizedBox.shrink();
 
     return widget.style == NativeAdStyle.section
@@ -85,7 +78,6 @@ class _NativeAdWidgetState extends State<NativeAdWidget> {
         : _buildCardStyle(context);
   }
 
-  // ── Card style — matches list item cards ─────────────────────
   Widget _buildCardStyle(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
@@ -102,34 +94,32 @@ class _NativeAdWidgetState extends State<NativeAdWidget> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // "Ad" label
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-            child: Row(
-              children: [
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: cs.primary.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    'Ad',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: cs.primary,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 10,
-                    ),
-                  ),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: cs.primary.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                'Ad',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: cs.primary,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 10,
                 ),
-              ],
+              ),
             ),
           ),
-          // Native ad content
+          // AdWidget MUST have a fixed height — it cannot infer its own size.
+          // 88dp matches our native layout: 8dp padding top + 40dp icon
+          // + text lines + 8dp padding bottom ≈ 88dp total.
           SizedBox(
-            height: 72,
+            width: double.infinity,
+            height: 88,
             child: AdWidget(ad: _nativeAd!),
           ),
         ],
@@ -137,7 +127,6 @@ class _NativeAdWidgetState extends State<NativeAdWidget> {
     );
   }
 
-  // ── Section style — matches gazette section separators ────────
   Widget _buildSectionStyle(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
@@ -156,8 +145,8 @@ class _NativeAdWidgetState extends State<NativeAdWidget> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // "Sponsored" label matching section header style
           Padding(
             padding: const EdgeInsets.fromLTRB(10, 6, 10, 0),
             child: Row(
@@ -180,9 +169,10 @@ class _NativeAdWidgetState extends State<NativeAdWidget> {
               ],
             ),
           ),
-          // Native ad content
+          // Same fixed height — matches native layout dimensions.
           SizedBox(
-            height: 72,
+            width: double.infinity,
+            height: 88,
             child: AdWidget(ad: _nativeAd!),
           ),
         ],

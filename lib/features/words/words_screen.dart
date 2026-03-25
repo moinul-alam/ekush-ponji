@@ -103,7 +103,6 @@ class _WordsScreenState extends BaseScreenState<WordsScreen>
     if (!mounted) return;
     setState(() {
       _notifPrefs = prefs;
-      // Only show as enabled if BOTH user pref AND OS permission are true
       _notifEnabled = prefs.enabled && osGranted;
     });
   }
@@ -112,11 +111,9 @@ class _WordsScreenState extends BaseScreenState<WordsScreen>
     final l10n = AppLocalizations.of(context);
 
     if (!_notifEnabled) {
-      // User wants to enable — check OS permission first
       final osGranted = await NotificationPermissionService.isGranted();
 
       if (!osGranted) {
-        // Request permission contextually
         final granted = await NotificationPermissionService.ensurePermission();
         if (granted) {
           await NotificationPermissionPrefs.markGranted();
@@ -233,19 +230,6 @@ class _WordsScreenState extends BaseScreenState<WordsScreen>
       title: AppHeader.title(context, l10n.wordOfTheDay),
       centerTitle: true,
       actions: [
-        // ── Font size: decrease ──────────────────────────
-        IconButton(
-          icon: const Icon(Icons.text_decrease_rounded),
-          tooltip: 'Decrease font size',
-          onPressed: _wordFontScale <= 0.8 ? null : _decreaseFontSize,
-        ),
-        // ── Font size: increase ──────────────────────────
-        IconButton(
-          icon: const Icon(Icons.text_increase_rounded),
-          tooltip: 'Increase font size',
-          onPressed: _wordFontScale >= 1.6 ? null : _increaseFontSize,
-        ),
-        // ── Notification toggle ──────────────────────────
         IconButton(
           icon: Icon(
             _notifEnabled
@@ -262,7 +246,6 @@ class _WordsScreenState extends BaseScreenState<WordsScreen>
                   : 'Enable notifications'),
           onPressed: _toggleNotification,
         ),
-        // ── Saved words ──────────────────────────────────
         IconButton(
           icon: const Icon(Icons.favorite_rounded),
           tooltip: l10n.savedWords,
@@ -431,138 +414,160 @@ class _WordCard extends StatelessWidget {
             ),
           ),
           padding: const EdgeInsets.all(24),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ── Part of speech + actions ───────────────
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: colorScheme.tertiaryContainer,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        word.partOfSpeech,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: colorScheme.onTertiaryContainer,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── Share + Save actions (top right) ──────────
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  IconButton(
+                    onPressed: () => ShareService.shareWidget(
+                      widget: WordShareCard(word: word),
+                      fileBaseName: 'ekush_ponji_word_${word.storageKey}',
                     ),
-                    Row(
-                      children: [
-                        IconButton(
-                          onPressed: () => ShareService.shareWidget(
-                            widget: WordShareCard(word: word),
-                            fileBaseName: 'ekush_ponji_word_${word.storageKey}',
-                          ),
-                          icon: Icon(Icons.share_rounded,
-                              color: colorScheme.onSurfaceVariant),
-                          tooltip: l10n.share,
-                        ),
-                        IconButton(
-                          onPressed: onToggleSave,
-                          icon: Icon(
-                            word.isSaved
-                                ? Icons.favorite_rounded
-                                : Icons.favorite_outline_rounded,
-                            color: word.isSaved
-                                ? colorScheme.primary
-                                : colorScheme.onSurfaceVariant,
-                          ),
-                          tooltip: word.isSaved ? 'Unsave' : 'Save',
-                        ),
-                      ],
+                    icon: Icon(Icons.share_rounded,
+                        color: colorScheme.onSurfaceVariant),
+                    tooltip: l10n.share,
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                  const SizedBox(width: 12),
+                  IconButton(
+                    onPressed: onToggleSave,
+                    icon: Icon(
+                      word.isSaved
+                          ? Icons.favorite_rounded
+                          : Icons.favorite_outline_rounded,
+                      color: word.isSaved
+                          ? colorScheme.primary
+                          : colorScheme.onSurfaceVariant,
                     ),
-                  ],
-                ),
-
-                const SizedBox(height: 16),
-
-                // ── Word ──────────────────────────────────
-                Text(
-                  word.word,
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.tertiary,
-                    fontSize: (28 * fontScale).roundToDouble(),
+                    tooltip: word.isSaved ? 'Unsave' : 'Save',
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
                   ),
-                ),
+                ],
+              ),
 
-                // ── Pronunciation ─────────────────────────
-                const SizedBox(height: 4),
-                Text(
-                  word.pronunciation,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                    fontStyle: FontStyle.italic,
-                    fontSize: (14 * fontScale).roundToDouble(),
-                  ),
-                ),
+              const SizedBox(height: 12),
 
-                // ── Bangla meaning ────────────────────────
-                const SizedBox(height: 12),
-                Text(
-                  word.meaningBn,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    color: colorScheme.onSurface,
+              // ── Word (large, prominent) ────────────────────
+              Text(
+                word.word,
+                style: theme.textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.tertiary,
+                  fontSize: (32 * fontScale).roundToDouble(),
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              // ── Part of speech chip ────────────────────────
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                decoration: BoxDecoration(
+                  color: colorScheme.tertiaryContainer,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  word.partOfSpeech,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: colorScheme.onTertiaryContainer,
                     fontWeight: FontWeight.w600,
-                    fontSize: (28 * fontScale).roundToDouble(),
-                    height: 1.4,
                   ),
                 ),
+              ),
 
-                // ── Divider ───────────────────────────────
-                const SizedBox(height: 20),
-                Divider(
-                    color: colorScheme.outline.withValues(alpha: 0.3),
-                    height: 1),
-                const SizedBox(height: 20),
+              const SizedBox(height: 10),
 
-                // ── English meaning ───────────────────────
-                _buildSection(context,
-                    icon: Icons.lightbulb_outline_rounded,
-                    title: l10n.meaningEnglish,
-                    content: word.meaningEn,
-                    fontScale: fontScale),
-                const SizedBox(height: 16),
-
-                // ── Synonym ───────────────────────────────
-                _buildSection(context,
-                    icon: Icons.sync_alt_rounded,
-                    title: l10n.synonym,
-                    content: word.synonym,
-                    fontScale: fontScale),
-                const SizedBox(height: 16),
-
-                // ── Example ───────────────────────────────
-                _buildSection(context,
-                    icon: Icons.chat_bubble_outline_rounded,
-                    title: l10n.example,
-                    content: word.example,
-                    isItalic: true,
-                    fontScale: fontScale),
-
-                const SizedBox(height: 18),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Text(
-                    'Ekush Ponji',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color:
-                          colorScheme.onSurfaceVariant.withValues(alpha: 0.55),
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.6,
+              // ── Pronunciation (with speaker icon) ──────────
+              Row(
+                children: [
+                  Icon(
+                    Icons.volume_up_rounded,
+                    size: 16,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    word.pronunciation,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      fontStyle: FontStyle.italic,
+                      fontSize: (14 * fontScale).roundToDouble(),
                     ),
                   ),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              // ── Bengali meaning ────────────────────────────
+              Text(
+                word.meaningBn,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  color: colorScheme.onSurface,
+                  fontWeight: FontWeight.w600,
+                  fontSize: (24 * fontScale).roundToDouble(),
+                  height: 1.4,
                 ),
-              ],
-            ),
+              ),
+
+              // ── Divider ───────────────────────────────────
+              const SizedBox(height: 20),
+              Divider(
+                  color: colorScheme.outline.withValues(alpha: 0.3), height: 1),
+              const SizedBox(height: 20),
+
+              // ── Scrollable lower sections ──────────────────
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildSection(context,
+                          icon: Icons.lightbulb_outline_rounded,
+                          title: l10n.meaningEnglish,
+                          content: word.meaningEn,
+                          fontScale: fontScale),
+                      const SizedBox(height: 16),
+                      _buildSection(context,
+                          icon: Icons.sync_alt_rounded,
+                          title: l10n.synonym,
+                          content: word.synonym,
+                          fontScale: fontScale),
+                      const SizedBox(height: 16),
+                      _buildSection(context,
+                          icon: Icons.chat_bubble_outline_rounded,
+                          title: l10n.example,
+                          content: word.example,
+                          isItalic: true,
+                          fontScale: fontScale),
+                      const SizedBox(height: 18),
+
+                      // ── Brand watermark (bottom right) ─────
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: Text(
+                          'একুশ পঞ্জি',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant
+                                .withValues(alpha: 0.55),
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.6,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),

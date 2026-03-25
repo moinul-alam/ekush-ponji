@@ -20,7 +20,6 @@ class QuoteShareCard extends StatelessWidget {
     const accentGreen = Color(0xFF006B54);
     const accentTeal = Color(0xFF3D6373);
     const textDark = Color(0xFF1A2E27);
-    const textMid = Color(0xFF4A6359);
     const chipBg = Color(0xFFD0F5EA);
     const chipText = Color(0xFF004D3B);
 
@@ -58,8 +57,8 @@ class QuoteShareCard extends StatelessWidget {
               children: [
                 // Category chip
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                   decoration: BoxDecoration(
                     color: chipBg,
                     borderRadius: BorderRadius.circular(20),
@@ -140,14 +139,6 @@ class QuoteShareCard extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 2),
-                          const Text(
-                            'via Ekush Ponji',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: textMid,
-                              letterSpacing: 0.3,
-                            ),
-                          ),
                         ],
                       ),
                     ),
