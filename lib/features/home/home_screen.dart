@@ -71,7 +71,7 @@ class _HomeScreenState extends BaseScreenState<HomeScreen> {
   @override
   PreferredSizeWidget? buildAppBar(BuildContext context, WidgetRef ref) {
     return const AppHeader(
-      logoPadding: const EdgeInsets.only(top: 5),
+      logoPadding: EdgeInsets.only(top: 5),
     );
   }
 

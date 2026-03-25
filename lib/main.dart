@@ -9,7 +9,6 @@ import 'package:ekush_ponji/app/config/app_initializer.dart';
 import 'package:ekush_ponji/app/providers/app_providers.dart';
 
 /// Stores the notification payload from a cold-start tap.
-/// Read once by SplashScreen, then cleared.
 String? pendingNotificationPayload;
 
 Future<void> main() async {
@@ -21,8 +20,6 @@ Future<void> main() async {
 
     // ─────────────────────────────────────────────
     // Phase 1 — Absolute minimum before runApp
-    // Only what ThemeModeNotifier / LocaleNotifier
-    // need synchronously during their first build().
     // ─────────────────────────────────────────────
     try {
       await AppInitializer.initializeCore().timeout(const Duration(seconds: 3));
@@ -32,7 +29,6 @@ Future<void> main() async {
     }
 
     // Read cold-start notification payload BEFORE runApp so SplashScreen
-    // can route directly to the correct screen without any delay.
     pendingNotificationPayload = await AppInitializer.getColdStartPayload();
 
     // Pre-create provider container
