@@ -1,5 +1,3 @@
-// lib/app/config/app_initializer.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,7 +20,6 @@ import 'package:ekush_ponji/features/quotes/services/quote_notification_service.
 import 'package:ekush_ponji/features/quotes/services/quote_notification_prefs.dart';
 import 'package:ekush_ponji/features/words/services/word_notification_service.dart';
 import 'package:ekush_ponji/features/words/services/word_notification_prefs.dart';
-
 import 'package:ekush_ponji/features/quotes/data/datasources/local/quotes_local_datasource.dart'
     show savedQuotesBoxName;
 import 'package:ekush_ponji/features/words/data/datasources/local/words_local_datasource.dart'
@@ -38,15 +35,18 @@ class AppInitializer {
 
   static void _log(String msg) => debugPrint('[AppInit] $msg');
 
-  // ── Phase 1: Critical (Blocking) ──────────────────────────────────────────
-  // Only what ThemeModeNotifier / LocaleNotifier need during their
-  // synchronous build() call. Everything else moves to Phase 2.
-
   static Future<void> initializeCore() async {
     try {
       await Hive.initFlutter();
       _registerAdapters();
-      await Hive.openBox(settingsBoxName);
+      // All boxes opened here so every widget finds them ready on first build
+      await Future.wait([
+        Hive.openBox(settingsBoxName),
+        Hive.openBox('holidays'),
+        Hive.openBox<QuoteModel>(savedQuotesBoxName),
+        Hive.openBox<WordModel>(savedWordsBoxName),
+      ]);
+      await LocalNotificationService.initialize();
       _log('✅ Core initialization completed');
     } catch (e, st) {
       _log('❌ Core init failed: $e');
@@ -55,35 +55,17 @@ class AppInitializer {
     }
   }
 
-  // ── Phase 2: Background (Non-blocking) ────────────────────────────────────
-
   static Future<void> initializeBackground(ProviderContainer container) async {
     try {
-      // 1. Device orientation — safe to do after runApp
       await _setDeviceOrientation();
-
-      // 2. Open secondary Hive boxes — seed & notifications need them
-      await _openSecondaryHiveBoxes();
-
-      // 3. SharedPreferences
       await _initializeSharedPreferences();
-
-      // 4. Notifications plugin init (no permission request)
-      await _initializeNotifications();
-
-      // 5. WorkManager
       await _initializeWorkManager();
-
-      // 6. Data sync (seed bundled assets if first launch, then network sync)
       await _performDataSync(container);
-
-      // 7. Schedule notifications (parallel)
       await Future.wait([
         _scheduleHolidayNotifications(container),
         _scheduleQuoteNotifications(container),
         _scheduleWordNotifications(container),
       ]);
-
       _log('✅ Background initialization completed');
     } catch (e, st) {
       _log('⚠️ Background init error: $e');
@@ -91,29 +73,13 @@ class AppInitializer {
     }
   }
 
-  // ── Cold-start notification payload ───────────────────────────────────────
-
-  /// Returns the notification payload if the app was launched by tapping
-  /// a notification (cold start). Returns null if launched normally.
-  /// Must be called before runApp so the result is available synchronously
-  /// to SplashScreen on its first build.
   static Future<String?> getColdStartPayload() async {
     try {
-      final plugin = FlutterLocalNotificationsPlugin();
-      // Initialize minimally just to read the launch details
-      const androidSettings =
-          AndroidInitializationSettings('@mipmap/ic_launcher');
-      const iosSettings = DarwinInitializationSettings();
-      await plugin.initialize(
-        const InitializationSettings(
-          android: androidSettings,
-          iOS: iosSettings,
-        ),
-      );
-      final details = await plugin.getNotificationAppLaunchDetails();
+      final details = await FlutterLocalNotificationsPlugin()
+          .getNotificationAppLaunchDetails();
       if (details?.didNotificationLaunchApp == true) {
         final payload = details?.notificationResponse?.payload;
-        _log('📱 Cold-start notification payload: $payload');
+        _log('📱 Cold-start payload: $payload');
         return payload;
       }
     } catch (e) {
@@ -121,8 +87,6 @@ class AppInitializer {
     }
     return null;
   }
-
-  // ── Phase 1 Steps ──────────────────────────────────────────────────────────
 
   static void _registerAdapters() {
     if (_adaptersRegistered) return;
@@ -134,26 +98,11 @@ class AppInitializer {
     _adaptersRegistered = true;
   }
 
-  // ── Phase 2 Steps ──────────────────────────────────────────────────────────
-
   static Future<void> _setDeviceOrientation() async {
     await SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
-  }
-
-  static Future<void> _openSecondaryHiveBoxes() async {
-    try {
-      await Future.wait([
-        Hive.openBox('holidays'),
-        Hive.openBox<QuoteModel>(savedQuotesBoxName),
-        Hive.openBox<WordModel>(savedWordsBoxName),
-      ]);
-      _log('✅ Secondary Hive boxes opened');
-    } catch (e) {
-      _log('⚠️ Secondary boxes warning: $e');
-    }
   }
 
   static Future<void> _initializeSharedPreferences() async {
@@ -185,17 +134,9 @@ class AppInitializer {
     }
   }
 
-  static Future<void> _initializeNotifications() async {
-    await LocalNotificationService.initialize();
-  }
-
   static Future<void> _performDataSync(ProviderContainer container) async {
     try {
       final syncService = container.read(dataSyncServiceProvider);
-      // initialize() seeds bundled data on first launch, then runs
-      // background sync (Hijri offsets + manifest) on 7-day interval.
-      // ViewModels load their own data lazily when screens open —
-      // no eager loadQuotes()/loadWords() calls needed here.
       await syncService.initialize().timeout(
             const Duration(seconds: 8),
             onTimeout: () => _log('Data sync timeout → using cache'),
@@ -257,8 +198,6 @@ class AppInitializer {
     }
   }
 
-  // ── System UI ──────────────────────────────────────────────────────────────
-
   static void updateSystemUIFromTheme(
       BuildContext context, ThemeMode themeMode) {
     final brightness = MediaQuery.of(context).platformBrightness;
@@ -276,8 +215,6 @@ class AppInitializer {
           isDark ? Brightness.light : Brightness.dark,
     ));
   }
-
-  // ── Cleanup ────────────────────────────────────────────────────────────────
 
   static Future<void> dispose() async {
     await Hive.close();

@@ -5,9 +5,12 @@
 // Does NOT own scheduling logic — that belongs to DataSyncService.
 //
 // SYNC BEHAVIOUR:
-//   • force=false → skip if interval not due OR remote version <= local
-//   • force=true  → skip interval check only; version check always runs
-//   • Downloads only if remote version > localVersion (always, no exceptions)
+//   • force=false → skip if interval not due AND manifest unchanged
+//   • force=true  → skip interval check only
+//   • Downloads if remote dataset version increased OR manifest "stamp" changed.
+//     Stamp = manifestVersion + lastUpdated + holidays.version + sorted file URLs.
+//     So bumping root manifestVersion/lastUpdated in manifest.json (without
+//     changing datasets.holidays.version) still triggers a refresh.
 
 import 'dart:convert';
 
@@ -27,6 +30,7 @@ class HolidaySyncService implements BaseSyncService {
   static const String _seededKey = 'holidays_seeded_v1';
   static const String _versionKey = 'holidays_version';
   static const String _lastCheckKey = 'holidays_last_check';
+  static const String _manifestStampKey = 'holidays_manifest_stamp';
   static const String _govtHolidaysPrefix = 'govt_holidays_';
 
   // ── Config ─────────────────────────────────────────────────
@@ -41,6 +45,17 @@ class HolidaySyncService implements BaseSyncService {
 
   Box get _settingsBox => Hive.box(_settingsBoxName);
   Box get _holidaysBox => Hive.box(_holidaysBoxName);
+
+  /// Fingerprint of remote manifest slice that affects holidays (not only
+  /// datasets.holidays.version — includes root metadata and file set).
+  static String manifestStamp(AppManifest manifest) {
+    final years = manifest.holidays.files.keys.map((k) => k.toString()).toList()
+      ..sort();
+    final pathSig =
+        years.map((y) => manifest.holidays.files[y] ?? '').join('|');
+    return '${manifest.manifestVersion}|${manifest.lastUpdated}|'
+        '${manifest.holidays.version}|$pathSig';
+  }
 
   // ── BaseSyncService contract ───────────────────────────────
 
@@ -108,18 +123,33 @@ class HolidaySyncService implements BaseSyncService {
     // Step 2 — Always record the check time so the interval resets
     await _settingsBox.put(_lastCheckKey, DateTime.now().toIso8601String());
 
-    // Step 3 — Version gate (ALWAYS checked, even when force=true)
+    // Step 3 — Version + manifest stamp (checked even when force=true)
     final remote = manifest.holidays;
-    debugPrint('📋 Holidays: remote v${remote.version} / local v$localVersion');
+    final newStamp = manifestStamp(manifest);
+    final oldStamp =
+        _settingsBox.get(_manifestStampKey, defaultValue: '') as String;
+    final versionHigher = remote.version > localVersion;
+    final stampChanged = newStamp != oldStamp;
 
-    if (remote.version <= localVersion) {
-      debugPrint('✅ Holidays: already at latest version — no download needed');
+    debugPrint(
+        '📋 Holidays: remote v${remote.version} / local v$localVersion '
+        '| stampChanged=$stampChanged');
+
+    if (!versionHigher && !stampChanged) {
+      debugPrint(
+          '✅ Holidays: version and manifest stamp unchanged — no download');
       return false;
     }
 
     // Step 4 — Download updated years
-    debugPrint(
-        '⬇️ Holidays: new version ${remote.version} available — downloading...');
+    if (versionHigher) {
+      debugPrint(
+          '⬇️ Holidays: dataset version ${remote.version} > local — downloading...');
+    } else {
+      debugPrint(
+          '⬇️ Holidays: manifest stamp changed (e.g. lastUpdated / manifestVersion '
+          '/ file list) — re-downloading...');
+    }
 
     int updatedCount = 0;
     for (final year in remote.availableYears) {
@@ -146,6 +176,7 @@ class HolidaySyncService implements BaseSyncService {
 
     if (updatedCount > 0) {
       await _settingsBox.put(_versionKey, remote.version);
+      await _settingsBox.put(_manifestStampKey, newStamp);
       debugPrint(
           '✅ Holidays sync complete: $updatedCount years → v${remote.version}');
       return true;

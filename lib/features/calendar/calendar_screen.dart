@@ -14,6 +14,7 @@ import 'package:ekush_ponji/features/calendar/widgets/calendar_visibilities.dart
 import 'package:ekush_ponji/features/calendar/widgets/day_details_panel.dart';
 import 'package:ekush_ponji/features/calendar/widgets/calendar_holidays_widget.dart';
 import 'package:ekush_ponji/core/widgets/pickers/custom_month_year_picker.dart';
+import 'package:ekush_ponji/core/widgets/loading/app_loading_spinner.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ekush_ponji/core/widgets/navigation/app_header.dart';
@@ -74,21 +75,13 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
     final monthData = viewModel.currentMonthData;
 
     if (viewState is ViewStateLoading && monthData == null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(height: 16),
-            Text(l10n.loadingData,
-                style: Theme.of(context).textTheme.bodyMedium),
-          ],
-        ),
-      );
+      return const Center(child: AppLoadingSpinner(size: 34, strokeWidth: 3.2));
     }
 
     if (viewState is ViewStateError) return buildErrorWidget(viewState);
-    if (monthData == null) return Center(child: Text(l10n.loadingData));
+    if (monthData == null) {
+      return const Center(child: AppLoadingSpinner(size: 34, strokeWidth: 3.2));
+    }
 
     final hijriMonthsDisplay = hijriService.getHijriMonthsDisplay(
       gregorianYear: monthData.gregorianYear,

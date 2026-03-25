@@ -1,15 +1,28 @@
 // lib/core/widgets/ads/native_ad_widget.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:ekush_ponji/app/config/ad_config.dart';
 
 class NativeAdWidget extends StatefulWidget {
   final NativeAdStyle style;
 
+  /// When [style] is [NativeAdStyle.card], overrides outer margin (default 16h / 4v).
+  final EdgeInsetsGeometry? cardMargin;
+
+  /// When [style] is [NativeAdStyle.card], overrides corner radius (default 12).
+  final double? cardBorderRadius;
+
+  /// When [style] is [NativeAdStyle.card], overrides surface tint (default 0.5).
+  final double? cardSurfaceAlpha;
+
   const NativeAdWidget({
     super.key,
     this.style = NativeAdStyle.card,
+    this.cardMargin,
+    this.cardBorderRadius,
+    this.cardSurfaceAlpha,
   });
 
   @override
@@ -19,8 +32,42 @@ class NativeAdWidget extends StatefulWidget {
 enum NativeAdStyle { card, section }
 
 class _NativeAdWidgetState extends State<NativeAdWidget> {
+  double _adHeightFor(BuildContext context) {
+    // Android native templates include media assets; keep a larger host height
+    // to avoid "ad too small" validation issues on video/image creatives.
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+      final screenSize = MediaQuery.sizeOf(context);
+      final isCompact = screenSize.height <
+              AdConfig.nativeCompactHeightThreshold ||
+          screenSize.shortestSide < AdConfig.nativeCompactShortestSideThreshold;
+      final isVeryCompact =
+          screenSize.height < AdConfig.nativeVeryCompactHeightThreshold ||
+              screenSize.shortestSide <
+                  AdConfig.nativeVeryCompactShortestSideThreshold;
+
+      final base = widget.style == NativeAdStyle.section
+          ? AdConfig.nativeSectionBaseHeightAndroid
+          : AdConfig.nativeCardBaseHeightAndroid;
+      final reduced = isVeryCompact
+          ? (base - AdConfig.nativeVeryCompactReductionAndroid)
+          : isCompact
+              ? (base - AdConfig.nativeCompactReductionAndroid)
+              : base;
+
+      // Keep lower bound high enough for media + text native layouts.
+      return reduced.clamp(
+        AdConfig.nativeMinHeightAndroid,
+        AdConfig.nativeMaxHeightAndroid,
+      );
+    }
+    return widget.style == NativeAdStyle.section
+        ? AdConfig.nativeSectionHeightDefault
+        : AdConfig.nativeCardHeightDefault;
+  }
+
   NativeAd? _nativeAd;
   bool _isLoaded = false;
+  int _noFillRetries = 0;
 
   @override
   void initState() {
@@ -49,12 +96,34 @@ class _NativeAdWidgetState extends State<NativeAdWidget> {
             ad.dispose();
             return;
           }
+          _noFillRetries = 0;
           setState(() => _isLoaded = true);
         },
         onAdFailedToLoad: (ad, error) {
-          debugPrint('❌ NativeAd failed to load: ${error.message}');
           ad.dispose();
           _nativeAd = null;
+          final isNoFill = error.code == 3;
+          if (AdConfig.nativeRetryOnNoFill &&
+              isNoFill &&
+              _noFillRetries < AdConfig.nativeNoFillMaxRetries &&
+              mounted) {
+            _noFillRetries++;
+            debugPrint(
+              '⚠️ NativeAd no fill (code 3), retry '
+              '$_noFillRetries/${AdConfig.nativeNoFillMaxRetries} in '
+              '${AdConfig.nativeNoFillRetrySeconds}s',
+            );
+            Future<void>.delayed(
+              Duration(seconds: AdConfig.nativeNoFillRetrySeconds),
+              () {
+                if (!mounted || !AdConfig.enableNativeAds) return;
+                _loadAd();
+              },
+            );
+            return;
+          }
+          _noFillRetries = 0;
+          debugPrint('❌ NativeAd failed to load: ${error.message}');
         },
       ),
       request: const AdRequest(),
@@ -81,14 +150,19 @@ class _NativeAdWidgetState extends State<NativeAdWidget> {
   Widget _buildCardStyle(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
+    final adHeight = _adHeightFor(context);
+    final margin = widget.cardMargin ??
+        const EdgeInsets.symmetric(horizontal: 16, vertical: 4);
+    final radius = widget.cardBorderRadius ?? 12.0;
+    final surfaceAlpha = widget.cardSurfaceAlpha ?? 0.5;
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      margin: margin,
       decoration: BoxDecoration(
-        color: cs.surfaceContainerHighest.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(12),
+        color: cs.surfaceContainerHighest.withValues(alpha: surfaceAlpha),
+        borderRadius: BorderRadius.circular(radius),
         border: Border.all(
-          color: cs.outlineVariant.withOpacity(0.4),
+          color: cs.outlineVariant.withValues(alpha: 0.4),
           width: 1,
         ),
       ),
@@ -101,7 +175,7 @@ class _NativeAdWidgetState extends State<NativeAdWidget> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: cs.primary.withOpacity(0.12),
+                color: cs.primary.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(
@@ -115,11 +189,9 @@ class _NativeAdWidgetState extends State<NativeAdWidget> {
             ),
           ),
           // AdWidget MUST have a fixed height — it cannot infer its own size.
-          // 88dp matches our native layout: 8dp padding top + 40dp icon
-          // + text lines + 8dp padding bottom ≈ 88dp total.
           SizedBox(
             width: double.infinity,
-            height: 88,
+            height: adHeight,
             child: AdWidget(ad: _nativeAd!),
           ),
         ],
@@ -130,15 +202,16 @@ class _NativeAdWidgetState extends State<NativeAdWidget> {
   Widget _buildSectionStyle(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
+    final adHeight = _adHeightFor(context);
 
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(vertical: 2),
       decoration: BoxDecoration(
-        color: cs.surfaceContainerHighest.withOpacity(0.35),
+        color: cs.surfaceContainerHighest.withValues(alpha: 0.35),
         border: Border(
           left: BorderSide(
-            color: cs.outlineVariant.withOpacity(0.6),
+            color: cs.outlineVariant.withValues(alpha: 0.6),
             width: 4,
           ),
         ),
@@ -154,13 +227,13 @@ class _NativeAdWidgetState extends State<NativeAdWidget> {
                 Icon(
                   Icons.campaign_outlined,
                   size: 14,
-                  color: cs.onSurfaceVariant.withOpacity(0.5),
+                  color: cs.onSurfaceVariant.withValues(alpha: 0.5),
                 ),
                 const SizedBox(width: 6),
                 Text(
                   'Sponsored',
                   style: theme.textTheme.labelSmall?.copyWith(
-                    color: cs.onSurfaceVariant.withOpacity(0.5),
+                    color: cs.onSurfaceVariant.withValues(alpha: 0.5),
                     fontWeight: FontWeight.w600,
                     fontSize: 10,
                     letterSpacing: 0.3,
@@ -169,10 +242,9 @@ class _NativeAdWidgetState extends State<NativeAdWidget> {
               ],
             ),
           ),
-          // Same fixed height — matches native layout dimensions.
           SizedBox(
             width: double.infinity,
-            height: 88,
+            height: adHeight,
             child: AdWidget(ad: _nativeAd!),
           ),
         ],

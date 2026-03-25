@@ -14,6 +14,7 @@ import 'package:ekush_ponji/features/home/widgets/home_events_widget.dart';
 import 'package:ekush_ponji/features/home/widgets/daily_quote_widget.dart';
 import 'package:ekush_ponji/features/home/widgets/daily_word_widget.dart';
 import 'package:ekush_ponji/features/home/widgets/app_review_banner.dart';
+import 'package:ekush_ponji/core/widgets/ads/native_ad_widget.dart';
 
 class HomeScreen extends BaseScreen {
   const HomeScreen({super.key});
@@ -38,20 +39,17 @@ class _HomeScreenState extends BaseScreenState<HomeScreen> {
   @override
   bool get enablePullToRefresh => true;
 
+  // Never show a loading overlay — home renders immediately from cache
   @override
   bool get showLoadingOverlay => false;
 
   @override
   void onScreenInit() {
-    // Trigger review check on every home screen load
     _checkAppReview();
   }
 
   Future<void> _checkAppReview() async {
-    // Record the launch and potentially trigger native review
     await AppReviewService.onAppLaunch();
-
-    // Check if fallback banner should be shown
     final showBanner = await AppReviewService.shouldShowFallbackBanner();
     if (mounted) {
       setState(() => _showReviewBanner = showBanner);
@@ -71,7 +69,7 @@ class _HomeScreenState extends BaseScreenState<HomeScreen> {
   @override
   PreferredSizeWidget? buildAppBar(BuildContext context, WidgetRef ref) {
     return const AppHeader(
-      logoPadding: const EdgeInsets.only(top: 5),
+      logoPadding: EdgeInsets.only(top: 5),
     );
   }
 
@@ -85,10 +83,9 @@ class _HomeScreenState extends BaseScreenState<HomeScreen> {
   Widget buildBody(BuildContext context, WidgetRef ref) {
     final viewState = ref.watch(homeViewModelProvider);
 
-    if (viewState is ViewStateLoading && !viewState.isRefreshing) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
+    // On error show error widget, otherwise always show content
+    // Even during loading — Hive data loads fast enough that
+    // the widgets populate before the first frame is visible
     if (viewState is ViewStateError) {
       return buildErrorWidget(viewState);
     }
@@ -109,9 +106,14 @@ class _HomeScreenState extends BaseScreenState<HomeScreen> {
           const SizedBox(height: 8),
           const DailyQuoteWidget(),
           const SizedBox(height: 8),
+          const NativeAdWidget(
+            style: NativeAdStyle.card,
+            cardMargin: EdgeInsets.fromLTRB(4, 4, 4, 4),
+            cardBorderRadius: 16,
+            cardSurfaceAlpha: 0.35,
+          ),
+          const SizedBox(height: 8),
           const DailyWordWidget(),
-
-          // ── Fallback review banner ─────────────────────
           if (_showReviewBanner) ...[
             const SizedBox(height: 8),
             AppReviewBanner(

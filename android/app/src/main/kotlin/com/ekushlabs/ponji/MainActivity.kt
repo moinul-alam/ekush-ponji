@@ -3,8 +3,6 @@ package com.ekushlabs.ponji
 import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.nativead.NativeAdView
 import com.google.android.gms.ads.nativead.MediaView
-import com.google.android.gms.ads.nativead.NativeAdOptions
-import com.google.android.gms.ads.VideoOptions
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugins.googlemobileads.GoogleMobileAdsPlugin
@@ -42,12 +40,12 @@ class EkushNativeAdFactory(private val context: Context) :
         val adView = inflater.inflate(R.layout.native_ad, null) as NativeAdView
 
         // ── MediaView ─────────────────────────────────────────────────────────
-        // Always registered (AdMob policy requirement) but always hidden.
-        // We explicitly request no-video ads in native_ad_widget.dart,
-        // so media content will never be shown to users.
+        // Keep media container visible so video/image creatives can render.
+        // This also avoids native-validator "ad too small" issues caused by
+        // collapsing required media area.
         val mediaView = adView.findViewById<MediaView>(R.id.ad_media)
         adView.mediaView = mediaView
-        mediaView.visibility = View.GONE
+        mediaView.visibility = View.VISIBLE
 
         // ── Headline ──────────────────────────────────────────────────────────
         val headlineView = adView.findViewById<TextView>(R.id.ad_headline)

@@ -5,11 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'package:ekush_ponji/core/services/data_sync_service.dart';
-import 'package:ekush_ponji/app/router/route_names.dart';
-import 'package:ekush_ponji/features/onboarding/onboarding_viewmodel.dart';
 import 'package:ekush_ponji/core/widgets/navigation/app_bottom_nav.dart';
 
-// ── Box and key constants ──────────────────────────────────
 const String settingsBoxName = 'settings';
 const String _themeKey = 'themeMode';
 const String _localeKey = 'languageCode';
@@ -55,40 +52,32 @@ class ThemeModeNotifier extends Notifier<ThemeMode> {
               ? 'system'
               : 'light';
       box.put(_themeKey, themeString);
-      debugPrint('✅ Theme mode saved: $themeString');
     } catch (e) {
       debugPrint('❌ Error saving theme mode: $e');
     }
   }
 
   void setThemeModeWithFeedback(
-    BuildContext context,
-    ThemeMode mode,
-    String message,
-  ) {
+      BuildContext context, ThemeMode mode, String message) {
     setThemeMode(mode);
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(message),
+      duration: const Duration(seconds: 2),
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+    ));
   }
 
   void toggleThemeWithFeedback(BuildContext context, String message) {
     toggleTheme();
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(message),
+      duration: const Duration(seconds: 2),
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+    ));
   }
 }
 
@@ -113,7 +102,6 @@ class LocaleNotifier extends Notifier<Locale> {
       state = newLocale;
       final box = Hive.box(settingsBoxName);
       await box.put(_localeKey, newLocale.languageCode);
-      debugPrint('✅ Locale changed to: ${newLocale.languageCode}');
       return true;
     } catch (e) {
       debugPrint('❌ Error saving locale: $e');
@@ -157,9 +145,7 @@ class LocaleNotifier extends Notifier<Locale> {
       ];
 
   Future<void> setLocaleWithFeedback(
-    BuildContext context,
-    Locale newLocale,
-  ) async {
+      BuildContext context, Locale newLocale) async {
     final success = await setLocale(newLocale);
     if (!context.mounted) return;
     _showFeedback(context, success);
@@ -179,33 +165,17 @@ class LocaleNotifier extends Notifier<Locale> {
         : (state.languageCode == 'bn'
             ? 'ভাষা পরিবর্তন ব্যর্থ হয়েছে'
             : 'Failed to change language');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: success ? Colors.green : Colors.red,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(message),
+      duration: const Duration(seconds: 2),
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: success ? Colors.green : Colors.red,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+    ));
   }
 }
 
-/// App Readiness Notifier — flips to true when background init completes
-class AppReadyNotifier extends Notifier<bool> {
-  @override
-  bool build() => false;
-
-  void setReady() => state = true;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// CURRENT TAB NOTIFIER
-// Tracks the active shell tab so the root scaffold's AppBottomNav
-// can highlight the correct tab regardless of which scaffold rendered it.
-// Use AppTab constants as values. AppTab.none (-1) = standalone screen.
-// ─────────────────────────────────────────────────────────────────────────────
-
+/// Current Tab Notifier
 class CurrentTabNotifier extends Notifier<int> {
   @override
   int build() => AppTab.home;
@@ -223,25 +193,15 @@ class CurrentTabNotifier extends Notifier<int> {
 
 // ── Providers ──────────────────────────────────────────────
 
-final appReadyProvider = NotifierProvider<AppReadyNotifier, bool>(
-  AppReadyNotifier.new,
-);
-
 final themeModeProvider =
     NotifierProvider<ThemeModeNotifier, ThemeMode>(ThemeModeNotifier.new);
 
 final localeProvider =
     NotifierProvider<LocaleNotifier, Locale>(LocaleNotifier.new);
 
-/// Tracks the currently active shell tab for the persistent root nav bar.
 final currentTabProvider =
     NotifierProvider<CurrentTabNotifier, int>(CurrentTabNotifier.new);
 
-/// Singleton DataSyncService — shared across the entire app.
 final dataSyncServiceProvider = Provider<DataSyncService>((ref) {
   return DataSyncService();
-});
-
-final initialDestinationProvider = Provider<String>((ref) {
-  return isOnboardingDone() ? RouteNames.home : RouteNames.onboarding;
 });

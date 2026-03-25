@@ -1,9 +1,6 @@
-// lib/app/router/app_router.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:ekush_ponji/features/splash/splash_screen.dart';
 import 'package:ekush_ponji/features/home/home_screen.dart';
 import 'package:ekush_ponji/features/calendar/calendar_screen.dart';
 import 'package:ekush_ponji/features/calendar/day_details_screen.dart';
@@ -28,6 +25,8 @@ import 'package:ekush_ponji/features/holidays/holidays_screen.dart';
 import 'package:ekush_ponji/features/about/about_screen.dart';
 import 'package:ekush_ponji/features/onboarding/onboarding_screen.dart';
 import 'package:ekush_ponji/app/providers/app_providers.dart';
+import 'package:ekush_ponji/features/onboarding/onboarding_viewmodel.dart';
+import 'package:ekush_ponji/main.dart' show pendingNotificationPayload;
 
 class AppRouter {
   AppRouter._();
@@ -35,29 +34,25 @@ class AppRouter {
   static final GlobalKey<NavigatorState> navigatorKey =
       GlobalKey<NavigatorState>();
 
-  static const _noBarRoutes = {
-    RouteNames.splash,
-    RouteNames.onboarding,
-  };
+  static const _noBarRoutes = {RouteNames.onboarding};
 
   static final GoRouter router = GoRouter(
     navigatorKey: navigatorKey,
-    initialLocation: RouteNames.splash,
+    initialLocation:
+        isOnboardingDone() ? RouteNames.home : RouteNames.onboarding,
     debugLogDiagnostics: false,
+    redirect: (context, state) {
+      final payload = pendingNotificationPayload;
+      if (payload == null || payload.isEmpty) return null;
+      pendingNotificationPayload = null;
+      return _payloadToRoute(payload);
+    },
     routes: [
-      // ── Splash & Onboarding — no nav bar ────────────────────
-      GoRoute(
-        path: RouteNames.splash,
-        name: 'splash',
-        builder: (context, state) => const SplashScreen(),
-      ),
       GoRoute(
         path: RouteNames.onboarding,
         name: 'onboarding',
         builder: (context, state) => const OnboardingScreen(),
       ),
-
-      // ── Root shell — persistent banner + nav bar ─────────────
       ShellRoute(
         builder: (context, state, child) {
           final location = state.uri.toString();
@@ -65,7 +60,6 @@ class AppRouter {
           return RootScaffold(showBar: showBar, child: child);
         },
         routes: [
-          // ── Settings & About (no tab highlight) ───────────────
           GoRoute(
             path: RouteNames.settings,
             name: 'settings',
@@ -76,8 +70,6 @@ class AppRouter {
             name: 'about',
             builder: (context, state) => const AboutScreen(),
           ),
-
-          // ── Tab Shell — Home, Calendar, Holidays ──────────────
           StatefulShellRoute.indexedStack(
             builder: (context, state, navigationShell) {
               return _TabShellBody(navigationShell: navigationShell);
@@ -102,7 +94,9 @@ class AppRouter {
                       GoRoute(
                         path: 'day-details',
                         name: 'calendarDayDetails',
-                        builder: (context, state) => const DayDetailsScreen(),
+                        builder: (context, state) => DayDetailsScreen(
+                          initialDate: state.extra as DateTime?,
+                        ),
                       ),
                       GoRoute(
                         path: 'add-event',
@@ -147,19 +141,11 @@ class AppRouter {
               ),
             ],
           ),
-
-          // ── Standalone routes ─────────────────────────────────
-
           GoRoute(
             path: RouteNames.calculator,
             name: 'calculator',
             builder: (context, state) => const CalculatorScreen(),
           ),
-
-          // ── Events list + standalone add/edit ─────────────────
-          // These standalone routes are used by EventsListScreen and
-          // RemindersListScreen so they don't need to push into the
-          // nested calendar shell branch (which causes a freeze).
           GoRoute(
             path: RouteNames.eventsList,
             name: 'eventsList',
@@ -179,8 +165,6 @@ class AppRouter {
               eventToEdit: state.extra as Event,
             ),
           ),
-
-          // ── Reminders list + standalone add/edit ──────────────
           GoRoute(
             path: RouteNames.reminders,
             name: 'reminders',
@@ -200,8 +184,6 @@ class AppRouter {
               reminderToEdit: state.extra as Reminder,
             ),
           ),
-
-          // Quotes
           GoRoute(
             path: RouteNames.quotes,
             name: 'quotes',
@@ -214,8 +196,6 @@ class AppRouter {
             name: 'savedQuotes',
             builder: (context, state) => const SavedQuotesScreen(),
           ),
-
-          // Words
           GoRoute(
             path: RouteNames.words,
             name: 'words',
@@ -233,19 +213,23 @@ class AppRouter {
     ],
     errorBuilder: (context, state) => _ErrorScreen(state: state),
   );
-}
 
-// ─────────────────────────────────────────────────────────────────────────────
+  static String? _payloadToRoute(String payload) {
+    if (payload == 'holiday') return RouteNames.holidays;
+    if (payload.startsWith('quote:')) return RouteNames.quotes;
+    if (payload.startsWith('word:')) return RouteNames.words;
+    if (payload.startsWith('event:') || payload.startsWith('reminder:')) {
+      return RouteNames.calendar;
+    }
+    return RouteNames.home;
+  }
+}
 
 class RootScaffold extends ConsumerWidget {
   final Widget child;
   final bool showBar;
 
-  const RootScaffold({
-    super.key,
-    required this.child,
-    required this.showBar,
-  });
+  const RootScaffold({super.key, required this.child, required this.showBar});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -283,8 +267,6 @@ class RootScaffold extends ConsumerWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-
 class _TabShellBody extends ConsumerWidget {
   final StatefulNavigationShell navigationShell;
 
@@ -314,8 +296,6 @@ class _TabShellBody extends ConsumerWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-
 class _ErrorScreen extends StatelessWidget {
   final GoRouterState state;
   const _ErrorScreen({required this.state});
@@ -336,9 +316,8 @@ class _ErrorScreen extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               state.uri.toString(),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+              style: theme.textTheme.bodySmall
+                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
