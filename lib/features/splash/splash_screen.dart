@@ -3,13 +3,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:ekush_ponji/app/providers/app_providers.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
 import 'package:ekush_ponji/features/splash/widgets/logo_splash_widget.dart';
 import 'package:ekush_ponji/main.dart' show pendingNotificationPayload;
 
 class SplashScreen extends ConsumerStatefulWidget {
-  const SplashScreen({super.key});
+  final String initialRoute;
+
+  const SplashScreen({
+    super.key,
+    required this.initialRoute,
+  });
 
   @override
   ConsumerState<SplashScreen> createState() => _SplashScreenState();
@@ -22,7 +26,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _appReady = ref.read(appReadyProvider);
+
+    // Simulate app readiness (replace with real init later if needed)
+    Future.delayed(const Duration(milliseconds: 800), () {
+      if (mounted) _onAppReady();
+    });
   }
 
   void _onAnimationComplete() {
@@ -39,9 +47,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     if (!_appReady || !_animationDone) return;
     if (!mounted) return;
 
-    final destination = ref.read(initialDestinationProvider);
+    final destination = widget.initialRoute;
 
     final payload = pendingNotificationPayload;
+
     if (payload != null && payload.isNotEmpty) {
       pendingNotificationPayload = null;
       _handlePayload(payload, fallback: destination);
@@ -78,6 +87,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
       final dateStr = payload.startsWith('event:')
           ? payload.substring('event:'.length)
           : payload.substring('reminder:'.length);
+
       try {
         final date = DateTime.parse(dateStr);
         context.go(RouteNames.calendar);
@@ -93,10 +103,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<bool>(appReadyProvider, (_, isReady) {
-      if (isReady) _onAppReady();
-    });
-
     final size = MediaQuery.sizeOf(context);
 
     return Scaffold(
@@ -105,16 +111,27 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
         width: size.width,
         height: size.height,
         child: Stack(
-          children: [
-            const _SplashBackground(),
+          children: const [
+            _SplashBackground(),
             Center(
-              child: LogoSplashWidget(
-                onAnimationComplete: _onAnimationComplete,
-              ),
+              child: _SplashLogoWrapper(),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _SplashLogoWrapper extends StatelessWidget {
+  const _SplashLogoWrapper();
+
+  @override
+  Widget build(BuildContext context) {
+    final state = context.findAncestorStateOfType<_SplashScreenState>();
+
+    return LogoSplashWidget(
+      onAnimationComplete: state?._onAnimationComplete ?? () {},
     );
   }
 }
@@ -126,7 +143,9 @@ class _SplashBackground extends StatelessWidget {
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
     return SizedBox.expand(
-      child: CustomPaint(painter: _BackgroundPainter(size: size)),
+      child: CustomPaint(
+        painter: _BackgroundPainter(size: size),
+      ),
     );
   }
 }
@@ -139,7 +158,6 @@ class _BackgroundPainter extends CustomPainter {
   late final Paint _centerPaint;
 
   _BackgroundPainter({required this.size}) {
-    // Soft green tint — top right
     _topRightPaint = Paint()
       ..shader = RadialGradient(
         colors: [
@@ -151,7 +169,6 @@ class _BackgroundPainter extends CustomPainter {
         radius: size.width * 0.70,
       ));
 
-    // Soft teal tint — bottom left
     _bottomLeftPaint = Paint()
       ..shader = RadialGradient(
         colors: [
@@ -163,7 +180,6 @@ class _BackgroundPainter extends CustomPainter {
         radius: size.width * 0.60,
       ));
 
-    // Very subtle warm center wash
     _centerPaint = Paint()
       ..shader = RadialGradient(
         colors: [
@@ -196,5 +212,5 @@ class _BackgroundPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _BackgroundPainter old) => false;
+  bool shouldRepaint(covariant _BackgroundPainter oldDelegate) => false;
 }

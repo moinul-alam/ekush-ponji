@@ -4,125 +4,60 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
 
-/// Unified app header used across all screens.
-///
-/// ── Usage patterns ──────────────────────────────────────────────────────────
-///
-/// 1. Home screen — default logo + app_title image, drawer + settings icon:
-///      return const AppHeader();
-///
-/// 2. Named screen — default logo + text title, back button auto-shown:
-///      return AppHeader(pageTitle: l10n.settingsTitle);
-///
-/// 3. Named screen with custom logo size and title color:
-///      return AppHeader(
-///        pageTitle: l10n.settingsTitle,
-///        logoSize: 32,
-///        titleColor: Colors.teal,
-///        titleFontSize: 24,
-///      );
-///
-/// 4. Home screen with custom logo asset and top padding:
-///      return AppHeader(
-///        logoAsset: 'assets/images/my_logo.png',
-///        titlePadding: const EdgeInsets.only(top: 5),
-///      );
-///
-/// 5. Screens with their own AppBar (use static helper for title: slot):
-///      return AppBar(
-///        title: AppHeader.title(context, l10n.allHolidays),
-///        centerTitle: true,
-///        actions: [...],
-///      );
-///
-/// ────────────────────────────────────────────────────────────────────────────
 class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   // ── Content ────────────────────────────────────────────────────────────────
 
-  /// Title text for non-home screens.
-  /// When null, [titleAsset] image is shown instead (home behavior).
   final String? pageTitle;
-
-  /// Custom logo asset path. Defaults to 'assets/images/header_logo.png'.
   final String? logoAsset;
-
-  /// Custom title image asset path (home screen only, when [pageTitle] is null).
-  /// Defaults to 'assets/images/app_title.png'.
   final String? titleAsset;
 
   // ── Logo styling ───────────────────────────────────────────────────────────
 
-  /// Logo width & height in logical pixels. Defaults to 40.
   final double? logoSize;
-
-  /// Padding around the logo widget. Defaults to none.
   final EdgeInsetsGeometry? logoPadding;
 
   // ── Title styling ──────────────────────────────────────────────────────────
 
-  /// Title text font size. Defaults to 26.
   final double? titleFontSize;
-
-  /// Title text color. Defaults to [ColorScheme.primary].
   final Color? titleColor;
-
-  /// Padding inside the title row (wraps logo + title together).
-  /// Defaults to none.
   final EdgeInsetsGeometry? titlePadding;
+
+  /// Title image height (home screen only)
+  final double? titleImageHeight;
 
   // ── AppBar ─────────────────────────────────────────────────────────────────
 
-  /// Margin around the entire AppBar. Defaults to none.
   final EdgeInsetsGeometry? margin;
-
-  /// Callbacks for leading/action buttons (optional overrides).
   final VoidCallback? onDrawerTap;
   final VoidCallback? onSettingsTap;
 
   // ── Defaults ───────────────────────────────────────────────────────────────
+
   static const String _defaultLogoAsset = 'assets/images/header_logo.png';
   static const String _defaultTitleAsset = 'assets/images/app_title.png';
-  static const double _defaultLogoSize = 40;
+
+  static const double _defaultLogoSize = 32;
+  static const double _defaultTitleImageHeight = 42;
   static const double _defaultFontSize = 26;
 
   const AppHeader({
     super.key,
-    // content
     this.pageTitle,
     this.logoAsset,
     this.titleAsset,
-    // logo styling
     this.logoSize,
     this.logoPadding,
-    // title styling
     this.titleFontSize,
     this.titleColor,
     this.titlePadding,
-    // appbar
+    this.titleImageHeight,
     this.margin,
     this.onDrawerTap,
     this.onSettingsTap,
   });
 
   // ── Static helper ──────────────────────────────────────────────────────────
-  /// Use this as the `title:` argument when a screen already builds its own
-  /// AppBar (e.g. screens with actions or a bottom bar).
-  ///
-  /// Example:
-  ///   AppBar(
-  ///     title: AppHeader.title(context, l10n.allHolidays),
-  ///     centerTitle: true,
-  ///     actions: [...],
-  ///   )
-  ///
-  /// Optional overrides:
-  ///   AppHeader.title(
-  ///     context, l10n.allHolidays,
-  ///     logoAsset: 'assets/images/my_logo.png',
-  ///     logoSize: 32,
-  ///     titleColor: Colors.teal,
-  ///     fontSize: 24,
-  ///   )
+
   static Widget title(
     BuildContext context,
     String pageTitle, {
@@ -134,6 +69,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final effectiveLogoSize = logoSize ?? _defaultLogoSize;
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -164,6 +100,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   }
 
   // ── Full AppBar ────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -171,13 +108,16 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
 
     final canPop = context.canPop();
     final isPageScreen = pageTitle != null;
+
     final effectiveLogoSize = logoSize ?? _defaultLogoSize;
+    final effectiveTitleHeight = titleImageHeight ?? _defaultTitleImageHeight;
 
     final appBar = AppBar(
       backgroundColor: colorScheme.surface,
       elevation: 0,
       centerTitle: true,
-      // Back button for named screens, drawer for home
+
+      // ── Leading ───────────────────────────────────────
       leading: isPageScreen && canPop
           ? IconButton(
               icon: Icon(Icons.arrow_back_ios_new_rounded,
@@ -198,13 +138,15 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
                       () => Scaffold.maybeOf(context)?.openDrawer(),
                   tooltip: 'Menu',
                 ),
+
+      // ── Title ─────────────────────────────────────────
       title: Padding(
         padding: titlePadding ?? EdgeInsets.zero,
         child: Row(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // ── Logo ──────────────────────────────────────
+            // Logo
             Padding(
               padding: logoPadding ?? EdgeInsets.zero,
               child: SizedBox(
@@ -227,10 +169,10 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
 
             const SizedBox(width: 8),
 
-            // ── Title image (home) or text (named screen) ──
+            // Title
             if (!isPageScreen)
               SizedBox(
-                height: effectiveLogoSize,
+                height: effectiveTitleHeight,
                 child: Center(
                   child: Image.asset(
                     titleAsset ?? _defaultTitleAsset,
@@ -258,7 +200,8 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
           ],
         ),
       ),
-      // Settings icon only on home screen
+
+      // ── Actions ───────────────────────────────────────
       actions: !isPageScreen
           ? [
               IconButton(
@@ -275,6 +218,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
     if (margin != null) {
       return Container(margin: margin, child: appBar);
     }
+
     return appBar;
   }
 

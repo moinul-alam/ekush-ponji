@@ -13,6 +13,7 @@ class HolidayMonthSectionWidget extends StatefulWidget {
   /// Whether this section should be expanded by default.
   /// Current month is expanded by default, others are collapsed.
   final bool initiallyExpanded;
+  final ValueChanged<bool>? onExpansionChanged;
 
   const HolidayMonthSectionWidget({
     super.key,
@@ -20,6 +21,7 @@ class HolidayMonthSectionWidget extends StatefulWidget {
     required this.year,
     required this.holidays,
     this.initiallyExpanded = false,
+    this.onExpansionChanged,
   });
 
   @override
@@ -34,6 +36,14 @@ class _HolidayMonthSectionWidgetState extends State<HolidayMonthSectionWidget> {
   void initState() {
     super.initState();
     _isExpanded = widget.initiallyExpanded;
+  }
+
+  @override
+  void didUpdateWidget(covariant HolidayMonthSectionWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initiallyExpanded != widget.initiallyExpanded) {
+      _isExpanded = widget.initiallyExpanded;
+    }
   }
 
   @override
@@ -57,7 +67,10 @@ class _HolidayMonthSectionWidgetState extends State<HolidayMonthSectionWidget> {
       children: [
         // ── Month Header ─────────────────────────────────────
         InkWell(
-          onTap: () => setState(() => _isExpanded = !_isExpanded),
+          onTap: () {
+            setState(() => _isExpanded = !_isExpanded);
+            widget.onExpansionChanged?.call(_isExpanded);
+          },
           child: Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(

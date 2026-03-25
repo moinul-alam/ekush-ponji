@@ -5,9 +5,9 @@
 // Does NOT own scheduling logic — that belongs to DataSyncService.
 //
 // SYNC BEHAVIOUR:
-//   • force=false → skip if interval not due OR remote version <= local
-//   • force=true  → skip interval check only; version check always runs
-//   • Downloads only if remote version > localVersion (always, no exceptions)
+//   • force=false → skip if interval not due AND manifest unchanged
+//   • force=true  → skip interval check only
+//   • Downloads if dataset version increased OR manifest stamp changed.
 
 import 'dart:convert';
 
@@ -25,6 +25,7 @@ class WordsSyncService implements BaseSyncService {
   static const String _seededKey = 'words_seeded_v1';
   static const String _versionKey = 'words_version';
   static const String _lastCheckKey = 'words_last_check';
+  static const String _manifestStampKey = 'words_manifest_stamp';
 
   /// Public key used by WordsLocalDatasource to read the stored JSON.
   static const String wordsEnKey = 'words_en_json';
@@ -38,6 +39,15 @@ class WordsSyncService implements BaseSyncService {
   WordsSyncService({Dio? dio}) : _dio = dio ?? Dio();
 
   Box get _settingsBox => Hive.box(_settingsBoxName);
+
+  static String manifestStamp(AppManifest manifest) {
+    final langs = manifest.words.files.keys.map((k) => k.toString()).toList()
+      ..sort();
+    final pathSig =
+        langs.map((lang) => manifest.words.files[lang] ?? '').join('|');
+    return '${manifest.manifestVersion}|${manifest.lastUpdated}|'
+        '${manifest.words.version}|$pathSig';
+  }
 
   // ── BaseSyncService contract ───────────────────────────────
 
@@ -95,18 +105,27 @@ class WordsSyncService implements BaseSyncService {
     // Step 2 — Always record the check time so the interval resets
     await _settingsBox.put(_lastCheckKey, DateTime.now().toIso8601String());
 
-    // Step 3 — Version gate (ALWAYS checked, even when force=true)
+    // Step 3 — Version + manifest stamp
     final remote = manifest.words;
-    debugPrint('📋 Words: remote v${remote.version} / local v$localVersion');
+    final newStamp = manifestStamp(manifest);
+    final oldStamp =
+        _settingsBox.get(_manifestStampKey, defaultValue: '') as String;
+    final versionHigher = remote.version > localVersion;
+    final stampChanged = newStamp != oldStamp;
 
-    if (remote.version <= localVersion) {
-      debugPrint('✅ Words: already at latest version — no download needed');
+    debugPrint(
+        '📋 Words: remote v${remote.version} / local v$localVersion '
+        '| stampChanged=$stampChanged');
+
+    if (!versionHigher && !stampChanged) {
+      debugPrint('✅ Words: version and manifest stamp unchanged — skip');
       return false;
     }
 
     // Step 4 — Download
-    debugPrint(
-        '⬇️ Words: new version ${remote.version} available — downloading...');
+    debugPrint(versionHigher
+        ? '⬇️ Words: new version ${remote.version} — downloading...'
+        : '⬇️ Words: manifest stamp changed — re-downloading...');
 
     final url = remote.urlForLanguage('en');
     if (url == null) {
@@ -121,6 +140,7 @@ class WordsSyncService implements BaseSyncService {
         jsonDecode(response.data!);
         await _settingsBox.put(wordsEnKey, response.data);
         await _settingsBox.put(_versionKey, remote.version);
+        await _settingsBox.put(_manifestStampKey, newStamp);
         debugPrint('✅ Words synced → v${remote.version}');
         return true;
       }

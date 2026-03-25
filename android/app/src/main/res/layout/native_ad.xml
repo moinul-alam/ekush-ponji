@@ -10,19 +10,14 @@
         android:orientation="vertical"
         android:padding="0dp">
 
-        <!--
-            MediaView must always be visible and at least 120x120dp.
-            AdMob validator measures this even when no media is present.
-            When the ad has no media content, AdMob leaves it empty —
-            we control whether to show it via MainActivity logic.
-        -->
+        <!-- Keep a visible media area for image/video creatives. -->
         <com.google.android.gms.ads.nativead.MediaView
             android:id="@+id/ad_media"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
+            android:layout_height="140dp"
             android:minWidth="120dp"
             android:minHeight="120dp"
-            android:visibility="gone" />
+            android:visibility="visible" />
 
         <!-- Icon + text + CTA row -->
         <LinearLayout

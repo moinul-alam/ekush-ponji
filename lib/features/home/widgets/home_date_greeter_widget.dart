@@ -11,6 +11,9 @@ import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/features/calendar/services/bengali_calendar_service.dart';
 import 'package:ekush_ponji/features/calendar/services/hijri_calendar_service.dart';
 import 'package:ekush_ponji/features/home/widgets/home_section_widget.dart';
+import 'package:ekush_ponji/features/home/home_viewmodel.dart';
+import 'package:ekush_ponji/features/quotes/quotes_viewmodel.dart';
+import 'package:ekush_ponji/features/words/words_viewmodel.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
 
 // ── Constants ─────────────────────────────────────────────────
@@ -209,6 +212,7 @@ class HomeDateGreeterWidget extends ConsumerStatefulWidget {
 class _HomeDateGreeterWidgetState extends ConsumerState<HomeDateGreeterWidget>
     with TickerProviderStateMixin, WidgetsBindingObserver {
   late _TimePeriod _period;
+  late DateTime _lastRebuildDate;
   Timer? _boundaryTimer;
   bool _shimmerEnabled = false;
 
@@ -238,6 +242,8 @@ class _HomeDateGreeterWidgetState extends ConsumerState<HomeDateGreeterWidget>
   void initState() {
     super.initState();
     _period = _currentPeriod();
+    final now = DateTime.now();
+    _lastRebuildDate = DateTime(now.year, now.month, now.day);
     WidgetsBinding.instance.addObserver(this);
     _setupEntranceAnimation();
     _setupCrossFadeAnimation();
@@ -421,6 +427,16 @@ class _HomeDateGreeterWidgetState extends ConsumerState<HomeDateGreeterWidget>
   }
 
   void _onHourBoundary() {
+    final now = DateTime.now();
+    final currentDate = DateTime(now.year, now.month, now.day);
+    final dayChanged = currentDate != _lastRebuildDate;
+    if (dayChanged) {
+      _lastRebuildDate = currentDate;
+      ref.invalidate(quotesViewModelProvider);
+      ref.invalidate(wordsViewModelProvider);
+      ref.read(homeViewModelProvider.notifier).refresh();
+    }
+
     final newPeriod = _currentPeriod();
     if (newPeriod != _period) {
       _crossFadeController.forward(from: 0).then((_) {
@@ -432,6 +448,9 @@ class _HomeDateGreeterWidgetState extends ConsumerState<HomeDateGreeterWidget>
         _pulseController.reset();
         _startDirectionalForPeriod();
       });
+    } else if (dayChanged && mounted) {
+      // Force rebuild when date changes at midnight but time period stays same.
+      setState(() {});
     }
     _scheduleBoundaryTimer();
   }

@@ -10,6 +10,7 @@ import 'package:ekush_ponji/core/base/view_state.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
 import 'package:ekush_ponji/core/notifications/notification_permission_provider.dart';
 import 'package:ekush_ponji/core/widgets/ads/native_ad_widget.dart';
+import 'package:ekush_ponji/core/widgets/loading/app_loading_spinner.dart';
 import 'package:ekush_ponji/features/holidays/models/holiday.dart';
 import 'package:ekush_ponji/features/holidays/holidays_viewmodel.dart';
 import 'package:ekush_ponji/features/holidays/widgets/holiday_gazette_section_widget.dart';
@@ -185,7 +186,7 @@ class _HolidaysScreenState extends BaseScreenState<HolidaysScreen>
     final l10n = AppLocalizations.of(context);
 
     if (viewState is ViewStateLoading && !viewState.isRefreshing) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: AppLoadingSpinner(size: 34, strokeWidth: 3.2));
     }
     if (viewState is ViewStateError) return buildErrorWidget(viewState);
     if (vm.holidays.isEmpty) {
@@ -381,8 +382,8 @@ class _GazetteTypeView extends StatelessWidget {
               gazetteType: entry.key,
               holidays: entry.value,
             ),
-            // Native ad as section separator after the 2nd gazette section
-            if (index == 1) const NativeAdWidget(style: NativeAdStyle.section),
+            // Native ad as section separator after the 3rd gazette section.
+            if (index == 2) const NativeAdWidget(style: NativeAdStyle.section),
           ],
         );
       },
@@ -392,15 +393,51 @@ class _GazetteTypeView extends StatelessWidget {
 
 // ── Month wise view — native ad after 3rd month section ───────
 
-class _MonthWiseView extends StatelessWidget {
+class _MonthWiseView extends StatefulWidget {
   final Map<int, List<Holiday>> grouped;
   final int year;
   const _MonthWiseView({required this.grouped, required this.year});
 
   @override
-  Widget build(BuildContext context) {
+  State<_MonthWiseView> createState() => _MonthWiseViewState();
+}
+
+class _MonthWiseViewState extends State<_MonthWiseView> {
+  int? _expandedMonth;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncDefaultExpandedMonth();
+  }
+
+  @override
+  void didUpdateWidget(covariant _MonthWiseView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.year != widget.year ||
+        oldWidget.grouped.length != widget.grouped.length) {
+      _syncDefaultExpandedMonth();
+    }
+  }
+
+  void _syncDefaultExpandedMonth() {
+    if (_expandedMonth != null && widget.grouped.containsKey(_expandedMonth)) {
+      return;
+    }
     final now = DateTime.now();
-    final entries = grouped.entries.toList();
+    final currentMonthInSelectedYear =
+        widget.year == now.year ? now.month : widget.grouped.keys.first;
+    _expandedMonth = widget.grouped.containsKey(currentMonthInSelectedYear)
+        ? currentMonthInSelectedYear
+        : widget.grouped.keys.first;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final entries = widget.grouped.entries.toList();
+    final expandedIndex =
+        entries.indexWhere((entry) => entry.key == _expandedMonth);
+    final adAfterIndex = expandedIndex >= 0 ? expandedIndex : 2;
 
     return ListView.builder(
       padding: const EdgeInsets.only(bottom: 24),
@@ -412,12 +449,20 @@ class _MonthWiseView extends StatelessWidget {
           children: [
             HolidayMonthSectionWidget(
               month: month,
-              year: year,
+              year: widget.year,
               holidays: entry.value,
-              initiallyExpanded: month == now.month && year == now.year,
+              initiallyExpanded: month == _expandedMonth,
+              onExpansionChanged: (isExpanded) {
+                if (isExpanded) {
+                  setState(() => _expandedMonth = month);
+                } else if (_expandedMonth == month) {
+                  setState(() => _expandedMonth = null);
+                }
+              },
             ),
-            // Native ad after the 3rd month section
-            if (index == 2) const NativeAdWidget(style: NativeAdStyle.section),
+            // Dynamic native ad after the currently expanded month section.
+            if (index == adAfterIndex && index < entries.length - 1)
+              const NativeAdWidget(style: NativeAdStyle.section),
           ],
         );
       },

@@ -20,8 +20,7 @@ const int autoSyncIntervalDays = 7;
 
 // ── Manifest URL ──────────────────────────────────────────────────────────────
 
-const String _manifestUrl =
-    'https://raw.githubusercontent.com/moinul-alam/ekush_ponji/main/assets/data/manifest.json';
+const String _manifestUrl = 'http://hub.ekushlabs.com/manifest.json';
 
 // ── Hive keys ─────────────────────────────────────────────────────────────────
 
