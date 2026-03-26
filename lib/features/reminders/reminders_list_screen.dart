@@ -125,7 +125,8 @@ class _DateSection extends StatelessWidget {
         Container(
           width: double.infinity,
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 6),
-          color: isToday ? cs.primaryContainer.withOpacity(0.3) : cs.surface,
+          color:
+              isToday ? cs.primaryContainer.withValues(alpha: 0.3) : cs.surface,
           child: Row(
             children: [
               Container(
@@ -216,18 +217,18 @@ class _ReminderCard extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         decoration: BoxDecoration(
           color: isOverdue
-              ? Colors.red.shade50
-                  .withOpacity(theme.brightness == Brightness.dark ? 0.07 : 1.0)
+              ? Colors.red.shade50.withValues(
+                  alpha: theme.brightness == Brightness.dark ? 0.07 : 1.0)
               : cs.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isOverdue
-                ? Colors.red.shade300.withOpacity(0.5)
-                : cs.outlineVariant.withOpacity(0.5),
+                ? Colors.red.shade300.withValues(alpha: 0.5)
+                : cs.outlineVariant.withValues(alpha: 0.5),
           ),
           boxShadow: [
             BoxShadow(
-              color: cs.shadow.withOpacity(0.04),
+              color: cs.shadow.withValues(alpha: 0.04),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -240,7 +241,7 @@ class _ReminderCard extends StatelessWidget {
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: priorityColor.withOpacity(0.12),
+              color: priorityColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
@@ -304,7 +305,7 @@ class _EmptyState extends StatelessWidget {
         children: [
           Icon(Icons.alarm_outlined,
               size: 64,
-              color: theme.colorScheme.onSurfaceVariant.withOpacity(0.4)),
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4)),
           const SizedBox(height: 16),
           Text(
             isBn ? 'কোনো রিমাইন্ডার নেই' : 'No reminders yet',

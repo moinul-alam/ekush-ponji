@@ -37,7 +37,7 @@ class CalendarHolidaysWidget extends StatelessWidget {
         borderRadius: BorderRadius.zero,
         boxShadow: [
           BoxShadow(
-            color: theme.colorScheme.shadow.withOpacity(0.05),
+            color: theme.colorScheme.shadow.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -165,7 +165,7 @@ class _HolidaySection extends StatelessWidget {
                           TextSpan(
                             text: _totalDaysLabel,
                             style: theme.textTheme.labelSmall?.copyWith(
-                              color: _headerColor.withOpacity(0.75),
+                              color: _headerColor.withValues(alpha: 0.75),
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -177,7 +177,7 @@ class _HolidaySection extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: _headerColor.withOpacity(0.12),
+                  color: _headerColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -197,7 +197,7 @@ class _HolidaySection extends StatelessWidget {
         const SizedBox(height: 10),
         Divider(
           height: 1,
-          color: theme.colorScheme.outlineVariant.withOpacity(0.4),
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
         ),
 
         // ─── Empty state ────────────────────────────────────
@@ -233,7 +233,7 @@ class _HolidaySection extends StatelessWidget {
               height: 1,
               indent: 16,
               endIndent: 16,
-              color: theme.colorScheme.outlineVariant.withOpacity(0.3),
+              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
             ),
             itemBuilder: (context, index) => _HolidayItem(
               holiday: holidays[index],
@@ -303,7 +303,7 @@ class _HolidayItem extends StatelessWidget {
               width: 44,
               height: 48,
               decoration: BoxDecoration(
-                color: catColor.withOpacity(0.08),
+                color: catColor.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Column(
@@ -323,7 +323,7 @@ class _HolidayItem extends StatelessWidget {
                   Text(
                     localizations.getMonthAbbreviation(holiday.startDate.month),
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color: catColor.withOpacity(0.8),
+                      color: catColor.withValues(alpha: 0.8),
                       fontSize: 11,
                     ),
                   ),
@@ -408,7 +408,7 @@ class _HolidayItem extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                   decoration: BoxDecoration(
-                    color: catColor.withOpacity(0.1),
+                    color: catColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Row(

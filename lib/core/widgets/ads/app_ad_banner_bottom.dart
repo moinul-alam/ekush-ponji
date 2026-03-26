@@ -37,7 +37,7 @@ class AppAdBannerBottom extends ConsumerWidget {
       color: Theme.of(context)
           .colorScheme
           .surfaceContainerHighest
-          .withOpacity(0.4),
+          .withValues(alpha: 0.4),
     );
   }
 }

@@ -20,7 +20,7 @@ const int autoSyncIntervalDays = 7;
 
 // ── Manifest URL ──────────────────────────────────────────────────────────────
 
-const String _manifestUrl = 'http://hub.ekushlabs.com/manifest.json';
+const String _manifestUrl = 'https://hub.ekushlabs.com/manifest.json';
 
 // ── Hive keys ─────────────────────────────────────────────────────────────────
 

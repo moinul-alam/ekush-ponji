@@ -113,10 +113,10 @@ class CalendarHeader extends StatelessWidget {
                             gradient: LinearGradient(
                               colors: [
                                 theme.colorScheme.outlineVariant
-                                    .withOpacity(0.0),
+                                    .withValues(alpha: 0.0),
                                 theme.colorScheme.outlineVariant,
                                 theme.colorScheme.outlineVariant
-                                    .withOpacity(0.0),
+                                    .withValues(alpha: 0.0),
                               ],
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
@@ -189,7 +189,7 @@ class _NavButton extends StatelessWidget {
             height: 40,
             decoration: BoxDecoration(
               border: Border.all(
-                color: theme.colorScheme.outlineVariant.withOpacity(0.5),
+                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
                 width: 1,
               ),
               borderRadius: BorderRadius.circular(12),

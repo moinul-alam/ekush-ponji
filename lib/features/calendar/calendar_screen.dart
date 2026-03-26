@@ -117,8 +117,10 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
                 borderRadius: BorderRadius.circular(10),
                 boxShadow: [
                   BoxShadow(
-                    color:
-                        Theme.of(context).colorScheme.shadow.withOpacity(0.07),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .shadow
+                        .withValues(alpha: 0.07),
                     blurRadius: 16,
                     offset: const Offset(0, 4),
                   ),
@@ -127,7 +129,7 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
                   color: Theme.of(context)
                       .colorScheme
                       .outlineVariant
-                      .withOpacity(0.3),
+                      .withValues(alpha: 0.3),
                   width: 1,
                 ),
               ),

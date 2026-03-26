@@ -198,11 +198,20 @@ class BengaliMonth {
     };
   }
 
-  /// Create from JSON
+  /// check again if fails
+  // factory BengaliMonth.fromJson(Map<String, dynamic> json) {
+  //   return BengaliMonth(
+  //     name: json['name'] as String,
+  //     year: json['bengaliYear'] as int, // Changed from 'year' to 'bengaliYear'
+  //     startDate: DateTime.parse(json['startDate'] as String),
+  //     endDate: DateTime.parse(json['endDate'] as String),
+  //   );
+  // }
+
   factory BengaliMonth.fromJson(Map<String, dynamic> json) {
     return BengaliMonth(
       name: json['name'] as String,
-      year: json['bengaliYear'] as int, // Changed from 'year' to 'bengaliYear'
+      year: json['year'] as int,
       startDate: DateTime.parse(json['startDate'] as String),
       endDate: DateTime.parse(json['endDate'] as String),
     );

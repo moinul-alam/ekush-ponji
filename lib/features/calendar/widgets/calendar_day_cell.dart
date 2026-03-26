@@ -208,7 +208,7 @@ class CalendarDayCell extends StatelessWidget {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(color: selectionColor, width: 2),
-          color: selectionColor.withOpacity(0.15),
+          color: selectionColor.withValues(alpha: 0.15),
         ),
         child: Center(
           child: Text(
@@ -269,7 +269,7 @@ class CalendarDayCell extends StatelessWidget {
         color: color,
         shape: BoxShape.circle,
         boxShadow: [
-          BoxShadow(color: color.withOpacity(0.4), blurRadius: 2),
+          BoxShadow(color: color.withValues(alpha: 0.4), blurRadius: 2),
         ],
       ),
     );
@@ -282,15 +282,15 @@ class CalendarDayCell extends StatelessWidget {
     final tileShadows = [
       BoxShadow(
         color: isDark
-            ? Colors.black.withOpacity(0.4)
-            : Colors.black.withOpacity(0.12),
+            ? Colors.black.withValues(alpha: 0.4)
+            : Colors.black.withValues(alpha: 0.12),
         offset: const Offset(2, 2),
         blurRadius: 0,
       ),
       BoxShadow(
         color: isDark
-            ? Colors.black.withOpacity(0.25)
-            : Colors.black.withOpacity(0.07),
+            ? Colors.black.withValues(alpha: 0.25)
+            : Colors.black.withValues(alpha: 0.07),
         offset: const Offset(1, 1),
         blurRadius: 2,
       ),
@@ -303,12 +303,14 @@ class CalendarDayCell extends StatelessWidget {
         borderRadius: BorderRadius.circular(cellBorderRadius),
         boxShadow: [
           BoxShadow(
-            color: theme.colorScheme.primary.withOpacity(todayGlowOpacity1),
+            color:
+                theme.colorScheme.primary.withValues(alpha: todayGlowOpacity1),
             blurRadius: 10,
             spreadRadius: 1,
           ),
           BoxShadow(
-            color: theme.colorScheme.primary.withOpacity(todayGlowOpacity2),
+            color:
+                theme.colorScheme.primary.withValues(alpha: todayGlowOpacity2),
             blurRadius: 16,
             spreadRadius: 2,
           ),
@@ -323,7 +325,7 @@ class CalendarDayCell extends StatelessWidget {
         color: isDark ? _holidayBgDark : _holidayBgLight,
         borderRadius: BorderRadius.circular(cellBorderRadius),
         border: Border.all(
-          color: theme.colorScheme.outlineVariant.withOpacity(0.25),
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.25),
           width: 0.5,
         ),
         boxShadow: tileShadows,
@@ -337,8 +339,8 @@ class CalendarDayCell extends StatelessWidget {
         borderRadius: BorderRadius.circular(cellBorderRadius),
         border: Border.all(
           color: isDark
-              ? _weekendTextDark.withOpacity(0.15)
-              : _weekendTextLight.withOpacity(0.20),
+              ? _weekendTextDark.withValues(alpha: 0.15)
+              : _weekendTextLight.withValues(alpha: 0.20),
           width: 0.5,
         ),
         boxShadow: tileShadows,
@@ -350,7 +352,7 @@ class CalendarDayCell extends StatelessWidget {
       color: theme.colorScheme.surface,
       borderRadius: BorderRadius.circular(cellBorderRadius),
       border: Border.all(
-        color: theme.colorScheme.outlineVariant.withOpacity(0.3),
+        color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
         width: 0.5,
       ),
       boxShadow: tileShadows,
@@ -364,9 +366,9 @@ class CalendarDayCell extends StatelessWidget {
     if (!day.isCurrentMonth) {
       if (_isWeekend) {
         return (isDark ? _weekendTextDark : _weekendTextLight)
-            .withOpacity(0.35);
+            .withValues(alpha: 0.35);
       }
-      return theme.colorScheme.onSurface.withOpacity(0.3);
+      return theme.colorScheme.onSurface.withValues(alpha: 0.3);
     }
 
     if (_isHoliday) return _holidayTextColor;
@@ -377,34 +379,34 @@ class CalendarDayCell extends StatelessWidget {
   Color _bengaliTextColor(ThemeData theme) {
     final isDark = theme.brightness == Brightness.dark;
     final base = _resolveBengaliColor(theme);
-    if (!day.isCurrentMonth) return base.withOpacity(0.3);
-    if (day.isToday) return theme.colorScheme.onPrimary.withOpacity(0.80);
+    if (!day.isCurrentMonth) return base.withValues(alpha: 0.3);
+    if (day.isToday) return theme.colorScheme.onPrimary.withValues(alpha: 0.80);
     if (_isHoliday)
-      return _holidayTextColor.withOpacity(_subDateHolidayOpacity);
+      return _holidayTextColor.withValues(alpha: _subDateHolidayOpacity);
     if (_isWeekendOnly) {
       return (isDark ? _weekendTextDark : _weekendTextLight)
-          .withOpacity(_subDateWeekendOpacity);
+          .withValues(alpha: _subDateWeekendOpacity);
     }
-    if (day.isSelected) return base.withOpacity(0.9);
-    return base.withOpacity(_subDateNormalOpacity);
+    if (day.isSelected) return base.withValues(alpha: 0.9);
+    return base.withValues(alpha: _subDateNormalOpacity);
   }
 
   Color _hijriTextColor(ThemeData theme) {
     final isDark = theme.brightness == Brightness.dark;
     final ext = theme.extension<AppThemeExtension>();
     final base = ext?.hijriColor ?? theme.colorScheme.onSurfaceVariant;
-    if (!day.isCurrentMonth) return base.withOpacity(0.3);
-    if (day.isToday) return theme.colorScheme.onPrimary.withOpacity(0.75);
+    if (!day.isCurrentMonth) return base.withValues(alpha: 0.3);
+    if (day.isToday) return theme.colorScheme.onPrimary.withValues(alpha: 0.75);
     if (_isHoliday) {
       return ext?.hijriColorOnSpecial ??
-          _holidayTextColor.withOpacity(_subDateHolidayOpacity);
+          _holidayTextColor.withValues(alpha: _subDateHolidayOpacity);
     }
     if (_isWeekendOnly) {
       return (isDark ? _weekendTextDark : _weekendTextLight)
-          .withOpacity(_subDateWeekendOpacity);
+          .withValues(alpha: _subDateWeekendOpacity);
     }
-    if (day.isSelected) return base.withOpacity(0.9);
-    return base.withOpacity(_subDateNormalOpacity);
+    if (day.isSelected) return base.withValues(alpha: 0.9);
+    return base.withValues(alpha: _subDateNormalOpacity);
   }
 
   Color _resolveBengaliColor(ThemeData theme) {

@@ -17,7 +17,7 @@ class WeekDaysRow extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(
-            color: theme.colorScheme.outlineVariant.withOpacity(0.4),
+            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
             width: 1,
           ),
         ),
@@ -47,7 +47,7 @@ class WeekDaysRow extends StatelessWidget {
             fontSize: 15, // ← reduced from 18
             color: isWeekend
                 ? const Color(0xFFB83232)
-                : theme.colorScheme.onSurfaceVariant.withOpacity(0.8),
+                : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
             letterSpacing: 0.3,
           ),
         ),

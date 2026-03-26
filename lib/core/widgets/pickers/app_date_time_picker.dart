@@ -224,7 +224,7 @@ class _PickerSheetState extends State<_PickerSheet>
             height: 4,
             margin: const EdgeInsets.symmetric(vertical: 12),
             decoration: BoxDecoration(
-              color: cs.onSurfaceVariant.withOpacity(0.25),
+              color: cs.onSurfaceVariant.withValues(alpha: 0.25),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -254,7 +254,7 @@ class _PickerSheetState extends State<_PickerSheet>
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
-                color: cs.surfaceContainerHighest.withOpacity(0.5),
+                color: cs.surfaceContainerHighest.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: TabBar(
@@ -573,7 +573,7 @@ class _DateGrid extends StatelessWidget {
                     color: selected
                         ? cs.primary
                         : today
-                            ? cs.primary.withOpacity(0.12)
+                            ? cs.primary.withValues(alpha: 0.12)
                             : Colors.transparent,
                     shape: BoxShape.circle,
                   ),
@@ -727,7 +727,7 @@ class _MonthYearPicker extends StatelessWidget {
                 height: 44,
                 margin: const EdgeInsets.symmetric(horizontal: 8),
                 decoration: BoxDecoration(
-                  color: cs.primaryContainer.withOpacity(0.45),
+                  color: cs.primaryContainer.withValues(alpha: 0.45),
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
@@ -927,7 +927,7 @@ class _Wheel extends StatelessWidget {
           height: 44,
           margin: const EdgeInsets.symmetric(horizontal: 8),
           decoration: BoxDecoration(
-            color: cs.primaryContainer.withOpacity(0.5),
+            color: cs.primaryContainer.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(10),
           ),
         ),

@@ -239,7 +239,8 @@ class _ReminderDateTimePicker extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.4),
+          color:
+              theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -328,7 +329,7 @@ class _PrioritySelector extends ConsumerWidget {
               label: Text(_priorityLabel(priority, l10n)),
               selected: isSelected,
               onSelected: (_) => viewModel.setPriority(priority),
-              selectedColor: color.withOpacity(0.15),
+              selectedColor: color.withValues(alpha: 0.15),
               labelStyle: theme.textTheme.labelMedium?.copyWith(
                 color: isSelected ? color : theme.colorScheme.onSurfaceVariant,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -383,7 +384,7 @@ class _NotificationToggle extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.4),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(

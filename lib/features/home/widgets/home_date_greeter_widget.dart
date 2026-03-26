@@ -427,11 +427,16 @@ class _HomeDateGreeterWidgetState extends ConsumerState<HomeDateGreeterWidget>
   }
 
   void _onHourBoundary() {
+    // Guard: widget may have been disposed before timer fired
+    if (!mounted) return;
+
     final now = DateTime.now();
     final currentDate = DateTime(now.year, now.month, now.day);
     final dayChanged = currentDate != _lastRebuildDate;
+
     if (dayChanged) {
       _lastRebuildDate = currentDate;
+      // Read providers only if still mounted — ref is valid while mounted
       ref.invalidate(quotesViewModelProvider);
       ref.invalidate(wordsViewModelProvider);
       ref.read(homeViewModelProvider.notifier).refresh();
@@ -439,20 +444,21 @@ class _HomeDateGreeterWidgetState extends ConsumerState<HomeDateGreeterWidget>
 
     final newPeriod = _currentPeriod();
     if (newPeriod != _period) {
+      // Guard inside async callback too
       _crossFadeController.forward(from: 0).then((_) {
         if (!mounted) return;
         setState(() => _period = newPeriod);
         _crossFadeController.reverse();
-        // Reset directional and pulse for new period
         _directionalController.reset();
         _pulseController.reset();
         _startDirectionalForPeriod();
       });
     } else if (dayChanged && mounted) {
-      // Force rebuild when date changes at midnight but time period stays same.
       setState(() {});
     }
-    _scheduleBoundaryTimer();
+
+    // Only reschedule if still mounted
+    if (mounted) _scheduleBoundaryTimer();
   }
 
   @override

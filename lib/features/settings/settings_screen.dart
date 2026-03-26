@@ -18,6 +18,7 @@ import 'package:ekush_ponji/features/holidays/holidays_viewmodel.dart';
 import 'package:ekush_ponji/features/quotes/providers/quote_notification_prefs_provider.dart';
 import 'package:ekush_ponji/features/words/providers/word_notification_prefs_provider.dart';
 import 'package:ekush_ponji/core/widgets/navigation/app_header.dart';
+import 'package:ekush_ponji/core/services/app_version_service.dart';
 
 // ── Settings font sizes ───────────────────────────────────────
 
@@ -293,13 +294,17 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen>
         Center(
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child: Text(
-              'Version 1.0.0',
-              style: theme.textTheme.bodySmall?.copyWith(
-                fontSize: _SettingsFonts.version,
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
+            child: ref.watch(appVersionProvider).when(
+                  data: (v) => Text(
+                    v.displayEn,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontSize: _SettingsFonts.version,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, __) => const SizedBox.shrink(),
+                ),
           ),
         ),
       ],

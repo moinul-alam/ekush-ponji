@@ -19,20 +19,23 @@ class _MoreBottomSheet extends StatelessWidget {
   const _MoreBottomSheet();
 
   void _navigate(BuildContext context, String route, {Object? extra}) {
-    // 1. Close the sheet — must use rootNavigator:true since the sheet
-    //    was opened with useRootNavigator:true.
     Navigator.of(context, rootNavigator: true).pop();
 
-    // 2. Wait for the sheet dismissal animation to finish, then navigate.
-    //    Pop any screens sitting above the shell (e.g. Settings) so we
-    //    always push onto a clean base rather than stacking on top of
-    //    a screen that was already open.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final router = GoRouter.of(context);
-      while (router.canPop()) {
-        router.pop();
+
+      // Event/reminder add screens benefit from being pushed so back
+      // returns somewhere sensible; all others replace the stack cleanly
+      const pushRoutes = {
+        RouteNames.calendarAddEvent,
+        RouteNames.calendarAddReminder,
+      };
+
+      if (pushRoutes.contains(route)) {
+        router.push(route, extra: extra);
+      } else {
+        router.go(route, extra: extra);
       }
-      router.push(route, extra: extra);
     });
   }
 
