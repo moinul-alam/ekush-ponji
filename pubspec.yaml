@@ -8,8 +8,8 @@ flutter_launcher_icons:
   android: true
   ios: true
   image_path: "assets/images/app_icon.png"
-  adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: "assets/images/app_logo.png"
+  adaptive_icon_background: "#006b54"
+  adaptive_icon_foreground: "assets/images/app_icon.png"
   min_sdk_android: 21
   web:
     generate: false
@@ -84,16 +84,16 @@ flutter:
     - assets/data/quotes/
     - assets/data/words/
 flutter_native_splash:
-  color: "#FFFFFF"
-  color_dark: "#121212"
+  color: "#006b54"
+  color_dark: "#006b54"
 
-  image: assets/images/app_logo.png
-  image_dark: assets/images/app_logo.png
+  image: assets/images/app_icon.png
+  image_dark: assets/images/app_icon.png
 
   android_12:
-    color: "#FFFFFF"
-    color_dark: "#121212"
-    image: assets/images/app_logo.png
-    image_dark: assets/images/app_logo.png
+    color: "#006b54"
+    color_dark: "#006b54"
+    image: assets/images/app_icon.png
+    image_dark: assets/images/app_icon.png
 
   fullscreen: false

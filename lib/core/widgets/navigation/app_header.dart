@@ -33,7 +33,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
 
   // ── Defaults ───────────────────────────────────────────────────────────────
 
-  static const String _defaultLogoAsset = 'assets/images/header_logo.png';
+  static const String _defaultLogoAsset = 'assets/images/app_logo.png';
   static const String _defaultTitleAsset = 'assets/images/app_title.png';
 
   static const double _defaultLogoSize = 32;
