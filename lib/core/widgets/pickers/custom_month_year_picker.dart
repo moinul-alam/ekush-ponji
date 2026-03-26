@@ -94,7 +94,7 @@ class _MonthYearPickerDialogState extends State<MonthYearPickerDialog> {
             // ── Year selector ──────────────────────────────
             Container(
               decoration: BoxDecoration(
-                color: cs.surfaceContainerHighest.withOpacity(0.4),
+                color: cs.surfaceContainerHighest.withValues(alpha: 0.4),
                 borderRadius: BorderRadius.circular(14),
               ),
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
@@ -217,12 +217,12 @@ class _MonthYearPickerDialogState extends State<MonthYearPickerDialog> {
                     decoration: BoxDecoration(
                       color: isSelected
                           ? cs.primary
-                          : cs.surfaceContainerHighest.withOpacity(0.45),
+                          : cs.surfaceContainerHighest.withValues(alpha: 0.45),
                       borderRadius: BorderRadius.circular(10),
                       border: isSelected
                           ? null
                           : Border.all(
-                              color: cs.outlineVariant.withOpacity(0.3),
+                              color: cs.outlineVariant.withValues(alpha: 0.3),
                               width: 1,
                             ),
                     ),

@@ -125,7 +125,8 @@ class _DateSection extends StatelessWidget {
         Container(
           width: double.infinity,
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 6),
-          color: isToday ? cs.primaryContainer.withOpacity(0.3) : cs.surface,
+          color:
+              isToday ? cs.primaryContainer.withValues(alpha: 0.3) : cs.surface,
           child: Row(
             children: [
               Container(
@@ -202,10 +203,10 @@ class _EventCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: cs.surface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: cs.outlineVariant.withOpacity(0.5)),
+          border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.5)),
           boxShadow: [
             BoxShadow(
-              color: cs.shadow.withOpacity(0.04),
+              color: cs.shadow.withValues(alpha: 0.04),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -218,7 +219,7 @@ class _EventCard extends StatelessWidget {
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: cs.primaryContainer.withOpacity(0.5),
+              color: cs.primaryContainer.withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(Icons.event_rounded, size: 20, color: cs.primary),
@@ -273,7 +274,7 @@ class _EmptyState extends StatelessWidget {
         children: [
           Icon(Icons.event_outlined,
               size: 64,
-              color: theme.colorScheme.onSurfaceVariant.withOpacity(0.4)),
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4)),
           const SizedBox(height: 16),
           Text(
             isBn ? 'কোনো ইভেন্ট নেই' : 'No events yet',

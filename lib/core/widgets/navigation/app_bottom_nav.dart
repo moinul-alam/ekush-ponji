@@ -112,7 +112,7 @@ class _AppBottomNavInnerState extends State<_AppBottomNavInner> {
                   selected ? colorScheme.primary : colorScheme.onSurfaceVariant,
             );
           }),
-          indicatorColor: colorScheme.primary.withOpacity(0.12),
+          indicatorColor: colorScheme.primary.withValues(alpha: 0.12),
         ),
       ),
       child: NavigationBar(

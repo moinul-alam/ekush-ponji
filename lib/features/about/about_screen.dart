@@ -1,12 +1,14 @@
 // lib/features/about/about_screen.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:ekush_ponji/core/localization/app_localizations.dart';
+import 'package:ekush_ponji/core/services/app_version_service.dart';
 import 'package:ekush_ponji/features/about/about_content.dart';
 import 'package:ekush_ponji/core/widgets/navigation/app_header.dart';
 
-class AboutScreen extends StatelessWidget {
+class AboutScreen extends ConsumerWidget {
   const AboutScreen({super.key});
 
   Future<void> _launch(String url) async {
@@ -17,11 +19,12 @@ class AboutScreen extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isBn = l10n.languageCode == 'bn';
+    final versionAsync = ref.watch(appVersionProvider);
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -63,11 +66,24 @@ class AboutScreen extends StatelessWidget {
                       ?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  isBn ? 'সংস্করণ ১.০.০' : 'Version 1.0.0',
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: colorScheme.onSurfaceVariant),
+
+                // ── Version (dynamic) ──────────────────────────
+                versionAsync.when(
+                  data: (v) => Text(
+                    isBn ? v.displayBn : v.displayEn,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  loading: () => const SizedBox(height: 16),
+                  error: (_, __) => Text(
+                    isBn ? 'সংস্করণ অজানা' : 'Version unknown',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
                 ),
+
                 const SizedBox(height: 12),
                 // Website link
                 GestureDetector(
@@ -169,7 +185,6 @@ class AboutScreen extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // Strip the URL line from content — we render it as a tappable button
     final displayContent =
         content.replaceAll(RegExp(r'\nhttps?://\S+'), '').trim();
 
@@ -231,7 +246,6 @@ class AboutScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    // Full policy button
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton.icon(

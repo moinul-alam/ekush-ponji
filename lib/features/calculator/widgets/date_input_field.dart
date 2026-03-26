@@ -148,7 +148,7 @@ class DateInputFieldState extends State<DateInputField> {
             border: Border.all(
               color: widget.hasError
                   ? colorScheme.error
-                  : colorScheme.outline.withOpacity(0.3),
+                  : colorScheme.outline.withValues(alpha: 0.3),
               width: 1.5,
             ),
           ),
@@ -336,7 +336,7 @@ class DateInputFieldState extends State<DateInputField> {
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: theme.textTheme.titleLarge?.copyWith(
-            color: colorScheme.onSurfaceVariant.withOpacity(0.4),
+            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
           ),
           border: InputBorder.none,
           contentPadding: EdgeInsets.zero,

@@ -127,7 +127,7 @@ class _DayDetailsScreenState extends ConsumerState<DayDetailsScreen> {
                           Icons.event_available,
                           size: 48,
                           color: theme.colorScheme.onSurfaceVariant
-                              .withOpacity(0.4),
+                              .withValues(alpha: 0.4),
                         ),
                         const SizedBox(height: 12),
                         Text(
@@ -149,8 +149,8 @@ class _DayDetailsScreenState extends ConsumerState<DayDetailsScreen> {
                     child: _FilledActionButton(
                       icon: Icons.add_circle_outline_rounded,
                       label: l10n.addEvent,
-                      backgroundColor:
-                          theme.colorScheme.primaryContainer.withOpacity(0.7),
+                      backgroundColor: theme.colorScheme.primaryContainer
+                          .withValues(alpha: 0.7),
                       foregroundColor: theme.colorScheme.onPrimaryContainer,
                       onTap: () => context.push(
                         RouteNames.calendarAddEvent,
@@ -163,8 +163,8 @@ class _DayDetailsScreenState extends ConsumerState<DayDetailsScreen> {
                     child: _FilledActionButton(
                       icon: Icons.alarm_add_rounded,
                       label: l10n.addReminder,
-                      backgroundColor:
-                          theme.colorScheme.secondaryContainer.withOpacity(0.7),
+                      backgroundColor: theme.colorScheme.secondaryContainer
+                          .withValues(alpha: 0.7),
                       foregroundColor: theme.colorScheme.onSecondaryContainer,
                       onTap: () => context.push(
                         RouteNames.calendarAddReminder,
@@ -226,8 +226,8 @@ class _DateHeaderCard extends StatelessWidget {
                 Text(
                   bengaliDate,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color:
-                        theme.colorScheme.onPrimaryContainer.withOpacity(0.75),
+                    color: theme.colorScheme.onPrimaryContainer
+                        .withValues(alpha: 0.75),
                   ),
                 ),
               ],
@@ -242,9 +242,9 @@ class _DateHeaderCard extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  theme.colorScheme.onPrimaryContainer.withOpacity(0.0),
-                  theme.colorScheme.onPrimaryContainer.withOpacity(0.3),
-                  theme.colorScheme.onPrimaryContainer.withOpacity(0.0),
+                  theme.colorScheme.onPrimaryContainer.withValues(alpha: 0.0),
+                  theme.colorScheme.onPrimaryContainer.withValues(alpha: 0.3),
+                  theme.colorScheme.onPrimaryContainer.withValues(alpha: 0.0),
                 ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -307,9 +307,9 @@ class _HolidayCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.red.withOpacity(0.05),
+        color: Colors.red.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.red.withOpacity(0.2)),
+        border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -349,7 +349,7 @@ class _HolidayCard extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.1),
+                    color: Colors.red.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
@@ -396,9 +396,9 @@ class _EventCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: cs.primaryContainer.withOpacity(0.35),
+          color: cs.primaryContainer.withValues(alpha: 0.35),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: cs.primary.withOpacity(0.2)),
+          border: Border.all(color: cs.primary.withValues(alpha: 0.2)),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -476,7 +476,7 @@ class _EventCard extends StatelessWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: cs.primary.withOpacity(0.1),
+                      color: cs.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
@@ -521,9 +521,9 @@ class _ReminderCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: cs.secondaryContainer.withOpacity(0.35),
+          color: cs.secondaryContainer.withValues(alpha: 0.35),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: cs.secondary.withOpacity(0.2)),
+          border: Border.all(color: cs.secondary.withValues(alpha: 0.2)),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -583,7 +583,7 @@ class _ReminderCard extends StatelessWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: cs.secondary.withOpacity(0.1),
+                      color: cs.secondary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(

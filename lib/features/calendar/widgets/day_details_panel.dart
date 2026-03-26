@@ -39,12 +39,12 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: theme.colorScheme.outlineVariant.withOpacity(0.5),
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: theme.colorScheme.shadow.withOpacity(0.08),
+            color: theme.colorScheme.shadow.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -179,7 +179,7 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
                           icon: Icons.add_circle_outline_rounded,
                           label: localizations.addEvent,
                           backgroundColor: theme.colorScheme.primaryContainer
-                              .withOpacity(0.7),
+                              .withValues(alpha: 0.7),
                           foregroundColor: theme.colorScheme.onPrimaryContainer,
                           onTap: () => context.push(
                             RouteNames.calendarAddEvent,
@@ -194,7 +194,7 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
                           icon: Icons.alarm_add_rounded,
                           label: localizations.addReminder,
                           backgroundColor: theme.colorScheme.secondaryContainer
-                              .withOpacity(0.7),
+                              .withValues(alpha: 0.7),
                           foregroundColor:
                               theme.colorScheme.onSecondaryContainer,
                           onTap: () => context.push(
@@ -210,7 +210,7 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
                           icon: Icons.info_outline_rounded,
                           label: localizations.showDetails,
                           backgroundColor: theme.colorScheme.tertiaryContainer
-                              .withOpacity(0.7),
+                              .withValues(alpha: 0.7),
                           foregroundColor:
                               theme.colorScheme.onTertiaryContainer,
                           onTap: () =>
@@ -257,9 +257,9 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.red.withOpacity(0.05),
+        color: Colors.red.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.red.withOpacity(0.2)),
+        border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
@@ -314,9 +314,9 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.blue.withOpacity(0.05),
+        color: Colors.blue.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.blue.withOpacity(0.2)),
+        border: Border.all(color: Colors.blue.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
@@ -381,9 +381,9 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.orange.withOpacity(0.05),
+        color: Colors.orange.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.orange.withOpacity(0.2)),
+        border: Border.all(color: Colors.orange.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
@@ -419,7 +419,8 @@ class _DayDetailsPanelState extends State<DayDetailsPanel> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: _getPriorityColor(reminder.priority).withOpacity(0.2),
+              color:
+                  _getPriorityColor(reminder.priority).withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(

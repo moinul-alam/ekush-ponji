@@ -168,28 +168,34 @@ class _QuoteContent extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: cs.surface,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: cs.outline.withValues(alpha: 0.3)),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.person_outline, size: 14, color: cs.primary),
-                const SizedBox(width: 6),
-                Text(
-                  quote!.author,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: cs.onSurface,
-                    fontWeight: FontWeight.w600,
+          // --- FIXED SECTION START ---
+          Align(
+            alignment: Alignment.centerRight,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: cs.surface,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: cs.outline.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                mainAxisSize:
+                    MainAxisSize.min, // Ensures container doesn't stretch
+                children: [
+                  Icon(Icons.person_outline, size: 14, color: cs.primary),
+                  const SizedBox(width: 6),
+                  Text(
+                    quote!.author,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: cs.onSurface,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
+          // --- FIXED SECTION END ---
         ],
       ),
     );

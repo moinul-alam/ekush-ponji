@@ -178,7 +178,7 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: colorScheme.primaryContainer.withOpacity(0.3),
+        color: colorScheme.primaryContainer.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -217,8 +217,8 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
           ),
         ),
         onPressed: viewModel.setToDateAsToday,
-        backgroundColor: colorScheme.primaryContainer.withOpacity(0.5),
-        side: BorderSide(color: colorScheme.primary.withOpacity(0.3)),
+        backgroundColor: colorScheme.primaryContainer.withValues(alpha: 0.5),
+        side: BorderSide(color: colorScheme.primary.withValues(alpha: 0.3)),
       ),
     );
   }
@@ -310,7 +310,7 @@ class _CalculatorScreenState extends BaseScreenState<CalculatorScreen> {
             Icon(
               Icons.calendar_today_outlined,
               size: 64,
-              color: colorScheme.onSurfaceVariant.withOpacity(0.5),
+              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(

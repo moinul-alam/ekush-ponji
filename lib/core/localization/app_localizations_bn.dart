@@ -218,7 +218,7 @@ class AppLocalizationsBn extends AppLocalizations {
   String get noUpcomingEvents => 'কোন আসন্ন ইভেন্ট নেই';
 
   @override
-  String get noUpcomingHolidays => 'কোন আসন্ন ছুটির দিন নেই';
+  String get noUpcomingHolidays => 'এই মাসে কোন আসন্ন ছুটির দিন নেই';
 
   @override
   String get quoteOfTheDay => 'আজকের উক্তি';
@@ -316,10 +316,10 @@ class AppLocalizationsBn extends AppLocalizations {
   String get termsOfServiceSubtitle => 'আমাদের সার্ভিসের শর্তাবলী পড়ুন';
 
   @override
-  String get resetSettings => 'সেটিংস রিসেট করুন';
+  String get resetSettings => 'রিসেট সেটিংস';
 
   @override
-  String get resetSettingsSubtitle => 'সমস্ত অ্যাপ সেটিংস ডিফল্টে রিসেট করুন';
+  String get resetSettingsSubtitle => 'অ্যাপের সকল সেটিংস ডিফল্টে রিসেট করুন';
 
   @override
   String get resetSettingsConfirmMessage =>
@@ -327,10 +327,11 @@ class AppLocalizationsBn extends AppLocalizations {
       'এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।';
 
   @override
-  String get deleteAllData => 'সব ডেটা মুছুন';
+  String get deleteAllData => 'সকল তথ্য রিসেট';
 
   @override
-  String get deleteAllDataSubtitle => 'অ্যাপকে ডিফল্ট সেটিংসে রিসেট করুন';
+  String get deleteAllDataSubtitle =>
+      'অ্যাপে সংরক্ষিত সকল তথ্য এবং সেটিংস মুছে ফেলুন';
 
   @override
   String get deleteAllDataConfirmMessage =>

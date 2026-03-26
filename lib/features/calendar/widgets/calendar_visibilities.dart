@@ -27,13 +27,13 @@ class CalendarLegend extends ConsumerWidget {
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
-            color: colorScheme.shadow.withOpacity(0.06),
+            color: colorScheme.shadow.withValues(alpha: 0.06),
             blurRadius: 12,
             offset: const Offset(0, 3),
           ),
         ],
         border: Border.all(
-          color: colorScheme.outlineVariant.withOpacity(0.4),
+          color: colorScheme.outlineVariant.withValues(alpha: 0.4),
           width: 1,
         ),
       ),
@@ -138,15 +138,15 @@ class _DateToggleChipState extends State<_DateToggleChip>
     // Colors
     final bgColor = isActive
         ? widget.activeColor
-        : colorScheme.surfaceContainerHighest.withOpacity(0.55);
+        : colorScheme.surfaceContainerHighest.withValues(alpha: 0.55);
     final labelColor =
         isActive ? widget.activeLabelColor : colorScheme.onSurfaceVariant;
     final iconColor = isActive
         ? widget.activeIconColor
-        : colorScheme.onSurfaceVariant.withOpacity(0.55);
+        : colorScheme.onSurfaceVariant.withValues(alpha: 0.55);
     final borderColor = isActive
-        ? widget.activeColor.withOpacity(0.0) // no border when active
-        : colorScheme.outlineVariant.withOpacity(0.5);
+        ? widget.activeColor.withValues(alpha: 0.0) // no border when active
+        : colorScheme.outlineVariant.withValues(alpha: 0.5);
 
     return ScaleTransition(
       scale: _scaleAnim,
@@ -163,7 +163,7 @@ class _DateToggleChipState extends State<_DateToggleChip>
             boxShadow: isActive
                 ? [
                     BoxShadow(
-                      color: widget.activeColor.withOpacity(0.25),
+                      color: widget.activeColor.withValues(alpha: 0.25),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
