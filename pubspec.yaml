@@ -1,7 +1,7 @@
 name: ekush_ponji
 description: Simple dates, Meaniningful days.
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.0+2
 environment:
   sdk: '>=3.0.0 <4.0.0'
 flutter_launcher_icons:
