@@ -67,7 +67,7 @@ class AppDrawer extends StatelessWidget {
                 // App title
                 Image.asset(
                   'assets/images/app_title.png',
-                  height: 34,
+                  height: 44,
                   fit: BoxFit.contain,
                   errorBuilder: (_, __, ___) => Text(
                     l10n.appName,
