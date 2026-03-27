@@ -184,7 +184,7 @@ class _OnboardingPageTwoState extends ConsumerState<OnboardingPageTwo> {
                 children: [
                   TextSpan(
                     text: isBn
-                        ? 'একুশ পঞ্জি সবার জন্য সম্পূর্ণ ফ্রি। অ্যাপটি সচল রাখতে আমরা সীমিত ও মার্জিত বিজ্ঞাপন ব্যবহার করি। আপনার মতামত জানাতে ইমেইল করুন: '
+                        ? 'একুশ পঞ্জি সবার জন্য সম্পূর্ণ ফ্রি। অ্যাপটি সচল রাখতে আমরা সীমিত ও মার্জিত বিজ্ঞাপন ব্যবহার করি। একুশ পঞ্জি সম্পর্কে আপনার মতামত জানাতে ইমেইল করুন: '
                         : 'Ekush Ponji is free for everyone. We use minimal ads to keep the app running. Share your feedback at:',
                   ),
                   TextSpan(

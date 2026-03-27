@@ -474,13 +474,15 @@ class AppLocalizationsBn extends AppLocalizations {
   String get quoteNotifications => 'দৈনিক উক্তি';
 
   @override
-  String get quoteNotificationsSubtitle => 'প্রতিদিন সকালে একটি উক্তি পান';
+  String get quoteNotificationsSubtitle =>
+      'প্রতিদিন নতুন নতুন উক্তি পেতে নোটিফিকেশন চালু করুন';
 
   @override
   String get wordNotifications => 'আজকের শব্দ';
 
   @override
-  String get wordNotificationsSubtitle => 'প্রতিদিন সকালে নতুন শব্দ শিখুন';
+  String get wordNotificationsSubtitle =>
+      'প্রতিদিন সকালে নতুন শব্দ শিখতে নোটিফিকেশন চালু করুন';
 
   // ═══════════════════════════════════════════════════════════
   // HOLIDAYS SCREEN
