@@ -16,6 +16,7 @@ import 'package:ekush_ponji/features/calendar/widgets/calendar_holidays_widget.d
 import 'package:ekush_ponji/core/widgets/pickers/custom_month_year_picker.dart';
 import 'package:ekush_ponji/core/widgets/loading/app_loading_spinner.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
+import 'package:ekush_ponji/app/providers/app_providers.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ekush_ponji/core/widgets/navigation/app_header.dart';
 
@@ -28,6 +29,7 @@ class CalendarScreen extends BaseScreen {
 
 class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
   double _dragStartX = 0;
+  int? _lastSeenDataVersion;
 
   @override
   NotifierProvider<CalendarViewModel, ViewState> get viewModelProvider =>
@@ -68,6 +70,15 @@ class _CalendarScreenState extends BaseScreenState<CalendarScreen> {
 
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
+    final dataVersion = ref.watch(appDataVersionProvider);
+    if (_lastSeenDataVersion != dataVersion) {
+      _lastSeenDataVersion = dataVersion;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ref.read(calendarViewModelProvider.notifier).refreshSelectedDay();
+      });
+    }
+
     final viewState = ref.watch(calendarViewModelProvider);
     final viewModel = ref.read(calendarViewModelProvider.notifier);
     final l10n = AppLocalizations.of(context);

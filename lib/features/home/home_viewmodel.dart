@@ -63,7 +63,7 @@ class HomeViewModel extends BaseViewModel {
         _events = await _eventRepository.getEventsForDate(now);
       },
       showLoading: false,
-      setSuccessState: false,
+      setSuccessState: true,
     );
   }
 }

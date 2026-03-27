@@ -12,6 +12,7 @@ import 'package:ekush_ponji/features/events/models/event.dart';
 import 'package:ekush_ponji/features/reminders/models/reminder.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ekush_ponji/app/router/route_names.dart';
+import 'package:ekush_ponji/app/providers/app_providers.dart';
 import 'package:ekush_ponji/core/widgets/navigation/app_header.dart';
 
 class DayDetailsScreen extends ConsumerStatefulWidget {
@@ -24,6 +25,8 @@ class DayDetailsScreen extends ConsumerStatefulWidget {
 }
 
 class _DayDetailsScreenState extends ConsumerState<DayDetailsScreen> {
+  int? _lastSeenDataVersion;
+
   @override
   void initState() {
     super.initState();
@@ -40,6 +43,15 @@ class _DayDetailsScreenState extends ConsumerState<DayDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final dataVersion = ref.watch(appDataVersionProvider);
+    if (_lastSeenDataVersion != dataVersion) {
+      _lastSeenDataVersion = dataVersion;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ref.read(calendarViewModelProvider.notifier).refreshSelectedDay();
+      });
+    }
+
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
 

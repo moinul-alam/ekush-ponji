@@ -1,5 +1,3 @@
-// lib/features/settings/settings_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -20,26 +18,13 @@ import 'package:ekush_ponji/features/words/providers/word_notification_prefs_pro
 import 'package:ekush_ponji/core/widgets/navigation/app_header.dart';
 import 'package:ekush_ponji/core/services/app_version_service.dart';
 
-// ── Settings font sizes ───────────────────────────────────────
-
 abstract class _SettingsFonts {
-  // Section header
   static const double sectionHeader = 13.0;
-
-  // Tile title
   static const double tileTitle = 18.0;
-
-  // Tile subtitle
   static const double tileSubtitle = 13.0;
-
-  // Sync / last synced line
   static const double syncSubtitle = 13.0;
-
-  // Version text
   static const double version = 13.0;
 }
-
-// ── Screen ────────────────────────────────────────────────────
 
 class SettingsScreen extends BaseScreen {
   const SettingsScreen({super.key});
@@ -185,7 +170,6 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen>
 
         if (!osGranted) _PermissionBanner(l10n: l10n),
 
-        // Holiday notifications
         Consumer(
           builder: (context, ref, _) {
             final holidayEnabled =
@@ -213,7 +197,6 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen>
           },
         ),
 
-        // Quote notifications
         Consumer(
           builder: (context, ref, _) {
             final quotePrefs = ref.watch(quoteNotificationPrefsProvider);
@@ -236,7 +219,6 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen>
           },
         ),
 
-        // Word notifications
         Consumer(
           builder: (context, ref, _) {
             final wordPrefs = ref.watch(wordNotificationPrefsProvider);
@@ -275,7 +257,7 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen>
           title: l10n.deleteAllData,
           subtitle: l10n.deleteAllDataSubtitle,
           titleColor: colorScheme.error,
-          onTap: () => _showClearDataDialog(context, viewModel, l10n),
+          onTap: () => _showClearDataDialog(context, ref, viewModel, l10n),
         ),
 
         const Divider(height: 32),
@@ -315,8 +297,6 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen>
   void onRetry() {
     ref.read(settingsViewModelProvider.notifier).loadSettings();
   }
-
-  // ── Helpers ───────────────────────────────────────────────
 
   String _getThemeName(ThemeMode mode, AppLocalizations l10n) {
     switch (mode) {
@@ -371,8 +351,6 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen>
       return l10n.lastSyncedUnknown;
     }
   }
-
-  // ── Dialogs ───────────────────────────────────────────────
 
   void _showPermissionDialog(
       BuildContext context, WidgetRef ref, AppLocalizations l10n) {
@@ -476,6 +454,7 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen>
 
   void _showClearDataDialog(
     BuildContext context,
+    WidgetRef ref,
     SettingsViewModel viewModel,
     AppLocalizations l10n,
   ) {
@@ -486,7 +465,7 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen>
       cancelText: l10n.cancel,
       isDestructive: true,
     ).then((confirmed) {
-      if (confirmed) viewModel.clearAllData();
+      if (confirmed) viewModel.clearAllData(ref, l10n);
     });
   }
 
@@ -503,12 +482,10 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen>
       cancelText: l10n.cancel,
       isDestructive: true,
     ).then((confirmed) {
-      if (confirmed) viewModel.resetSettings(ref);
+      if (confirmed) viewModel.resetSettings(ref, l10n);
     });
   }
 }
-
-// ── Permission banner ─────────────────────────────────────────
 
 class _PermissionBanner extends StatelessWidget {
   final AppLocalizations l10n;
@@ -544,8 +521,6 @@ class _PermissionBanner extends StatelessWidget {
   }
 }
 
-// ── Section header ────────────────────────────────────────────
-
 class _SectionHeader extends StatelessWidget {
   final String title;
   const _SectionHeader({required this.title});
@@ -568,8 +543,6 @@ class _SectionHeader extends StatelessWidget {
     );
   }
 }
-
-// ── Settings tile ─────────────────────────────────────────────
 
 class _SettingsTile extends StatelessWidget {
   final IconData icon;
@@ -616,8 +589,6 @@ class _SettingsTile extends StatelessWidget {
     );
   }
 }
-
-// ── Settings switch tile ──────────────────────────────────────
 
 class _SettingsSwitchTile extends StatelessWidget {
   final IconData icon;

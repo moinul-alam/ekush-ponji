@@ -9,6 +9,7 @@ import 'package:ekush_ponji/features/events/models/event.dart';
 import 'package:ekush_ponji/features/events/data/event_repository.dart';
 import 'package:ekush_ponji/features/calendar/calendar_viewmodel.dart';
 import 'package:ekush_ponji/features/events/services/event_notification_service.dart';
+import 'package:ekush_ponji/app/providers/app_providers.dart';
 
 class AddEventViewModel extends BaseViewModel {
   late final EventRepository _repository;
@@ -156,6 +157,7 @@ class AddEventViewModel extends BaseViewModel {
         ref
             .read(calendarViewModelProvider.notifier)
             .invalidateCacheForDate(startTime!);
+        ref.read(appDataVersionProvider.notifier).markChanged();
 
         await EventNotificationService.cancel(event);
         if (event.notifyAtStartTime) {
@@ -163,8 +165,9 @@ class AddEventViewModel extends BaseViewModel {
         }
       },
       loadingMessage: l10n.loading,
-      successMessage: isEditMode ? l10n.editEvent : l10n.addEvent,
-      errorMessage: '${l10n.error}: ${l10n.editEvent}',
+      successMessage:
+          isEditMode ? l10n.eventUpdatedSuccess : l10n.eventAddedSuccess,
+      errorMessage: '${l10n.error}: ${isEditMode ? l10n.editEvent : l10n.addEvent}',
     );
   }
 
@@ -189,9 +192,10 @@ class AddEventViewModel extends BaseViewModel {
               .read(calendarViewModelProvider.notifier)
               .invalidateCacheForDate(dateToInvalidate);
         }
+        ref.read(appDataVersionProvider.notifier).markChanged();
       },
       loadingMessage: l10n.loading,
-      successMessage: l10n.deleteEvent,
+      successMessage: l10n.eventDeletedSuccess,
       errorMessage: '${l10n.error}: ${l10n.deleteEvent}',
     );
   }

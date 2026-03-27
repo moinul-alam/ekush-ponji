@@ -205,3 +205,17 @@ final currentTabProvider =
 final dataSyncServiceProvider = Provider<DataSyncService>((ref) {
   return DataSyncService();
 });
+
+/// Global data-change version used to force reactive refreshes across screens.
+/// Increment this whenever events/reminders/user data are mutated.
+class AppDataVersionNotifier extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void markChanged() {
+    state = state + 1;
+  }
+}
+
+final appDataVersionProvider =
+    NotifierProvider<AppDataVersionNotifier, int>(AppDataVersionNotifier.new);

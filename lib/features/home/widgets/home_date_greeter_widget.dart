@@ -214,6 +214,7 @@ class _HomeDateGreeterWidgetState extends ConsumerState<HomeDateGreeterWidget>
   late _TimePeriod _period;
   late DateTime _lastRebuildDate;
   Timer? _boundaryTimer;
+  Timer? _clockWatchTimer;
   bool _shimmerEnabled = false;
 
   // Entrance
@@ -251,6 +252,7 @@ class _HomeDateGreeterWidgetState extends ConsumerState<HomeDateGreeterWidget>
     _setupPulseAnimation();
     _setupShimmerAnimation();
     _scheduleBoundaryTimer();
+    _startClockWatcher();
     _startAnimations();
     _checkPerformance();
   }
@@ -426,6 +428,24 @@ class _HomeDateGreeterWidgetState extends ConsumerState<HomeDateGreeterWidget>
     );
   }
 
+  void _startClockWatcher() {
+    _clockWatchTimer?.cancel();
+    _clockWatchTimer = Timer.periodic(
+      const Duration(seconds: 30),
+      (_) => _checkClockChanges(),
+    );
+  }
+
+  void _checkClockChanges() {
+    if (!mounted) return;
+    final now = DateTime.now();
+    final currentDate = DateTime(now.year, now.month, now.day);
+    final dayChanged = currentDate != _lastRebuildDate;
+    final periodChanged = _currentPeriod() != _period;
+    if (!dayChanged && !periodChanged) return;
+    _onHourBoundary();
+  }
+
   void _onHourBoundary() {
     // Guard: widget may have been disposed before timer fired
     if (!mounted) return;
@@ -464,6 +484,7 @@ class _HomeDateGreeterWidgetState extends ConsumerState<HomeDateGreeterWidget>
   @override
   void dispose() {
     _boundaryTimer?.cancel();
+    _clockWatchTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     _entranceController.dispose();
     _crossFadeController.dispose();

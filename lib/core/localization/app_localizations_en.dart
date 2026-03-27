@@ -328,6 +328,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'This action cannot be undone.';
 
   @override
+  String get resetSettingsSuccessMessage => 'Settings reset successfully';
+
+  @override
   String get deleteAllData => 'Clear All Data';
 
   @override
@@ -337,6 +340,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deleteAllDataConfirmMessage =>
       'This will reset all settings to their defaults and erase all stored data. '
       'This action cannot be undone.';
+
+  @override
+  String get deleteAllDataSuccessMessage => 'All data cleared successfully';
 
   @override
   String get dataAndStorage => 'Data & Storage';
@@ -613,6 +619,24 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get deleteReminderConfirmMessage =>
       'Are you sure you want to delete this reminder?';
+
+  @override
+  String get eventAddedSuccess => 'Event added successfully';
+
+  @override
+  String get eventUpdatedSuccess => 'Event updated successfully';
+
+  @override
+  String get eventDeletedSuccess => 'Event deleted successfully';
+
+  @override
+  String get reminderAddedSuccess => 'Reminder added successfully';
+
+  @override
+  String get reminderUpdatedSuccess => 'Reminder updated successfully';
+
+  @override
+  String get reminderDeletedSuccess => 'Reminder deleted successfully';
 
   @override
   String get allEvents => 'All Events';
