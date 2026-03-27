@@ -8,26 +8,19 @@
     <!-- Exact alarm permissions (Android 12+ / API 31+) -->
     <!-- SCHEDULE_EXACT_ALARM: user can revoke this in Settings — handle gracefully -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
-    <!-- USE_EXACT_ALARM: granted automatically, cannot be revoked by user -->
-    <!-- Remove this if your app targets API < 33 to avoid Play Store rejection -->
-    <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
 
     <!-- Required to reschedule alarms after device reboot -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
-    <!-- Internet (Firebase, API calls) -->
+    <!-- Internet (GitHub, API calls) -->
     <uses-permission android:name="android.permission.INTERNET"/>
-
-    <!-- Optional: needed only if you add foreground services later -->
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 
     <!-- ================= APPLICATION ================= -->
     <application
         android:label="Ekush Ponji"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
-        android:enableOnBackInvokedCallback="true"
-        android:usesCleartextTraffic="true">
+        android:enableOnBackInvokedCallback="true">
 
         <!-- ── Main Flutter Activity ── -->
         <activity
@@ -73,7 +66,6 @@
             android:exported="false"/>
 
         <!-- ── AdMob App ID ── -->
-        <!-- TODO: replace with real App ID before release -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-4160890837003198~6990710179"/>
