@@ -9,6 +9,7 @@ import 'package:ekush_ponji/features/calendar/data/calendar_repository.dart';
 import 'package:ekush_ponji/features/calendar/services/bengali_calendar_service.dart';
 import 'package:ekush_ponji/features/holidays/models/holiday.dart';
 import 'package:ekush_ponji/features/events/models/event.dart';
+import 'package:ekush_ponji/app/providers/app_providers.dart';
 
 class CalendarViewModel extends BaseViewModel {
   late final CalendarRepository _repository;
@@ -48,7 +49,20 @@ class CalendarViewModel extends BaseViewModel {
     super.onInit();
     _repository = ref.read(calendarRepositoryProvider);
     _bengaliService = ref.read(bengaliCalendarServiceProvider);
+    ref.listen<int>(appDataVersionProvider, (previous, next) {
+      if (previous != next) {
+        Future.microtask(_reloadAfterExternalDataChange);
+      }
+    });
     loadCurrentMonth();
+  }
+
+  Future<void> _reloadAfterExternalDataChange() async {
+    final targetDate = _selectedDate ?? DateTime.now();
+    final monthKey = '${targetDate.year}-${targetDate.month}';
+    _monthCache.remove(monthKey);
+    await jumpToMonth(targetDate.year, targetDate.month);
+    selectDate(targetDate);
   }
 
   Future<void> loadCurrentMonth() async {

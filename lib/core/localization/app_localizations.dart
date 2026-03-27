@@ -244,9 +244,11 @@ abstract class AppLocalizations {
   String get resetSettings;
   String get resetSettingsSubtitle;
   String get resetSettingsConfirmMessage;
+  String get resetSettingsSuccessMessage;
   String get deleteAllData;
   String get deleteAllDataSubtitle;
   String get deleteAllDataConfirmMessage;
+  String get deleteAllDataSuccessMessage;
   String get dataAndStorage;
   String get autoBackup;
   String get autoBackupSubtitle;
@@ -353,6 +355,12 @@ abstract class AppLocalizations {
   String get deleteEventConfirmMessage;
   String get deleteReminder;
   String get deleteReminderConfirmMessage;
+  String get eventAddedSuccess;
+  String get eventUpdatedSuccess;
+  String get eventDeletedSuccess;
+  String get reminderAddedSuccess;
+  String get reminderUpdatedSuccess;
+  String get reminderDeletedSuccess;
   String get allEvents;
   String get allReminders;
 

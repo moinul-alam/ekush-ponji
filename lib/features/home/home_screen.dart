@@ -1,5 +1,7 @@
 // lib/features/home/home_screen.dart
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ekush_ponji/core/base/base_screen.dart';
@@ -15,6 +17,7 @@ import 'package:ekush_ponji/features/home/widgets/daily_quote_widget.dart';
 import 'package:ekush_ponji/features/home/widgets/daily_word_widget.dart';
 import 'package:ekush_ponji/features/home/widgets/app_review_banner.dart';
 import 'package:ekush_ponji/core/widgets/ads/native_ad_widget.dart';
+import 'package:ekush_ponji/app/providers/app_providers.dart';
 
 class HomeScreen extends BaseScreen {
   const HomeScreen({super.key});
@@ -23,8 +26,11 @@ class HomeScreen extends BaseScreen {
   BaseScreenState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends BaseScreenState<HomeScreen> {
+class _HomeScreenState extends BaseScreenState<HomeScreen>
+    with WidgetsBindingObserver {
   bool _showReviewBanner = false;
+  Timer? _dayBoundaryCheckTimer;
+  DateTime _lastKnownDay = _todayOnly(DateTime.now());
 
   @override
   NotifierProvider<HomeViewModel, ViewState> get viewModelProvider =>
@@ -45,7 +51,23 @@ class _HomeScreenState extends BaseScreenState<HomeScreen> {
 
   @override
   void onScreenInit() {
+    WidgetsBinding.instance.addObserver(this);
     _checkAppReview();
+    _startDayBoundaryWatcher();
+  }
+
+  @override
+  void onScreenDispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _dayBoundaryCheckTimer?.cancel();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _refreshOnDayChange();
+      ref.read(homeViewModelProvider.notifier).refresh();
+    }
   }
 
   Future<void> _checkAppReview() async {
@@ -81,6 +103,12 @@ class _HomeScreenState extends BaseScreenState<HomeScreen> {
 
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
+    ref.listen<int>(appDataVersionProvider, (previous, next) {
+      if (previous != next) {
+        ref.read(homeViewModelProvider.notifier).refresh();
+      }
+    });
+
     final viewState = ref.watch(homeViewModelProvider);
 
     // On error show error widget, otherwise always show content
@@ -125,5 +153,23 @@ class _HomeScreenState extends BaseScreenState<HomeScreen> {
         ],
       ),
     );
+  }
+
+  static DateTime _todayOnly(DateTime date) =>
+      DateTime(date.year, date.month, date.day);
+
+  void _startDayBoundaryWatcher() {
+    _dayBoundaryCheckTimer?.cancel();
+    _dayBoundaryCheckTimer = Timer.periodic(
+      const Duration(seconds: 30),
+      (_) => _refreshOnDayChange(),
+    );
+  }
+
+  void _refreshOnDayChange() {
+    final nowDay = _todayOnly(DateTime.now());
+    if (nowDay == _lastKnownDay) return;
+    _lastKnownDay = nowDay;
+    ref.read(homeViewModelProvider.notifier).refresh();
   }
 }

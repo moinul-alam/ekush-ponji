@@ -327,6 +327,9 @@ class AppLocalizationsBn extends AppLocalizations {
       'এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।';
 
   @override
+  String get resetSettingsSuccessMessage => 'সেটিংস সফলভাবে রিসেট হয়েছে';
+
+  @override
   String get deleteAllData => 'সকল তথ্য রিসেট';
 
   @override
@@ -337,6 +340,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get deleteAllDataConfirmMessage =>
       'এটি সমস্ত সেটিংস ডিফল্টে ফিরিয়ে দেবে এবং সংরক্ষিত সব ডেটা মুছে ফেলবে। '
       'এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।';
+
+  @override
+  String get deleteAllDataSuccessMessage => 'সব ডেটা সফলভাবে মুছে ফেলা হয়েছে';
 
   @override
   String get dataAndStorage => 'ডেটা এবং স্টোরেজ';
@@ -547,10 +553,10 @@ class AppLocalizationsBn extends AppLocalizations {
   String get addReminder => 'রিমাইন্ডার যোগ করুন';
 
   @override
-  String get editEvent => 'ইভেন্ট সম্পাদনা করুন';
+  String get editEvent => 'এডিট ইভেন্ট';
 
   @override
-  String get editReminder => 'রিমাইন্ডার সম্পাদনা করুন';
+  String get editReminder => 'এডিট রিমাইন্ডার';
 
   @override
   String get allDay => 'সারাদিন';
@@ -613,6 +619,24 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get deleteReminderConfirmMessage =>
       'আপনি কি নিশ্চিত যে আপনি এই রিমাইন্ডারটি মুছে ফেলতে চান?';
+
+  @override
+  String get eventAddedSuccess => 'ইভেন্ট সফলভাবে যোগ হয়েছে';
+
+  @override
+  String get eventUpdatedSuccess => 'ইভেন্ট সফলভাবে আপডেট হয়েছে';
+
+  @override
+  String get eventDeletedSuccess => 'ইভেন্ট সফলভাবে মুছে ফেলা হয়েছে';
+
+  @override
+  String get reminderAddedSuccess => 'রিমাইন্ডার সফলভাবে যোগ হয়েছে';
+
+  @override
+  String get reminderUpdatedSuccess => 'রিমাইন্ডার সফলভাবে আপডেট হয়েছে';
+
+  @override
+  String get reminderDeletedSuccess => 'রিমাইন্ডার সফলভাবে মুছে ফেলা হয়েছে';
 
   @override
   String get allEvents => 'সকল ইভেন্ট';

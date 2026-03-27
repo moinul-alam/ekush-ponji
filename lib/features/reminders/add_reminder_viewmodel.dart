@@ -9,6 +9,7 @@ import 'package:ekush_ponji/features/reminders/models/reminder.dart';
 import 'package:ekush_ponji/features/reminders/data/reminder_repository.dart';
 import 'package:ekush_ponji/features/calendar/calendar_viewmodel.dart';
 import 'package:ekush_ponji/features/reminders/services/reminder_notification_service.dart';
+import 'package:ekush_ponji/app/providers/app_providers.dart';
 
 class AddReminderViewModel extends BaseViewModel {
   late final ReminderRepository _repository;
@@ -112,6 +113,7 @@ class AddReminderViewModel extends BaseViewModel {
         ref
             .read(calendarViewModelProvider.notifier)
             .invalidateCacheForDate(dateTime!);
+        ref.read(appDataVersionProvider.notifier).markChanged();
 
         await ReminderNotificationService.cancel(reminder);
         if (reminder.notificationEnabled) {
@@ -119,8 +121,11 @@ class AddReminderViewModel extends BaseViewModel {
         }
       },
       loadingMessage: l10n.loading,
-      successMessage: isEditMode ? l10n.editReminder : l10n.addReminder,
-      errorMessage: '${l10n.error}: ${l10n.editReminder}',
+      successMessage: isEditMode
+          ? l10n.reminderUpdatedSuccess
+          : l10n.reminderAddedSuccess,
+      errorMessage:
+          '${l10n.error}: ${isEditMode ? l10n.editReminder : l10n.addReminder}',
     );
   }
 
@@ -145,9 +150,10 @@ class AddReminderViewModel extends BaseViewModel {
               .read(calendarViewModelProvider.notifier)
               .invalidateCacheForDate(dateToInvalidate);
         }
+        ref.read(appDataVersionProvider.notifier).markChanged();
       },
       loadingMessage: l10n.loading,
-      successMessage: l10n.deleteReminder,
+      successMessage: l10n.reminderDeletedSuccess,
       errorMessage: '${l10n.error}: ${l10n.deleteReminder}',
     );
   }
