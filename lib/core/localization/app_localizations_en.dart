@@ -419,12 +419,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notifications => 'Notifications';
 
   @override
-  String get notificationSubtitle =>
-      'Enable notifications to receive updates about holidays';
+  String get notificationSubtitle => 'Enable notifications to receive updates';
 
   @override
   String get notificationsPermissionRequired =>
-      'Please allow notification permission to enable reminders.';
+      'Please allow notification permission';
 
   @override
   String get notificationPermissionTitle => 'Notification Permission';
@@ -915,7 +914,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get seasonGrishmo => 'Summer';
 
   @override
-  String get seasonBorsha => 'Monsoon';
+  String get seasonBorsha => 'Rainy Season';
 
   @override
   String get seasonSharat => 'Autumn';

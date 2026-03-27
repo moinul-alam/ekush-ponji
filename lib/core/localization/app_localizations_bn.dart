@@ -419,12 +419,11 @@ class AppLocalizationsBn extends AppLocalizations {
   String get notifications => 'নোটিফিকেশন';
 
   @override
-  String get notificationSubtitle =>
-      'ছুটির দিন সম্পর্কে নোটিফিকেশন পেতে এনাবল করুন';
+  String get notificationSubtitle => 'নোটিফিকেশন পেতে এনাবল করুন';
 
   @override
   String get notificationsPermissionRequired =>
-      'রিমাইন্ডার চালু করতে নোটিফিকেশন অনুমতি দিন।';
+      'চালু করতে নোটিফিকেশন অনুমতি দিন।';
 
   @override
   String get notificationPermissionTitle => 'নোটিফিকেশন অনুমতি';
@@ -580,13 +579,13 @@ class AppLocalizationsBn extends AppLocalizations {
   String get eventTitle => 'ইভেন্টের বিষয়';
 
   @override
-  String get eventSubtitle => 'ইভেন্টের বিবরণ যোগ করুন';
+  String get eventSubtitle => 'ইভেন্টের বিষয় যোগ করুন';
 
   @override
   String get reminderTitle => 'রিমাইন্ডারের বিষয়';
 
   @override
-  String get reminderSubtitle => 'রিমাইন্ডারের বিবরণ যোগ করুন';
+  String get reminderSubtitle => 'রিমাইন্ডারের বিষয় যোগ করুন';
 
   @override
   String get location => 'লোকেশন';

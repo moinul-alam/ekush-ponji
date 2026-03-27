@@ -76,13 +76,13 @@ extension _PeriodData on _TimePeriod {
                 const Color(0xFFB56A00),
                 const Color(0xFF00513F),
                 const Color(0xFFFFE0B2),
-                const Color(0xFFFFCC80)
+                const Color(0xFFFFCC80),
               ]
             : [
                 const Color(0xFFFFB74D),
                 const Color(0xFF7FF9D4),
                 const Color(0xFF3E2000),
-                const Color(0xFF7A4100)
+                const Color(0xFF7A4100),
               ];
       case _TimePeriod.afternoon:
         return isDark
@@ -90,13 +90,13 @@ extension _PeriodData on _TimePeriod {
                 const Color(0xFF00513F),
                 const Color(0xFF244C5A),
                 const Color(0xFF7FF9D4),
-                const Color(0xFFA5CCDF)
+                const Color(0xFFA5CCDF),
               ]
             : [
                 const Color(0xFF7FF9D4),
                 const Color(0xFFC1E8FB),
                 const Color(0xFF002117),
-                const Color(0xFF006B54)
+                const Color(0xFF006B54),
               ];
       case _TimePeriod.evening:
         return isDark
@@ -104,13 +104,13 @@ extension _PeriodData on _TimePeriod {
                 const Color(0xFF7A2200),
                 const Color(0xFF334B42),
                 const Color(0xFFFFCCBC),
-                const Color(0xFFFF8A65)
+                const Color(0xFFFF8A65),
               ]
             : [
                 const Color(0xFFFF7043),
                 const Color(0xFFCCE8DB),
                 const Color(0xFF3E0A00),
-                const Color(0xFF8B2500)
+                const Color(0xFF8B2500),
               ];
       case _TimePeriod.night:
         return isDark
@@ -118,19 +118,19 @@ extension _PeriodData on _TimePeriod {
                 const Color(0xFF1A237E),
                 const Color(0xFF0D2B1F),
                 const Color(0xFFBBDEFB),
-                const Color(0xFF90CAF9)
+                const Color(0xFF90CAF9),
               ]
             : [
                 const Color(0xFF303F9F),
                 const Color(0xFF1B4332),
                 const Color(0xFFE8EAF6),
-                const Color(0xFFBBDEFB)
+                const Color(0xFFBBDEFB),
               ];
     }
   }
 }
 
-// ── Gregorian helpers ─────────────────────────────────────────
+// ── Gregorian month names ─────────────────────────────────────
 
 const List<String> _enMonths = [
   '',
@@ -148,25 +148,16 @@ const List<String> _enMonths = [
   'December',
 ];
 
-String _enGregorianSeason(int month) {
-  if (month >= 3 && month <= 5) return 'Spring';
-  if (month >= 6 && month <= 8) return 'Summer';
-  if (month >= 9 && month <= 11) return 'Autumn';
-  return 'Winter';
-}
-
 // ── Performance checker ───────────────────────────────────────
 
 class _PerformanceChecker {
   static Future<bool> isShimmerCapable() async {
     final prefs = await SharedPreferences.getInstance();
 
-    // Return cached result if available
     if (prefs.containsKey(_shimmerCapableKey)) {
       return prefs.getBool(_shimmerCapableKey) ?? false;
     }
 
-    // Measure average frame time over _frameCheckCount frames
     final frameTimes = <double>[];
     final completer = Completer<bool>();
 
@@ -217,25 +208,19 @@ class _HomeDateGreeterWidgetState extends ConsumerState<HomeDateGreeterWidget>
   Timer? _clockWatchTimer;
   bool _shimmerEnabled = false;
 
-  // Entrance
   late AnimationController _entranceController;
   late Animation<double> _fadeAnim;
   late Animation<Offset> _slideAnim;
 
-  // Period cross-fade
   late AnimationController _crossFadeController;
   late Animation<double> _crossFadeAnim;
 
-  // Directional movement — behavior changes per period
   late AnimationController _directionalController;
   late Animation<double> _directionalAnim;
 
-  // Pulse/breathe — used after sun reaches top (morning/evening)
-  // and for afternoon heat haze
   late AnimationController _pulseController;
   late Animation<double> _pulseAnim;
 
-  // Shimmer — only on capable devices
   late AnimationController _shimmerController;
   late Animation<double> _shimmerAnim;
 
@@ -351,26 +336,19 @@ class _HomeDateGreeterWidgetState extends ConsumerState<HomeDateGreeterWidget>
 
     switch (_period) {
       case _TimePeriod.morning:
-        // Sun rises once, then pulse begins
         _directionalController.forward().then((_) {
           if (mounted) _pulseController.repeat(reverse: true);
         });
         break;
-
       case _TimePeriod.afternoon:
-        // Heat haze — pulse immediately
         _pulseController.repeat(reverse: true);
         break;
-
       case _TimePeriod.evening:
-        // Sun sets once, then pulse at bottom
         _directionalController.forward().then((_) {
           if (mounted) _pulseController.repeat(reverse: true);
         });
         break;
-
       case _TimePeriod.night:
-        // Moon arcs continuously left to right
         _directionalController.repeat();
         break;
     }
@@ -379,7 +357,6 @@ class _HomeDateGreeterWidgetState extends ConsumerState<HomeDateGreeterWidget>
   // ── Performance check ──────────────────────────────────────
 
   Future<void> _checkPerformance() async {
-    // Also respect OS-level reduce motion setting
     final reduceMotion = WidgetsBinding
         .instance.platformDispatcher.accessibilityFeatures.reduceMotion;
 
@@ -390,14 +367,12 @@ class _HomeDateGreeterWidgetState extends ConsumerState<HomeDateGreeterWidget>
 
     final capable = await _PerformanceChecker.isShimmerCapable();
     if (mounted) {
-      setState(() {
-        _shimmerEnabled = capable;
-      });
+      setState(() => _shimmerEnabled = capable);
       if (capable) _shimmerController.repeat();
     }
   }
 
-  // ── Lifecycle — pause/resume animations ───────────────────
+  // ── Lifecycle ──────────────────────────────────────────────
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -447,7 +422,6 @@ class _HomeDateGreeterWidgetState extends ConsumerState<HomeDateGreeterWidget>
   }
 
   void _onHourBoundary() {
-    // Guard: widget may have been disposed before timer fired
     if (!mounted) return;
 
     final now = DateTime.now();
@@ -456,7 +430,6 @@ class _HomeDateGreeterWidgetState extends ConsumerState<HomeDateGreeterWidget>
 
     if (dayChanged) {
       _lastRebuildDate = currentDate;
-      // Read providers only if still mounted — ref is valid while mounted
       ref.invalidate(quotesViewModelProvider);
       ref.invalidate(wordsViewModelProvider);
       ref.read(homeViewModelProvider.notifier).refresh();
@@ -464,7 +437,6 @@ class _HomeDateGreeterWidgetState extends ConsumerState<HomeDateGreeterWidget>
 
     final newPeriod = _currentPeriod();
     if (newPeriod != _period) {
-      // Guard inside async callback too
       _crossFadeController.forward(from: 0).then((_) {
         if (!mounted) return;
         setState(() => _period = newPeriod);
@@ -477,7 +449,6 @@ class _HomeDateGreeterWidgetState extends ConsumerState<HomeDateGreeterWidget>
       setState(() {});
     }
 
-    // Only reschedule if still mounted
     if (mounted) _scheduleBoundaryTimer();
   }
 
@@ -543,10 +514,12 @@ class _HomeDateGreeterWidgetState extends ConsumerState<HomeDateGreeterWidget>
                   _DateRow(
                     dayNum: now.day.toString(),
                     monthYearEra: '${_enMonths[now.month]} ${now.year} AD',
-                    seasonOrIcon:
-                        _SeasonOrIcon.season(_enGregorianSeason(now.month)),
+                    seasonOrIcon: _SeasonOrIcon.season(
+                      l10n.getGregorianSeasonName(bengaliDate.monthNumber),
+                    ),
                     backgroundColor: theme.colorScheme.tertiaryContainer,
                     textColor: theme.colorScheme.onTertiaryContainer,
+                    isGregorian: true,
                   ),
                   _DateRow(
                     dayNum: l10n.languageCode == 'bn'
@@ -557,7 +530,8 @@ class _HomeDateGreeterWidgetState extends ConsumerState<HomeDateGreeterWidget>
                         '${l10n.languageCode == 'bn' ? bengaliDate.yearBn : bengaliDate.year} '
                         '${l10n.calendarShortBangla}',
                     seasonOrIcon: _SeasonOrIcon.season(
-                        l10n.getBengaliSeasonName(bengaliDate.monthNumber)),
+                      l10n.getBengaliSeasonName(bengaliDate.monthNumber),
+                    ),
                     backgroundColor: theme.colorScheme.primaryContainer,
                     textColor: theme.colorScheme.onPrimaryContainer,
                   ),
@@ -567,7 +541,7 @@ class _HomeDateGreeterWidgetState extends ConsumerState<HomeDateGreeterWidget>
                         '${hijriDate.monthNameForLocale(l10n.languageCode)} '
                         '${hijriDate.yearForLocale(l10n.languageCode)} '
                         '${l10n.calendarShortHijri}',
-                    seasonOrIcon: _SeasonOrIcon.icon(),
+                    seasonOrIcon: _SeasonOrIcon.none(),
                     backgroundColor: theme.colorScheme.secondaryContainer,
                     textColor: theme.colorScheme.onSecondaryContainer,
                   ),
@@ -591,7 +565,7 @@ class _GreeterHeader extends StatelessWidget {
   final Color iconColor;
   final Animation<double> directionalAnim;
   final Animation<double> pulseAnim;
-  final Animation<double>? shimmerAnim; // null on low-end devices
+  final Animation<double>? shimmerAnim;
   final String greeting;
   final String todayIsDayName;
 
@@ -608,30 +582,17 @@ class _GreeterHeader extends StatelessWidget {
     required this.todayIsDayName,
   });
 
-  // ── Icon position per period ───────────────────────────────
-
-  // Returns Offset for the watermark icon based on period and
-  // animation progress (0.0 → 1.0)
   Offset _iconOffset(double progress, double cardHeight) {
     switch (period) {
       case _TimePeriod.morning:
-        // Rises from bottom to top — progress 0=bottom, 1=top
         final y = cardHeight * 0.4 * (1.0 - progress);
         return Offset(0, y);
-
       case _TimePeriod.afternoon:
-        // Stays centered — no directional movement
         return Offset.zero;
-
       case _TimePeriod.evening:
-        // Drifts from center downward
         final y = cardHeight * 0.3 * progress;
         return Offset(0, y);
-
       case _TimePeriod.night:
-        // Arcs left to right using sine curve for natural path
-        // X: linear sweep across card width
-        // Y: sine curve gives arc shape
         final x = -30.0 + (progress * 60.0);
         final y = -20.0 * math.sin(progress * math.pi);
         return Offset(x, y);
@@ -668,18 +629,17 @@ class _GreeterHeader extends StatelessWidget {
             child: Stack(
               alignment: Alignment.centerLeft,
               children: [
-                // ── Layer 1: Shimmer (capable devices only) ──
+                // Layer 1: Shimmer
                 if (shimmerAnim != null)
                   AnimatedBuilder(
                     animation: shimmerAnim!,
                     builder: (context, _) {
                       final pos = shimmerAnim!.value;
-                      // Direction varies by period
                       final sweepPos = period == _TimePeriod.evening
-                          ? 1.0 - pos // right to left for sunset
+                          ? 1.0 - pos
                           : period == _TimePeriod.night
                               ? 0.5 + (math.sin(pos * math.pi * 2) * 0.3)
-                              : pos; // left to right for others
+                              : pos;
 
                       return Positioned.fill(
                         child: Opacity(
@@ -703,7 +663,7 @@ class _GreeterHeader extends StatelessWidget {
                     },
                   ),
 
-                // ── Layer 2: Directional + pulse watermark ───
+                // Layer 2: Directional + pulse watermark
                 Positioned(
                   right: 0,
                   top: 0,
@@ -721,7 +681,6 @@ class _GreeterHeader extends StatelessWidget {
                         ),
                       );
                     },
-                    // Icon built once, only transformed
                     child: Opacity(
                       opacity: 0.10,
                       child: Padding(
@@ -736,7 +695,7 @@ class _GreeterHeader extends StatelessWidget {
                   ),
                 ),
 
-                // ── Layer 3: Text — never rebuilds ───────────
+                // Layer 3: Text
                 Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -784,12 +743,13 @@ class _GreeterHeader extends StatelessWidget {
 
 class _SeasonOrIcon {
   final String? season;
-  final bool isIcon;
+  final bool isEmpty;
 
-  const _SeasonOrIcon.season(this.season) : isIcon = false;
-  const _SeasonOrIcon.icon()
+  const _SeasonOrIcon.season(this.season) : isEmpty = false;
+
+  const _SeasonOrIcon.none()
       : season = null,
-        isIcon = true;
+        isEmpty = true;
 }
 
 // ── Date Row ──────────────────────────────────────────────────
@@ -800,6 +760,7 @@ class _DateRow extends StatelessWidget {
   final _SeasonOrIcon seasonOrIcon;
   final Color backgroundColor;
   final Color textColor;
+  final bool isGregorian;
 
   const _DateRow({
     required this.dayNum,
@@ -807,6 +768,7 @@ class _DateRow extends StatelessWidget {
     required this.seasonOrIcon,
     required this.backgroundColor,
     required this.textColor,
+    this.isGregorian = false,
   });
 
   @override
@@ -816,7 +778,7 @@ class _DateRow extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
       color: backgroundColor,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -836,7 +798,7 @@ class _DateRow extends StatelessWidget {
           ),
           Container(
             width: 1,
-            height: 44,
+            height: 48,
             margin: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -855,8 +817,8 @@ class _DateRow extends StatelessWidget {
               monthYearEra,
               style: theme.textTheme.titleMedium?.copyWith(
                 color: textColor,
-                fontWeight: FontWeight.w600,
-                fontSize: 18,
+                fontWeight: isGregorian ? FontWeight.w700 : FontWeight.w600,
+                fontSize: isGregorian ? 20 : 18,
                 height: 1.0,
               ),
               overflow: TextOverflow.ellipsis,
@@ -864,12 +826,8 @@ class _DateRow extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          if (seasonOrIcon.isIcon)
-            Icon(
-              Icons.mosque_outlined,
-              color: textColor.withValues(alpha: 0.4),
-              size: 22,
-            )
+          if (seasonOrIcon.isEmpty)
+            const SizedBox(width: 22)
           else if (seasonOrIcon.season != null &&
               seasonOrIcon.season!.isNotEmpty)
             Container(

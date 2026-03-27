@@ -599,11 +599,15 @@ abstract class AppLocalizations {
     return seasonBosonto;
   }
 
-  String getGregorianSeasonName(int month) {
-    if (month >= 3 && month <= 5) return seasonSpring;
-    if (month >= 6 && month <= 8) return seasonSummer;
-    if (month >= 9 && month <= 11) return seasonAutumn;
-    return seasonWinter;
+  String getGregorianSeasonName(int bengaliMonthNumber) {
+    if (bengaliMonthNumber >= 1 && bengaliMonthNumber <= 2) return 'Summer';
+    if (bengaliMonthNumber >= 3 && bengaliMonthNumber <= 4)
+      return 'Rainy Season';
+    if (bengaliMonthNumber >= 5 && bengaliMonthNumber <= 6) return 'Autumn';
+    if (bengaliMonthNumber >= 7 && bengaliMonthNumber <= 8)
+      return 'Late Autumn';
+    if (bengaliMonthNumber >= 9 && bengaliMonthNumber <= 10) return 'Winter';
+    return 'Spring';
   }
 }
 
