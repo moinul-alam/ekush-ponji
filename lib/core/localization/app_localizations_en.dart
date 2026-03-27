@@ -475,14 +475,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get quoteNotificationsSubtitle =>
-      'Get a quote notification every morning';
+      'Enable notification to get new quotes every morning';
 
   @override
   String get wordNotifications => 'Word of the Day';
 
   @override
   String get wordNotificationsSubtitle =>
-      'Get a new word notification every morning';
+      'Enable notification to learn new words every morning';
 
   // ═══════════════════════════════════════════════════════════
   // HOLIDAYS SCREEN

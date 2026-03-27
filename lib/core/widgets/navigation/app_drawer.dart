@@ -52,7 +52,7 @@ class AppDrawer extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
                   child: Image.asset(
-                    'assets/images/header_logo.png',
+                    'assets/images/app_logo.png',
                     width: 36,
                     height: 36,
                     fit: BoxFit.contain,

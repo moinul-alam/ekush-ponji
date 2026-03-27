@@ -6,8 +6,9 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
     <!-- Exact alarm permissions (Android 12+ / API 31+) -->
-    <!-- SCHEDULE_EXACT_ALARM: user can revoke this in Settings — handle gracefully -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
 
     <!-- Required to reschedule alarms after device reboot -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
