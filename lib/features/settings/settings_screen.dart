@@ -92,6 +92,7 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen>
     final currentLanguage = currentLocale.languageCode;
 
     final osGranted = ref.watch(notificationPermissionProvider).value ?? false;
+    final appVersion = ref.watch(appVersionProvider);
 
     final isSyncing = viewState is ViewStateLoading &&
         viewState.message == 'Updating data...';
@@ -276,17 +277,15 @@ class _SettingsScreenState extends BaseScreenState<SettingsScreen>
         Center(
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child: ref.watch(appVersionProvider).when(
-                  data: (v) => Text(
-                    v.displayEn,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      fontSize: _SettingsFonts.version,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  loading: () => const SizedBox.shrink(),
-                  error: (_, __) => const SizedBox.shrink(),
-                ),
+            child: Text(
+              l10n.languageCode == 'bn'
+                  ? appVersion.displayBn
+                  : appVersion.displayEn,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontSize: _SettingsFonts.version,
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
           ),
         ),
       ],

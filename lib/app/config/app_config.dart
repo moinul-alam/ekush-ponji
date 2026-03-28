@@ -11,8 +11,7 @@ class AppConfig {
 
   static const String appName = 'একুশ পঞ্জি';
   static const String appNameEn = 'Ekush Ponji';
-  static const String appVersion = '1.0.0';
-  static const int appBuildNumber = 1;
+  /// Marketing / store id only. Runtime version → [AppVersionCache] / [appVersionProvider].
   static const String packageName = 'com.ekushlabs.ponji';
 
   // ═══════════════════════════════════════════

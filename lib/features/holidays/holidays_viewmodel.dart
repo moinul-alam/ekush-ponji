@@ -56,10 +56,14 @@ class HolidaysViewModel extends BaseViewModel {
   // ── Lifecycle ─────────────────────────────────────────────
 
   @override
-  void onInit() {
-    super.onInit();
+  void onSyncSetup() {
     _repository = ref.read(calendarRepositoryProvider);
     _syncService = ref.read(dataSyncServiceProvider);
+  }
+
+  @override
+  void onInit() {
+    super.onInit();
     loadHolidaysForYear(_selectedYear);
   }
 

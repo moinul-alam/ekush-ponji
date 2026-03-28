@@ -11,6 +11,7 @@ import 'package:ekush_ponji/core/themes/app_theme.dart';
 import 'package:ekush_ponji/features/holidays/models/holiday.dart';
 import 'package:ekush_ponji/features/quotes/models/quote.dart';
 import 'package:ekush_ponji/features/words/models/word.dart';
+import 'package:ekush_ponji/core/services/app_version_service.dart';
 import 'package:ekush_ponji/core/services/local_notification_service.dart';
 import 'package:ekush_ponji/core/services/background_task_dispatcher.dart';
 import 'package:ekush_ponji/features/calendar/data/calendar_repository.dart';
@@ -47,6 +48,7 @@ class AppInitializer {
         Hive.openBox<WordModel>(savedWordsBoxName),
       ]);
       await LocalNotificationService.initialize();
+      await AppVersionCache.warmFromPlatform();
       _log('✅ Core initialization completed');
     } catch (e, st) {
       _log('❌ Core init failed: $e');

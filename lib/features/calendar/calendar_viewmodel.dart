@@ -45,8 +45,7 @@ class CalendarViewModel extends BaseViewModel {
   }
 
   @override
-  void onInit() {
-    super.onInit();
+  void onSyncSetup() {
     _repository = ref.read(calendarRepositoryProvider);
     _bengaliService = ref.read(bengaliCalendarServiceProvider);
     ref.listen<int>(appDataVersionProvider, (previous, next) {
@@ -54,6 +53,11 @@ class CalendarViewModel extends BaseViewModel {
         Future.microtask(_reloadAfterExternalDataChange);
       }
     });
+  }
+
+  @override
+  void onInit() {
+    super.onInit();
     loadCurrentMonth();
   }
 

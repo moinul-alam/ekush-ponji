@@ -86,10 +86,10 @@ class CalendarRepository {
       final allMonthHolidays = await getHolidaysForMonth(year, month);
 
       for (final date in entry.value) {
-        // Grid cells: mandatory holidays only
-        map[date] = allMonthHolidays
-            .where((h) => h.containsDate(date) && h.isMandatory)
-            .toList();
+        // All holidays for the day (mandatory + optional) so day-details /
+        // notification deep links show the same holiday as the calendar list.
+        map[date] =
+            allMonthHolidays.where((h) => h.containsDate(date)).toList();
       }
     }
 

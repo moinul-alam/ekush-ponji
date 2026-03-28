@@ -24,7 +24,7 @@ class AboutScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isBn = l10n.languageCode == 'bn';
-    final versionAsync = ref.watch(appVersionProvider);
+    final versionInfo = ref.watch(appVersionProvider);
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -67,20 +67,11 @@ class AboutScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 4),
 
-                // ── Version (dynamic) ──────────────────────────
-                versionAsync.when(
-                  data: (v) => Text(
-                    isBn ? v.displayBn : v.displayEn,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  loading: () => const SizedBox(height: 16),
-                  error: (_, __) => Text(
-                    isBn ? 'সংস্করণ অজানা' : 'Version unknown',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
+                // ── Version (from PackageInfo / pubspec at build time) ───
+                Text(
+                  isBn ? versionInfo.displayBn : versionInfo.displayEn,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
                   ),
                 ),
 

@@ -16,6 +16,10 @@ abstract class BaseViewModel<T> extends Notifier<ViewState> {
       onDispose();
     });
 
+    // Assign `late` refs / listeners synchronously so post-frame callbacks
+    // (e.g. deep links, notification routes) never run async loads first.
+    onSyncSetup();
+
     // Defer onInit to avoid modifying state during build
     Future.microtask(() => onInit());
 
@@ -273,6 +277,10 @@ abstract class BaseViewModel<T> extends Notifier<ViewState> {
   void _cancelPendingOperations() {
     _pendingOperations.clear();
   }
+
+  /// Synchronous hook from [build] — runs before the [onInit] microtask.
+  /// Override to read [ref] into `late` fields and register [ref.listen].
+  void onSyncSetup() {}
 
   /// Called when ViewModel is initialized
   /// Override this to perform initialization tasks

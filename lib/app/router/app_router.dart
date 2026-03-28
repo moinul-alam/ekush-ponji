@@ -95,7 +95,7 @@ class AppRouter {
                         path: 'day-details',
                         name: 'calendarDayDetails',
                         builder: (context, state) => DayDetailsScreen(
-                          initialDate: state.extra as DateTime?,
+                          initialDate: _dayDetailsInitialDate(state),
                         ),
                       ),
                       GoRoute(
@@ -188,7 +188,7 @@ class AppRouter {
             path: RouteNames.quotes,
             name: 'quotes',
             builder: (context, state) => QuotesScreen(
-              initialIndex: (state.extra as int?) ?? 0,
+              initialIndex: _quoteOrWordInitialIndex(state),
             ),
           ),
           GoRoute(
@@ -200,7 +200,7 @@ class AppRouter {
             path: RouteNames.words,
             name: 'words',
             builder: (context, state) => WordsScreen(
-              initialIndex: (state.extra as int?) ?? 0,
+              initialIndex: _quoteOrWordInitialIndex(state),
             ),
           ),
           GoRoute(
@@ -214,15 +214,75 @@ class AppRouter {
     errorBuilder: (context, state) => _ErrorScreen(state: state),
   );
 
+  /// Cold-start [redirect] can only change the location string — not [GoRouterState.extra].
+  /// Encode quote/word indices and calendar dates in the query so notification taps
+  /// open the correct item after launch.
   static String? _payloadToRoute(String payload) {
     if (payload == 'holiday') return RouteNames.holidays;
-    if (payload.startsWith('quote:')) return RouteNames.quotes;
-    if (payload.startsWith('word:')) return RouteNames.words;
-    if (payload.startsWith('event:') || payload.startsWith('reminder:')) {
-      return RouteNames.calendar;
+    if (payload.startsWith('quote:')) {
+      final index = int.tryParse(payload.substring('quote:'.length));
+      if (index == null) return RouteNames.quotes;
+      return Uri(
+        path: RouteNames.quotes,
+        queryParameters: {_quoteWordIndexQueryKey: '$index'},
+      ).toString();
+    }
+    if (payload.startsWith('word:')) {
+      final index = int.tryParse(payload.substring('word:'.length));
+      if (index == null) return RouteNames.words;
+      return Uri(
+        path: RouteNames.words,
+        queryParameters: {_quoteWordIndexQueryKey: '$index'},
+      ).toString();
+    }
+    if (payload.startsWith('event:')) {
+      return _calendarDayDetailsLocation(payload.substring('event:'.length));
+    }
+    if (payload.startsWith('reminder:')) {
+      return _calendarDayDetailsLocation(payload.substring('reminder:'.length));
     }
     return RouteNames.home;
   }
+
+  static const String _quoteWordIndexQueryKey = 'i';
+  static const String _calendarDateQueryKey = 'date';
+
+  static String _calendarDayDetailsLocation(String dateStr) {
+    try {
+      DateTime.parse(dateStr);
+    } catch (_) {
+      return RouteNames.calendar;
+    }
+    return Uri(
+      path: RouteNames.calendarDayDetails,
+      queryParameters: {_calendarDateQueryKey: dateStr},
+    ).toString();
+  }
+}
+
+int _quoteOrWordInitialIndex(GoRouterState state) {
+  final raw = state.uri.queryParameters[AppRouter._quoteWordIndexQueryKey];
+  if (raw != null) {
+    final fromQuery = int.tryParse(raw);
+    if (fromQuery != null) return fromQuery;
+  }
+  final extra = state.extra;
+  if (extra is int) return extra;
+  return 0;
+}
+
+DateTime? _dayDetailsInitialDate(GoRouterState state) {
+  final raw = state.uri.queryParameters[AppRouter._calendarDateQueryKey];
+  if (raw != null && raw.isNotEmpty) {
+    try {
+      return DateTime.parse(raw);
+    } catch (_) {
+      return null;
+    }
+  }
+  final extra = state.extra;
+  if (extra is DateTime) return extra;
+  return null;
 }
 
 class RootScaffold extends ConsumerWidget {

@@ -22,13 +22,18 @@ class WordsViewModel extends BaseViewModel {
   List<WordModel> get savedWords => _savedWords;
 
   @override
-  void onInit() {
+  void onSyncSetup() {
     _repository = WordsRepository(
       localDatasource: WordsLocalDatasource(
         savedBox: Hive.box<WordModel>(savedWordsBoxName),
         settingsBox: Hive.box(settingsBoxName),
       ),
     );
+  }
+
+  @override
+  void onInit() {
+    super.onInit();
     loadWords();
   }
 

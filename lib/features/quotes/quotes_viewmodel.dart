@@ -22,13 +22,18 @@ class QuotesViewModel extends BaseViewModel {
   List<QuoteModel> get savedQuotes => _savedQuotes;
 
   @override
-  void onInit() {
+  void onSyncSetup() {
     _repository = QuotesRepository(
       localDatasource: QuotesLocalDatasource(
         savedBox: Hive.box<QuoteModel>(savedQuotesBoxName),
         settingsBox: Hive.box(settingsBoxName),
       ),
     );
+  }
+
+  @override
+  void onInit() {
+    super.onInit();
     loadQuotes();
   }
 

@@ -25,8 +25,7 @@ class AddReminderViewModel extends BaseViewModel {
   String? validationError;
 
   @override
-  void onInit() {
-    super.onInit();
+  void onSyncSetup() {
     _repository = ref.read(reminderRepositoryProvider);
   }
 

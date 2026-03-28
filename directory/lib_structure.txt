@@ -1,0 +1,287 @@
+Folder PATH listing for volume Ubuntu
+Volume serial number is 7E3F-FC31
+D:\EKUSH-PONJI\LIB
+|   main.dart
+|   
++---app
+|   |   app.dart
+|   |   
+|   +---config
+|   |       ad_config.dart
+|   |       app_config.dart
+|   |       app_initializer.dart
+|   |       
+|   +---providers
+|   |       app_providers.dart
+|   |       
+|   \---router
+|           app_router.dart
+|           route_names.dart
+|           
++---core
+|   +---base
+|   |       base_screen.dart
+|   |       base_viewmodel.dart
+|   |       view_state.dart
+|   |       
+|   +---constants
+|   |       app_constants.dart
+|   |       storage_keys.dart
+|   |       
+|   +---localization
+|   |       app_localizations.dart
+|   |       app_localizations_bn.dart
+|   |       app_localizations_en.dart
+|   |       localization_extensions.dart
+|   |       
+|   +---models
+|   |       app_manifest.dart
+|   |       
+|   +---notifications
+|   |       notification_id.dart
+|   |       notification_permission_dialog.dart
+|   |       notification_permission_prefs.dart
+|   |       notification_permission_provider.dart
+|   |       notification_permission_service.dart
+|   |       notification_prompt_mixin.dart
+|   |       
+|   +---services
+|   |       ad_service.dart
+|   |       app_review_service.dart
+|   |       app_version_service.dart
+|   |       background_task_dispatcher.dart
+|   |       base_sync_service.dart
+|   |       data_sync_service.dart
+|   |       local_notification_service.dart
+|   |       share_service.dart
+|   |       
+|   +---themes
+|   |       app_theme.dart
+|   |       app_theme_extensions.dart
+|   |       color_schemes.dart
+|   |       
+|   +---utils
+|   |       number_converter.dart
+|   |       string_formatter.dart
+|   |       
+|   \---widgets
+|       +---ads
+|       |       app_ad_banner_bottom.dart
+|       |       native_ad_widget.dart
+|       |       
+|       +---error
+|       |       app_error_boundary.dart
+|       |       app_init_error_screen.dart
+|       |       
+|       +---loading
+|       |       app_loading_spinner.dart
+|       |       
+|       +---navigation
+|       |       app_bottom_nav.dart
+|       |       app_drawer.dart
+|       |       app_header.dart
+|       |       more_bottom_sheet.dart
+|       |       
+|       \---pickers
+|               app_date_picker.dart
+|               app_date_time_picker.dart
+|               custom_month_year_picker.dart
+|               
+\---features
+    +---about
+    |       about_content.dart
+    |       about_screen.dart
+    |       
+    +---calculator
+    |   |   calculator_screen.dart
+    |   |   calculator_viewmodel.dart
+    |   |   
+    |   +---models
+    |   |       date_calculation_result.dart
+    |   |       
+    |   \---widgets
+    |           date_input_field.dart
+    |           result_card.dart
+    |           
+    +---calendar
+    |   |   calendar_screen.dart
+    |   |   calendar_viewmodel.dart
+    |   |   day_details_screen.dart
+    |   |   
+    |   +---data
+    |   |   |   calendar_repository.dart
+    |   |   |   
+    |   |   +---local
+    |   |   |       calendar_local_datasource.dart
+    |   |   |       
+    |   |   +---remote
+    |   |   |       calendar_remote_datasource.dart
+    |   |   |       
+    |   |   \---repositories
+    |   |           repositories_providers.dart
+    |   |           
+    |   +---models
+    |   |       bengali_date.dart
+    |   |       calendar_day.dart
+    |   |       hijri_date.dart
+    |   |       month_data.dart
+    |   |       
+    |   +---providers
+    |   |       calendar_visibility_provider.dart
+    |   |       
+    |   +---services
+    |   |       bengali_calendar_service.dart
+    |   |       hijri_calendar_service.dart
+    |   |       hijri_offset_sync_service.dart
+    |   |       
+    |   \---widgets
+    |           calendar_day_cell.dart
+    |           calendar_grid.dart
+    |           calendar_header.dart
+    |           calendar_holidays_widget.dart
+    |           calendar_visibilities.dart
+    |           day_details_panel.dart
+    |           upcoming_events_widget.dart
+    |           week_days_row.dart
+    |           
+    +---events
+    |   |   add_event_screen.dart
+    |   |   add_event_viewmodel.dart
+    |   |   events_list_screen.dart
+    |   |   
+    |   +---data
+    |   |   |   event_repository.dart
+    |   |   |   
+    |   |   \---local
+    |   |           events_local_datasource.dart
+    |   |           
+    |   +---models
+    |   |       event.dart
+    |   |       
+    |   \---services
+    |           event_notification_service.dart
+    |           
+    +---holidays
+    |   |   holidays_screen.dart
+    |   |   holidays_viewmodel.dart
+    |   |   
+    |   +---models
+    |   |       holiday.dart
+    |   |       
+    |   +---providers
+    |   |       holiday_notification_provider.dart
+    |   |       
+    |   +---services
+    |   |       holiday_notification_prefs.dart
+    |   |       holiday_notification_service.dart
+    |   |       holiday_sync_service.dart
+    |   |       
+    |   \---widgets
+    |           holiday_card.dart
+    |           holiday_gazette_section_widget.dart
+    |           holiday_month_section_widget.dart
+    |           holiday_type_legend_widget.dart
+    |           
+    +---home
+    |   |   home_screen.dart
+    |   |   home_viewmodel.dart
+    |   |   
+    |   \---widgets
+    |           app_review_banner.dart
+    |           daily_quote_widget.dart
+    |           daily_word_widget.dart
+    |           home_date_greeter_widget.dart
+    |           home_events_widget.dart
+    |           home_holidays_widget.dart
+    |           home_section_widget.dart
+    |           
+    +---onboarding
+    |   |   onboarding_screen.dart
+    |   |   onboarding_viewmodel.dart
+    |   |   
+    |   \---widgets
+    |           onboarding_page_one.dart
+    |           onboarding_page_two.dart
+    |           
+    +---quotes
+    |   |   quotes_screen.dart
+    |   |   quotes_viewmodel.dart
+    |   |   saved_quotes_screen.dart
+    |   |   
+    |   +---data
+    |   |   +---datasources
+    |   |   |   \---local
+    |   |   |           quotes_local_datasource.dart
+    |   |   |           
+    |   |   \---repositories
+    |   |           quotes_repository.dart
+    |   |           
+    |   +---models
+    |   |       quote.dart
+    |   |       
+    |   +---providers
+    |   |       quote_notification_prefs_provider.dart
+    |   |       
+    |   +---services
+    |   |       quotes_sync_service.dart
+    |   |       quote_notification_prefs.dart
+    |   |       quote_notification_service.dart
+    |   |       
+    |   \---widgets
+    |           quote_share_card.dart
+    |           
+    +---reminders
+    |   |   add_reminder_screen.dart
+    |   |   add_reminder_viewmodel.dart
+    |   |   reminders_list_screen.dart
+    |   |   
+    |   +---data
+    |   |   |   reminder_repository.dart
+    |   |   |   
+    |   |   \---local
+    |   |           reminders_local_datasource.dart
+    |   |           
+    |   +---models
+    |   |       reminder.dart
+    |   |       
+    |   \---services
+    |           reminder_notification_service.dart
+    |           
+    +---settings
+    |       settings_screen.dart
+    |       settings_viewmodel.dart
+    |       
+    +---splash
+    |   |   splash_screen.dart
+    |   |   
+    |   \---widgets
+    |           app_loading_widget.dart
+    |           logo_splash_widget.dart
+    |           
+    \---words
+        |   saved_words_screen.dart
+        |   words_screen.dart
+        |   words_viewmodel.dart
+        |   
+        +---data
+        |   +---datasources
+        |   |   \---local
+        |   |           words_local_datasource.dart
+        |   |           
+        |   \---repositories
+        |           words_repository.dart
+        |           
+        +---models
+        |       word.dart
+        |       
+        +---providers
+        |       word_notification_prefs_provider.dart
+        |       
+        +---services
+        |       words_sync_service.dart
+        |       word_notification_prefs.dart
+        |       word_notification_service.dart
+        |       
+        \---widgets
+                word_share_card.dart
+                
