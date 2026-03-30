@@ -88,8 +88,9 @@ class CalendarRepository {
       for (final date in entry.value) {
         // All holidays for the day (mandatory + optional) so day-details /
         // notification deep links show the same holiday as the calendar list.
-        map[date] =
-            allMonthHolidays.where((h) => h.containsDate(date)).toList();
+        map[date] = allMonthHolidays
+        .where((h) => h.containsDate(date) && h.isMandatory)
+        .toList();
       }
     }
 
